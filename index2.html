@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>المنيو الإلكتروني الذكي</title>
+    <title>المنيو الرقمي ونظام الطلبات</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; margin: 0; padding: 0; text-align: center; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; margin: 0; padding: 0; padding-bottom: 80px; text-align: center; color: #333; }
         
-        /* شاشة الحجب والترحيب الأنيقة */
+        /* شاشة الجدار الحمايتي الجغرافي */
         #blockScreen { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #ffffff; z-index: 9999; flex-direction: column; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
         .welcome-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); max-width: 400px; width: 100%; }
         #welcomeIcon { font-size: 50px; margin-bottom: 15px; }
@@ -15,16 +15,45 @@
         p { color: #6c757d; font-size: 15px; line-height: 1.6; margin-bottom: 25px; }
         .distance-display { font-size: 16px; font-weight: bold; color: #dc3545; background-color: #fff5f5; padding: 12px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ffe3e3; display: none; }
         .start-btn { background-color: #ffc107; color: #212529; border: none; padding: 14px 28px; font-size: 18px; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; transition: all 0.3s ease; box-shadow: 0 3px 10px rgba(255, 193, 7, 0.3); }
-        .start-btn:hover { background-color: #e0a800; }
-
-        /* واجهة المنيو الرئيسية */
-        #menuContent { display: none; padding: 20px; }
-        .header { background-color: #ffc107; padding: 20px; color: #333; border-radius: 0 0 20px 20px; margin-bottom: 20px; position: relative; }
         
-        /* شارة رقم الطاولة الفاخرة في الأعلى */
+        /* المنيو الرئيسي */
+        #menuContent { display: none; padding: 15px; max-width: 600px; margin: 0 auto; }
+        .header { background-color: #ffc107; padding: 20px; color: #333; border-radius: 0 0 20px 20px; margin-bottom: 25px; }
         .table-badge { background-color: #333; color: #fff; padding: 5px 15px; border-radius: 20px; font-size: 16px; font-weight: bold; display: inline-block; margin-top: 10px; }
         
-        .item-card { background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: right; }
+        /* تصميم الأقسام والمنتجات */
+        .category-section { margin-bottom: 30px; text-align: right; }
+        .category-title-box { display: flex; align-items: center; gap: 10px; background: #e2e8f0; padding: 8px 15px; border-radius: 8px; margin-bottom: 15px; }
+        .category-title-box h3 { margin: 0; font-size: 18px; color: #2c3e50; }
+        .item-card { display: flex; background: white; padding: 12px; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); align-items: center; justify-content: space-between; border: 1px solid #edf2f7; }
+        .item-info-side { display: flex; align-items: center; gap: 12px; text-align: right; }
+        .item-text h4 { margin: 0 0 4px 0; font-size: 16px; }
+        .item-text p { margin: 0; font-size: 12px; color: #718096; line-height: 1.4; }
+        .item-text .price { font-weight: bold; color: #e53e3e; font-size: 14px; margin-top: 4px; display: block; }
+        .btn-order-item { background-color: #2f855a; color: white; border: none; padding: 8px 12px; font-size: 13px; border-radius: 6px; cursor: pointer; font-weight: bold; white-space: nowrap; }
+        
+        /* شريط الفاتورة العائم بالأسفل */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #333; color: white; padding: 12px 20px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; z-index: 1000; box-shadow: 0 -3px 10px rgba(0,0,0,0.2); }
+        .invoice-btn { background: #ffc107; color: #212529; border: none; padding: 10px 20px; font-weight: bold; border-radius: 20px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 15px; }
+        
+        /* نافذة الفاتورة المنبثقة Modal */
+        #invoiceModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: flex-end; }
+        .modal-content { background: white; width: 100%; max-width: 500px; border-radius: 20px 20px 0 0; padding: 20px; box-sizing: border-box; max-height: 85vh; overflow-y: auto; text-align: right; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #edf2f7; padding-bottom: 10px; margin-bottom: 15px; }
+        .modal-header h3 { margin: 0; }
+        .close-btn { font-size: 24px; cursor: pointer; background: none; border: none; color: #a0aec0; }
+        
+        /* عناصر الفاتورة والتحرير */
+        .invoice-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #edf2f7; }
+        .qty-controls { display: flex; align-items: center; gap: 8px; }
+        .qty-btn { background: #cbd5e0; border: none; width: 28px; height: 28px; border-radius: 50%; font-weight: bold; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+        .btn-send-order { background-color: #ffc107; color: #212529; width: 100%; padding: 14px; font-size: 16px; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; margin-top: 15px; box-shadow: 0 3px 6px rgba(0,0,0,0.1); }
+        
+        /* قسم الفواتير المرسلة للقراءة فقط */
+        .sent-orders-box { background: #edf2f7; padding: 12px; border-radius: 10px; margin-top: 20px; border: 1px dashed #cbd5e0; }
+        .sent-item { display: flex; justify-content: space-between; color: #4a5568; font-size: 14px; padding: 4px 0; }
+        
+        .thumb-64 { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; }
         .live-status { font-size: 12px; color: #888; margin-top: 15px; }
     </style>
 </head>
@@ -34,8 +63,7 @@
     <div class="welcome-card">
         <div id="welcomeIcon">🍔</div>
         <h1 id="statusTitle">أهلاً بك في مطعمنا</h1>
-        <p id="statusMessage">لتصفح المنيو والتمتع بأحدث الإضافات والخدمات من طاولتك مباشرة، يرجى الضغط على زر المتابعة لتأكيد تواجدك داخل النطاق.</p>
-        
+        <p id="statusMessage">لتصفح المنيو والتمتع بطلب الوجبات والخدمات من طاولتك مباشرة، يرجى الضغط على زر المتابعة لتفعيل حماية الموقع الجغرافي.</p>
         <div id="distanceBox" class="distance-display"></div>
         <button type="button" id="startTrackingBtn" class="start-btn">متابعة</button>
         <div id="accuracyIndicator" class="live-status"></div>
@@ -49,21 +77,44 @@
         <div class="table-badge" id="tableDisplay">جاري قراءة رقم الطاولة...</div>
     </div>
 
-    <div class="item-card">
-        <h3>🍔 وجبة برجر دبل تشيز</h3>
-        <p>السعر: 7500 دينار</p>
+    <div id="menuCategoriesContainer">🔄 جاري تحميل قائمة الأطعمة الفاخرة...</div>
+</div>
+
+<div class="bottom-nav" id="bottomNav" style="display: none;">
+    <div>
+        <span id="bottomTotal">إجمالي الفاتورة الحالية: 0 دينار</span>
     </div>
-    <div class="item-card">
-        <h3>🍕 بيتزا إيطالية بالبيبروني</h3>
-        <p>السعر: 9000 دينار</p>
+    <button class="invoice-btn" onclick="openInvoiceModal()">
+        <span>📄 عرض الفاتورة</span>
+        <span id="badgeCount" style="background: red; color: white; border-radius: 50%; padding: 2px 7px; font-size: 12px;">0</span>
+    </button>
+</div>
+
+<div id="invoiceModal" onclick="closeInvoiceModalOutside(event)">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>📄 مراجعة فاتورة الطاولة</h3>
+            <button class="close-btn" onclick="closeInvoiceModal()">&times;</button>
+        </div>
+        
+        <h4>🛒 طلبات قيد التحرير (يمكنك تعديلها):</h4>
+        <div id="currentInvoiceItems">لا توجد طلبات معلقة حالياً.</div>
+        
+        <div id="invoiceTotalSum" style="font-weight: bold; font-size: 18px; margin-top: 15px; border-top: 2px solid #edf2f7; padding-top: 10px;">الإجمالي: 0 دينار</div>
+        
+        <button class="btn-send-order" id="sendOrderToBBtn" onclick="sendOrderToKitchen()">🚀 إرسال الطلبات إلى المطبخ</button>
+        
+        <div class="sent-orders-box">
+            <h4 style="margin: 0 0 10px 0; color: #2b6cb0;">✔ طلبات أُرسلت للمطبخ (للمطالعة فقط):</h4>
+            <div id="sentInvoiceItems">لا توجد طلبات مرسلة مسبقاً.</div>
+        </div>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    import { getDatabase, ref, set, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-    // إعدادات Firebase الخاصة بك
     const firebaseConfig = {
         apiKey: "AIzaSyCEEqEALOCaQo5oSoR8A_Jh9eSpHS8Sz5o",
         authDomain: "game1-bb93e.firebaseapp.com",
@@ -77,45 +128,42 @@
     const app = initializeApp(firebaseConfig);
     const database = getDatabase(app);
 
-    // إحداثيات المطعم التي حددتها أنت بدقة 3 أمتار
     const RESTAURANT_LAT = 35.3192062; 
     const RESTAURANT_LNG = 43.7640670;
-    const ALLOWED_RADIUS = 100; // النطاق بالمتر
+    const ALLOWED_RADIUS = 100;
 
-    let tableNumber = "غير محدد";
+    let tableNumber = "1"; // الافتراضي
     let watchId = null;
+    let localCurrentOrders = {}; // لتخزين الطلبات المؤقتة محلياً وحساب المجموع
 
     const blockScreen = document.getElementById('blockScreen');
     const menuContent = document.getElementById('menuContent');
-    const statusTitle = document.getElementById('statusTitle');
-    const statusMessage = document.getElementById('statusMessage');
-    const welcomeIcon = document.getElementById('welcomeIcon');
     const startTrackingBtn = document.getElementById('startTrackingBtn');
-    const accuracyIndicator = document.getElementById('accuracyIndicator');
     const distanceBox = document.getElementById('distanceBox');
     const tableDisplay = document.getElementById('tableDisplay');
+    const menuCategoriesContainer = document.getElementById('menuCategoriesContainer');
+    const bottomNav = document.getElementById('bottomNav');
 
-    // دالة ذكية تقرأ رقم الطاولة المكتوب في الرابط تلقائياً فور فتح الصفحة
     function getTableNumberFromUrl() {
         const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get('table') || "عامة";
+        return urlParams.get('table') || "1";
     }
 
-    // تشغيل التتبع المستمر واللحظي فور ضغط الزبون على "متابعة"
+    // تشغيل التتبع الجغرافي اللحظي عند الضغط على متابعة
     startTrackingBtn.addEventListener('click', () => {
-        tableNumber = getTableNumberFromUrl(); // التقاط رقم الطاولة
+        tableNumber = getTableNumberFromUrl();
         tableDisplay.innerText = `📋 أنت تجلس على الطاولة رقم: [ ${tableNumber} ]`;
 
         if (navigator.geolocation) {
             startTrackingBtn.style.display = "none";
-            statusTitle.innerText = "جاري تتبع موقعك لحظيآ...";
-            statusMessage.innerText = "تم تفعيل نظام الحماية الجغرافي اللحظي. بمجرد دخولك النطاق المسموح به للمطعم، سيفتح المنيو تلقائياً.";
-            welcomeIcon.innerHTML = "⏳";
+            document.getElementById('statusTitle').innerText = "جاري تتبع موقعك لحظيآ...";
+            document.getElementById('statusMessage').innerText = "تم تفعيل نظام الحماية المباشر بنجاح. بمجرد دخولك النطاق الجغرافي للمطعم سيفتح المنيو أوتوماتيكياً.";
+            document.getElementById('welcomeIcon').innerHTML = "⏳";
 
             const options = { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 };
             watchId = navigator.geolocation.watchPosition(checkLocation, handleLocationError, options);
         } else {
-            showErrorState("متصفح غير مدعوم", "عذراً، هاتف أو متصفحك لا يدعم تقنيات تحديد الموقع الجغرافي.");
+            alert("المتصفح لا يدعم تحديد الموقع الجغرافي.");
         }
     });
 
@@ -123,27 +171,209 @@
         const userLat = position.coords.latitude;
         const userLng = position.coords.longitude;
         const accuracy = position.coords.accuracy;
-
         const distance = haversineDistance(userLat, userLng, RESTAURANT_LAT, RESTAURANT_LNG);
 
         distanceBox.style.display = "block";
         distanceBox.innerHTML = `📍 أنت على بعد <b>(${distance.toFixed(0)} متر)</b> من الموقع المحدد.<br><small style="font-weight:normal; color:#555;">يجب ان تكون داخل الموقع المطلوب للتمتع باحدث الاضافات الجديدة.</small>`;
-        accuracyIndicator.innerText = `دقة الإشارة اللحظية: +/- ${accuracy.toFixed(1)} متر`;
+        document.getElementById('accuracyIndicator').innerText = `دقة الإشارة الحالية: +/- ${accuracy.toFixed(1)} متر`;
 
         if (distance <= ALLOWED_RADIUS) {
             blockScreen.style.display = 'none';
             menuContent.style.display = 'block';
+            bottomNav.style.display = 'flex'; // إظهار الفاتورة العائمة
             
-            // 💡 ملاحظة هندسية: رقم الطاولة (tableNumber) أصبح جاهزاً ومتوفراً لديك هنا
-            // عند قيامك لاحقاً ببرمجة زر "إرسال الطلب"، ستقوم بحفظ الطلب في جدول tablesB مستخدماً المتغير tableNumber.
+            // تشغيل مستمعي البيانات مرة واحدة فور نجاح التحقق الجغرافي
+            initMenuAndOrdersRealtime();
         } else {
             menuContent.style.display = 'none';
+            bottomNav.style.display = 'none';
             blockScreen.style.display = 'flex';
-            welcomeIcon.innerHTML = "📍";
-            statusTitle.innerText = "❌ أنت خارج نطاق المطعم";
-            statusMessage.innerText = "هذا المنيو مخصص للاستخدام فقط عند تواجدك الفعلي داخل صالة المطعم.";
         }
     }
+
+    // ربط واستماع البيانات الحية للمنيو والطلبات
+    function initMenuAndOrdersRealtime() {
+        // 1. جلب بيانات المنيو والأقسام من جدول orders
+        onValue(ref(database, 'orders'), (snapshot) => {
+            const data = snapshot.val();
+            menuCategoriesContainer.innerHTML = "";
+            if (!data) {
+                menuCategoriesContainer.innerHTML = "<p>المنيو فارغ حالياً، يرجى إضافة عناصر من لوحة التحكم.</p>";
+                return;
+            }
+
+            for (let catId in data) {
+                const category = data[catId];
+                const catSection = document.createElement('div');
+                catSection.className = 'category-section';
+                
+                let itemsHtml = '';
+                if (category.items) {
+                    for (let itemId in category.items) {
+                        const item = category.items[itemId];
+                        itemsHtml += `
+                            <div class="item-card">
+                                <div class="item-info-side">
+                                    <img src="${item.image}" class="thumb-64" alt="${item.name}">
+                                    <div class="item-text">
+                                        <h4>${item.name}</h4>
+                                        <p>${item.details}</p>
+                                        <span class="price">${item.price} دينار</span>
+                                    </div>
+                                </div>
+                                <button class="btn-order-item" onclick="addItemToTableA('${catId}', '${itemId}', '${item.name}', ${item.price}, '${item.image}')">طلب هذا المنتج</button>
+                            </div>
+                        `;
+                    }
+                }
+
+                catSection.innerHTML = `
+                    <div class="category-title-box">
+                        <img src="${category.image}" style="width:32px; height:32px; object-fit:cover; border-radius:4px;">
+                        <h3>${category.name}</h3>
+                    </div>
+                    ${itemsHtml || '<p style="color:#a0aec0; padding-right:15px;">لا توجد وجبات في هذا القسم حالياً.</p>'}
+                `;
+                menuCategoriesContainer.appendChild(catSection);
+            }
+        });
+
+        // 2. الاستماع الحي لطلبات الطاولة الحالية قيد التحرير في tablesA
+        onValue(ref(database, `tablesA/table_${tableNumber}/current_orders`), (snapshot) => {
+            const currentInvoiceItems = document.getElementById('currentInvoiceItems');
+            const data = snapshot.val();
+            localCurrentOrders = data || {};
+            
+            let totalSum = 0;
+            let itemsCount = 0;
+            
+            if (!data) {
+                currentInvoiceItems.innerHTML = "لا توجد طلبات معلقة حالياً.";
+                document.getElementById('badgeCount').innerText = "0";
+                document.getElementById('bottomTotal').innerText = "إجمالي الفاتورة الحالية: 0 دينار";
+                document.getElementById('invoiceTotalSum').innerText = "الإجمالي: 0 دينار";
+                document.getElementById('sendOrderToBBtn').disabled = true;
+                return;
+            }
+
+            document.getElementById('sendOrderToBBtn').disabled = false;
+            currentInvoiceItems.innerHTML = "";
+            
+            for (let key in data) {
+                const item = data[key];
+                const rowTotal = item.price * item.quantity;
+                totalSum += rowTotal;
+                itemsCount += item.quantity;
+
+                const row = document.createElement('div');
+                row.className = 'invoice-item';
+                row.innerHTML = `
+                    <div>
+                        <strong>${item.name}</strong><br>
+                        <small style="color:#e53e3e;">${rowTotal} دينار</small>
+                    </div>
+                    <div class="qty-controls">
+                        <button class="qty-btn" onclick="updateQty('${key}', -1)">-</button>
+                        <span>${item.quantity}</span>
+                        <button class="qty-btn" onclick="updateQty('${key}', 1)">+</button>
+                    </div>
+                `;
+                currentInvoiceItems.appendChild(row);
+            }
+
+            document.getElementById('badgeCount').innerText = itemsCount;
+            document.getElementById('bottomTotal').innerText = `إجمالي الفاتورة الحالية: ${totalSum} دينار`;
+            document.getElementById('invoiceTotalSum').innerText = `الإجمالي الحالي: ${totalSum} دينار`;
+        });
+
+        // 3. الاستماع الحي للطلبات السابقة المجمّدة المرسلة للمطبخ في tablesB (للقراءة فقط)
+        onValue(ref(database, `tablesB/table_${tableNumber}/sent_orders`), (snapshot) => {
+            const sentInvoiceItems = document.getElementById('sentInvoiceItems');
+            const data = snapshot.val();
+            
+            if (!data) {
+                sentInvoiceItems.innerHTML = "لا توجد طلبات مرسلة مسبقاً.";
+                return;
+            }
+
+            sentInvoiceItems.innerHTML = "";
+            for (let key in data) {
+                const item = data[key];
+                const row = document.createElement('div');
+                row.className = 'sent-item';
+                row.innerHTML = `
+                    <span>• ${item.name} (الكمية: ${item.quantity})</span>
+                    <span style="color:#718096;">[أُرسل للمطبخ]</span>
+                `;
+                sentInvoiceItems.appendChild(row);
+            }
+        });
+    }
+
+    // وظيفة الضغط على زر "طلب هذا المنتج" وإضافته لـ tablesA
+    window.addItemToTableA = (catId, itemId, name, price, image) => {
+        const itemKey = `${catId}_${itemId}`;
+        const itemRef = ref(database, `tablesA/table_${tableNumber}/current_orders/${itemKey}`);
+        
+        // التحقق مما إذا كان المنتج مطلوباً سابقاً لزيادة الكمية فقط
+        if (localCurrentOrders[itemKey]) {
+            const currentQty = localCurrentOrders[itemKey].quantity;
+            update(itemRef, { quantity: currentQty + 1 });
+        } else {
+            set(itemRef, {
+                name: name,
+                price: price,
+                quantity: 1,
+                image: image
+            });
+        }
+    };
+
+    // وظيفة تعديل الكمية (+ أو -) والحذف التلقائي إذا وصلت صفر
+    window.updateQty = (key, change) => {
+        const itemRef = ref(database, `tablesA/table_${tableNumber}/current_orders/${key}`);
+        const currentQty = localCurrentOrders[key].quantity;
+        const newQty = currentQty + change;
+
+        if (newQty <= 0) {
+            remove(itemRef);
+        } else {
+            update(itemRef, { quantity: newQty });
+        }
+    };
+
+    // ترحيل البيانات من tablesA إلى tablesB للتجميد والقفل وتصفير الفاتورة الحالية
+    window.sendOrderToKitchen = () => {
+        if (Object.keys(localCurrentOrders).length === 0) return;
+
+        // دمج وحفظ البيانات في جدول tablesB المخصص للمستقبل (المطبخ / الكاشير)
+        const sentOrdersRef = ref(database, `tablesB/table_${tableNumber}/sent_orders`);
+        
+        // استخدام تحديث شجري لنقل كافة العناصر بنجاح
+        for (let key in localCurrentOrders) {
+            const item = localCurrentOrders[key];
+            const newOrderPushRef = push(sentOrdersRef);
+            set(newOrderPushRef, {
+                name: item.name,
+                price: item.price,
+                quantity: item.quantity,
+                sent_at: new Date().toISOString()
+            });
+        }
+
+        // مسح وحذف البيانات بالكامل من جدول tablesA لتظهر الفاتورة الحالية فارغة وجديدة
+        remove(ref(database, `tablesA/table_${tableNumber}/current_orders`)).then(() => {
+            alert("🚀 تم إرسال طلباتك بنجاح إلى المطبخ! فواتيرك السابقة معروضة بالأسفل للقراءة فقط.");
+            closeInvoiceModal();
+        });
+    };
+
+    // فتح وإغلاق النوافذ المنبثقة
+    window.openInvoiceModal = () => document.getElementById('invoiceModal').style.display = 'flex';
+    window.closeInvoiceModal = () => document.getElementById('invoiceModal').style.display = 'none';
+    window.closeInvoiceModalOutside = (e) => {
+        if (e.target.id === "invoiceModal") closeInvoiceModal();
+    };
 
     function haversineDistance(lat1, lon1, lat2, lon2) {
         const R = 6371000; 
@@ -155,21 +385,8 @@
 
     function handleLocationError(error) {
         menuContent.style.display = 'none';
+        bottomNav.style.display = 'none';
         blockScreen.style.display = 'flex';
-        distanceBox.style.display = "none";
-        if (error.code === error.PERMISSION_DENIED) {
-            startTrackingBtn.style.display = "block";
-            startTrackingBtn.innerText = "منح الإذن والمتابعة";
-            showErrorState("🔒 مطلوب تفعيل الصلاحية", "يرجى الموافقة على منح إذن الموقع لتأكيد وجودك على الطاولة رقم " + tableNumber);
-        } else {
-            showErrorState("📡 ضعف في إشارة الـ GPS", "جاري انتظار تحسن الإشارة اللحظية لتحديد موقعك وتأكيد الطاولة.");
-        }
-    }
-
-    function showErrorState(title, message) {
-        welcomeIcon.innerHTML = "📍";
-        statusTitle.innerText = title;
-        statusMessage.innerText = message;
     }
 </script>
 </body>

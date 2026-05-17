@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إضافة البيانات وتحديد النطاق الجغرافي</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20 from;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .form-container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 25px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .location-status {
+            font-size: 14px;
+            margin-top: 8px;
+            color: #0056b3;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    <h2>إضافة نسخة جديدة ونطاق جغرافي</h2>
+    <form id="dataForm">
+        <div class="form-group">
+            <label for="versionNumber">رقم النسخة:</label>
+            <input type="text" id="versionNumber" required placeholder="مثال: 1.0.2">
+        </div>
+
+        <div class="form-group">
+            <button type="button" id="getLocationBtn" style="background-color: #007bff;">تحديد مركز النطاق الحالي (100 متر)</button>
+            <div id="locationStatus" class="location-status">لم يتم تحديد الموقع بعد.</div>
+        </div>
+
+        <button type="submit" id="submitBtn" disabled>حفظ البيانات في Firebase</button>
+    </form>
+</div>
+
+<!-- إدراج Firebase SDK باستخدام ES Modules -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+    // إعدادات Firebase الخاصة بك
+    const firebaseConfig = {
+        apiKey: "AIzaSyCEEqEALOCaQo5oSoR8A_Jh9eSpHS8Sz5o",
+        authDomain: "game1-bb93e.firebaseapp.com",
+        databaseURL: "https://game1-bb93e-default-rtdb.firebaseio.com",
+        projectId: "game1-bb93e",
+        storageBucket: "game1-bb93e.firebasestorage.app",
+        messagingSenderId: "268851425259",
+        appId: "1:268851425259:web:0074f52657190d7347b3ae"
+    };
+
+    // تهيئة Firebase
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+
+    let centerLatitude = null;
+    let centerLongitude = null;
+    let locationAccuracy = null;
+
+    const getLocationBtn = document.getElementById('getLocationBtn');
+    const locationStatus = document.getElementById('locationStatus');
+    const submitBtn = document.getElementById('submitBtn');
+    const dataForm = document.getElementById('dataForm');
+
+    // جلب الإحداثيات بأعلى دقة ممكنة
+    getLocationBtn.addEventListener('click', () => {
+        if (navigator.geolocation) {
+            locationStatus.innerText = "جاري تحديد الموقع بدقة عالية... انتظر قليلاً";
+            
+            const options = {
+                enableHighAccuracy: true, // تفعيل أعلى دقة (تستخدم الـ GPS إن وجد بدلاً من الواي فاي)
+                timeout: 10000,           // أقصى وقت للانتظار 10 ثوانٍ
+                maximumAge: 0             // عدم استخدام موقع مخزن مؤقتاً، جلب موقع فريش دائماً
+            };
+
+            navigator.geolocation.getCurrentPosition(successLocation, errorLocation, options);
+        } else {
+            locationStatus.innerText = "المتصفح الخاص بك لا يدعم تحديد المواقع.";
+        }
+    });
+
+    function successLocation(position) {
+        centerLatitude = position.coords.latitude;
+        centerLongitude = position.coords.longitude;
+        locationAccuracy = position.coords.accuracy; // نسبة الخطأ بالأمتار
+
+        locationStatus.innerHTML = `
+            ✅ تم تحديد المركز بنجاح!<br>
+            خط العرض: ${centerLatitude.toFixed(7)}<br>
+            خط الطول: ${centerLongitude.toFixed(7)}<br>
+            نسبة الدقة: +/- ${locationAccuracy.toFixed(1)} متر
+        `;
+        locationStatus.style.color = "#28a745";
+        submitBtn.disabled = false; // تفعيل زر الحفظ بعد جلب الموقع
+    }
+
+    function errorLocation(error) {
+        locationStatus.style.color = "#dc3545";
+        switch(error.code) {
+            case error.PERMISSION_DENIED:
+                locationStatus.innerText = "يرجى السماح بالوصول إلى الموقع الجغرافي لتحديد الإحداثيات.";
+                break;
+            case error.POSITION_UNAVAILABLE:
+                locationStatus.innerText = "معلومات الموقع غير متوفرة حالياً.";
+                break;
+            case error.TIMEOUT:
+                locationStatus.innerText = "انتهت مهلة جلب الموقع، يرجى المحاولة مجدداً في مكان مكشوف.";
+                break;
+            default:
+                locationStatus.innerText = "حدث خطأ غير معروف أثناء جلب الموقع.";
+                break;
+        }
+    }
+
+    // إرسال البيانات إلى جدول cobes في Firebase
+    dataForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const version = document.getElementById('versionNumber').value;
+
+        // مرجع الجدول cobes
+        const cobesRef = ref(database, 'cobes');
+        const newCobeRef = push(cobesRef); // توليد ID فريد تلقائياً لكل عملية إدخال
+
+        // حفظ البيانات بالهيكل المطلوب
+        set(newCobeRef, {
+            version_number: version,
+            geo_zone: {
+                center_latitude: centerLatitude,
+                center_longitude: centerLongitude,
+                radius_meters: 100, // تحديد نصف القطر الثابت بـ 100 متر
+                accuracy_registered: locationAccuracy
+            },
+            created_at: new Date().toISOString()
+        })
+        .then(() => {
+            alert('تم حفظ بيانات النسخة والنطاق الجغرافي بنجاح في جدول cobes!');
+            dataForm.reset();
+            locationStatus.innerText = "لم يتم تحديد الموقع بعد.";
+            locationStatus.style.color = "#0056b3";
+            submitBtn.disabled = true;
+        })
+        .catch((error) => {
+            console.error("خطأ أثناء الحفظ: ", error);
+            alert('حدث خطأ أثناء حفظ البيانات، راجع الكونسول.');
+        });
+    });
+</script>
+
+</body>
+</html>

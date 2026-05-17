@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إضافة البيانات وتحديد النطاق الجغرافي</title>
+    <title>إضافة البيانات وتحديد النطاق الجغرافي عالي الدقة</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f4f7f6;
             margin: 0;
-            padding: 20 from;
+            padding: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -37,7 +37,7 @@
             font-weight: bold;
             color: #555;
         }
-        input[type="text"], input[type="number"] {
+        input[type="text"] {
             width: 100%;
             padding: 12px;
             border: 1px solid #ccc;
@@ -65,9 +65,14 @@
         }
         .location-status {
             font-size: 14px;
-            margin-top: 8px;
+            margin-top: 10px;
             color: #0056b3;
             font-weight: bold;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+            border: 1px dashed #ccc;
+            line-height: 1.6;
         }
     </style>
 </head>
@@ -78,19 +83,18 @@
     <form id="dataForm">
         <div class="form-group">
             <label for="versionNumber">رقم النسخة:</label>
-            <input type="text" id="versionNumber" required placeholder="مثال: 1.0.2">
+            <input type="text" id="versionNumber" required placeholder="مثال: 1.0.3">
         </div>
 
         <div class="form-group">
-            <button type="button" id="getLocationBtn" style="background-color: #007bff;">تحديد مركز النطاق الحالي (100 متر)</button>
-            <div id="locationStatus" class="location-status">لم يتم تحديد الموقع بعد.</div>
+            <button type="button" id="getLocationBtn" style="background-color: #007bff;">تفعيل تحديد الموقع الفائق الدقة</button>
+            <div id="locationStatus" class="location-status">لم يتم بدء جلب الموقع بعد. اضغط على الزر بالأعلى.</div>
         </div>
 
-        <button type="submit" id="submitBtn" disabled>حفظ البيانات في Firebase</button>
+        <button type="submit" id="submitBtn" disabled>انتظار دقة الموقع المطلوبة...</button>
     </form>
 </div>
 
-<!-- إدراج Firebase SDK باستخدام ES Modules -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
@@ -113,24 +117,34 @@
     let centerLatitude = null;
     let centerLongitude = null;
     let locationAccuracy = null;
+    let watchId = null; // لمعرف عملية المراقبة النشطة
 
     const getLocationBtn = document.getElementById('getLocationBtn');
     const locationStatus = document.getElementById('locationStatus');
     const submitBtn = document.getElementById('submitBtn');
     const dataForm = document.getElementById('dataForm');
 
-    // جلب الإحداثيات بأعلى دقة ممكنة
+    // تشغيل المراقبة المستمرة لتحسين الدقة
     getLocationBtn.addEventListener('click', () => {
         if (navigator.geolocation) {
-            locationStatus.innerText = "جاري تحديد الموقع بدقة عالية... انتظر قليلاً";
-            
+            // إذا كانت هناك مراقبة تعمل بالفعل، قم بإلغائها للبدء من جديد
+            if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+            }
+
+            locationStatus.innerText = "⏳ جاري الاتصال بمستشعرات الـ GPS والأقمار الصناعية... يرجى الانتظار لتثبيت الدقة.";
+            locationStatus.style.color = "#0056b3";
+            getLocationBtn.innerText = "🔄 جاري تحديث الدقة باستمرار...";
+            getLocationBtn.disabled = true;
+
             const options = {
-                enableHighAccuracy: true, // تفعيل أعلى دقة (تستخدم الـ GPS إن وجد بدلاً من الواي فاي)
-                timeout: 10000,           // أقصى وقت للانتظار 10 ثوانٍ
-                maximumAge: 0             // عدم استخدام موقع مخزن مؤقتاً، جلب موقع فريش دائماً
+                enableHighAccuracy: true, // إجبار الجهاز على تشغيل الـ GPS الفعلي
+                timeout: 15000,           // انتظار الإشارة لمدة 15 ثانية
+                maximumAge: 0             // عدم قبول قراءات قديمة ومخزنة
             };
 
-            navigator.geolocation.getCurrentPosition(successLocation, errorLocation, options);
+            // استخدام watchPosition بدلاً من getCurrentPosition للمراقبة الحية والتحسين المستمر
+            watchId = navigator.geolocation.watchPosition(successLocation, errorLocation, options);
         } else {
             locationStatus.innerText = "المتصفح الخاص بك لا يدعم تحديد المواقع.";
         }
@@ -139,32 +153,64 @@
     function successLocation(position) {
         centerLatitude = position.coords.latitude;
         centerLongitude = position.coords.longitude;
-        locationAccuracy = position.coords.accuracy; // نسبة الخطأ بالأمتار
+        locationAccuracy = position.coords.accuracy; // هامش الخطأ بالأمتار
 
-        locationStatus.innerHTML = `
-            ✅ تم تحديد المركز بنجاح!<br>
-            خط العرض: ${centerLatitude.toFixed(7)}<br>
-            خط الطول: ${centerLongitude.toFixed(7)}<br>
-            نسبة الدقة: +/- ${locationAccuracy.toFixed(1)} متر
-        `;
-        locationStatus.style.color = "#28a745";
-        submitBtn.disabled = false; // تفعيل زر الحفظ بعد جلب الموقع
+        // الحد الأقصى المقبول للدقة البرمجية (20 متر) لضمان دائرة الـ 100 متر لاحقاً
+        const targetAccuracy = 20; 
+
+        if (locationAccuracy <= targetAccuracy) {
+            // الدقة ممتازة وآمنة للتطبيق
+            locationStatus.innerHTML = `
+                ✅ <b>تم الوصول إلى دقة ممتازة جداً!</b><br>
+                خط العرض: ${centerLatitude.toFixed(7)}<br>
+                خط الطول: ${centerLongitude.toFixed(7)}<br>
+                🎯 نسبة الدقة الحالية: +/- ${locationAccuracy.toFixed(1)} متر (آمنة تماماً)
+            `;
+            locationStatus.style.backgroundColor = "#e8f5e9";
+            locationStatus.style.color = "#28a745";
+            locationStatus.style.border = "1px solid #28a745";
+            
+            submitBtn.disabled = false;
+            submitBtn.innerText = "حفظ البيانات في Firebase";
+            submitBtn.style.backgroundColor = "#28a745";
+        } else {
+            // الموقع تم التقاطه ولكنه ما زال تقريبياً (مثل حالتك السابقة 77 متر)
+            locationStatus.innerHTML = `
+                ⚠️ <b>جاري تحسين الإشارة وتضييق نطاق الخطأ...</b><br>
+                الدقة الحالية: +/- ${locationAccuracy.toFixed(1)} متر<br>
+                <small style="color:#666;">(ننتظر دقة أقل من 20 متر لتفعيل زر الحفظ. يرجى الاقتراب من النافذة أو الخروج لمكان مكشوف إن أمكن)</small>
+            `;
+            locationStatus.style.backgroundColor = "#fff3cd";
+            locationStatus.style.color = "#856404";
+            locationStatus.style.border = "1px solid #ffeeba";
+            
+            submitBtn.disabled = true;
+            submitBtn.innerText = `في انتظار دقة أفضل... (${locationAccuracy.toFixed(0)}م)`;
+            submitBtn.style.backgroundColor = "#cccccc";
+        }
     }
 
     function errorLocation(error) {
-        locationStatus.style.color = "#dc3545";
+        locationStatus.style.backgroundColor = "#f8d7da";
+        locationStatus.style.color = "#721c24";
+        locationStatus.style.border = "1px solid #f5c6cb";
+        
+        // إعادة تهيئة الأزرار في حال حدوث خطأ
+        getLocationBtn.disabled = false;
+        getLocationBtn.innerText = "إعادة محاولة تحديد الموقع";
+
         switch(error.code) {
             case error.PERMISSION_DENIED:
-                locationStatus.innerText = "يرجى السماح بالوصول إلى الموقع الجغرافي لتحديد الإحداثيات.";
+                locationStatus.innerText = "❌ تم رفض الإذن. يرجى السماح للمتصفح بالوصول للموقع وتفعيل الـ GPS في الهاتف.";
                 break;
             case error.POSITION_UNAVAILABLE:
-                locationStatus.innerText = "معلومات الموقع غير متوفرة حالياً.";
+                locationStatus.innerText = "❌ تعذر تحديد الموقع. تأكد من تشغيل الـ GPS في جهازك.";
                 break;
             case error.TIMEOUT:
-                locationStatus.innerText = "انتهت مهلة جلب الموقع، يرجى المحاولة مجدداً في مكان مكشوف.";
+                locationStatus.innerText = "❌ انتهت المهلة دون الوصول لدقة عالية. حاول مجدداً في مكان مفتوح.";
                 break;
             default:
-                locationStatus.innerText = "حدث خطأ غير معروف أثناء جلب الموقع.";
+                locationStatus.innerText = "❌ حدث خطأ غير معروف أثناء جلب الموقع.";
                 break;
         }
     }
@@ -177,29 +223,44 @@
 
         // مرجع الجدول cobes
         const cobesRef = ref(database, 'cobes');
-        const newCobeRef = push(cobesRef); // توليد ID فريد تلقائياً لكل عملية إدخال
+        const newCobeRef = push(cobesRef);
 
-        // حفظ البيانات بالهيكل المطلوب
+        // حفظ البيانات بالهيكل الاحترافي
         set(newCobeRef, {
             version_number: version,
             geo_zone: {
                 center_latitude: centerLatitude,
                 center_longitude: centerLongitude,
-                radius_meters: 100, // تحديد نصف القطر الثابت بـ 100 متر
-                accuracy_registered: locationAccuracy
+                radius_meters: 100, // النطاق الدائري المستهدف
+                accuracy_registered: locationAccuracy // الدقة الممتازة التي تم القبول بها
             },
             created_at: new Date().toISOString()
         })
         .then(() => {
-            alert('تم حفظ بيانات النسخة والنطاق الجغرافي بنجاح في جدول cobes!');
+            alert('🚀 ممتاز! تم حفظ الإحداثيات بأعلى دقة في قاعدة البيانات بنجاح!');
+            
+            // إيقاف المراقبة النشطة فوراً للحفاظ على البطارية وموارد الجهاز
+            if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+            }
+
+            // إعادة تهيئة الواجهة
             dataForm.reset();
-            locationStatus.innerText = "لم يتم تحديد الموقع بعد.";
+            locationStatus.innerText = "لم يتم بدء جلب الموقع بعد. اضغط على الزر بالأعلى.";
+            locationStatus.style.backgroundColor = "#f8f9fa";
             locationStatus.style.color = "#0056b3";
+            locationStatus.style.border = "1px dashed #ccc";
+            
+            getLocationBtn.disabled = false;
+            getLocationBtn.innerText = "تفعيل تحديد الموقع الفائق الدقة";
             submitBtn.disabled = true;
+            submitBtn.innerText = "انتظار دقة الموقع المطلوبة...";
+            submitBtn.style.backgroundColor = "#cccccc";
         })
         .catch((error) => {
             console.error("خطأ أثناء الحفظ: ", error);
-            alert('حدث خطأ أثناء حفظ البيانات، راجع الكونسول.');
+            alert('حدث خطأ أثناء حفظ البيانات.');
         });
     });
 </script>

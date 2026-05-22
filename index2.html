@@ -308,7 +308,7 @@
     let curLat = null, curLon = null, curDist = null, isInZone = false;
     let prevMsgCount = 0;
     const menuLookup = {};
-    const CIRC = 2 * Math.PI * 42; // محيط حلقة التقدم
+    const CIRC = 2 * Math.PI * 42;
 
     /* ===== تنسيق الأرقام ===== */
     function fmt(n) { return new Intl.NumberFormat("ar-IQ").format(n); }
@@ -332,7 +332,7 @@
         return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
     }
 
-    /* ===== صوت الأزرار (فقط عند الضغط) ===== */
+    /* ===== صوت الأزرار ===== */
     var aC = new (window.AudioContext||window.webkitAudioContext)();
     var lClk = 0;
     function cSnd(){
@@ -350,7 +350,7 @@
     document.addEventListener("click", cSnd, {passive:true});
     document.addEventListener("touchstart", cSnd, {passive:true});
 
-    /* ===== صوت الرسائل الجديدة فقط ===== */
+    /* ===== صوت الرسائل الجديدة ===== */
     function msgSnd(){
         try{
             if(aC.state==="suspended") aC.resume();
@@ -410,7 +410,7 @@
         setTimeout(function(){
             document.getElementById("splashScreen").style.display = "none";
             document.getElementById("blockScreen").style.display = "flex";
-            initGeo();
+            setTimeout(function(){ initGeo(); }, 100);
         }, 600);
     }
 
@@ -481,11 +481,9 @@
         curDist = haversine(curLat, curLon, zone.center_latitude, zone.center_longitude);
         var rad = zone.radius_meters || 100;
 
-        // تحديث شريط المسافة دائماً
         updateDistBar(curDist, rad);
 
         if(curDist <= rad){
-            // داخل النطاق
             if(!isInZone){
                 isInZone = true;
                 document.getElementById("blockScreen").style.display = "none";
@@ -496,7 +494,6 @@
                 if(!menuOk) initMenu();
             }
         } else if(curDist <= rad * 2){
-            // بين 100% و 200% — خارج النطاق لكن لم يُطرد بعد
             if(isInZone){
                 isInZone = false;
                 document.getElementById("menuContent").style.display = "none";
@@ -505,13 +502,11 @@
                 document.getElementById("blockScreen").style.display = "flex";
                 sGeo("err","\ud83d\udeab","خارج النطاق","اقترب أكثر من المطعم. المسافة: "+curDist.toFixed(0)+" متر.");
             }
-            // تحديث الشاشة بدون إخفاء/إظهار متكرر
             var dEl = document.getElementById("geoDist");
             dEl.style.display = "block";
             dEl.className = "geo-dist out";
             dEl.innerHTML = '<i class="fas fa-triangle-exclamation" style="margin-left:5px;"></i><b>خارج النطاق المسموح</b><br>المسافة: '+curDist.toFixed(0)+' متر — الحد: '+rad+' متر';
         } else {
-            // أكثر من 200% — إخراج من الصفحة
             if(!document.getElementById("kickScreen").style.display || document.getElementById("kickScreen").style.display === "none"){
                 isInZone = false;
                 document.getElementById("menuContent").style.display = "none";
@@ -528,26 +523,20 @@
         document.getElementById("geoBlocked").style.display="block";
     }
 
-    /* ===== تحديث شريط المسافة المتدرج ===== */
+    /* ===== تحديث شريط المسافة ===== */
     function updateDistBar(dist, radius){
         var pct = Math.min((dist / radius) * 100, 100);
         var fill = document.getElementById("distFill");
         var val = document.getElementById("distValue");
-
-        // عكس النسبة: 0% = قريب (أخضر)، 100% = بعيد (أحمر)
         var w = Math.max(0, Math.min(100, pct));
         fill.style.width = w + "%";
-
-        // حساب اللون: أخضر عند القرب → أصفر → أحمر عند البعد
         var r, g, b;
         if(pct <= 50){
-            // أخضر → أصفر
             var t = pct / 50;
             r = Math.round(34 + (234 - 34) * t);
             g = Math.round(197 + (179 - 197) * t);
             b = Math.round(94 + (8 - 94) * t);
         } else {
-            // أصفر → أحمر
             var t2 = (pct - 50) / 50;
             r = Math.round(234 + (220 - 234) * t2);
             g = Math.round(179 - 179 * t2);
@@ -555,9 +544,7 @@
         }
         var color = "rgb("+r+","+g+","+b+")";
         fill.style.background = color;
-
         val.textContent = dist.toFixed(0) + " م";
-        // لون النص يتغير أيضاً
         val.style.color = color;
     }
 
@@ -686,23 +673,20 @@
         });
     }
 
-    /* ===== إرسال الطلب مع التحقق من الموقع ===== */
+    /* ===== إرسال الطلب مع التحقق ===== */
     function sendOrd(){
         if(!Object.keys(orders).length) return;
 
-        // التحقق من الاتصال أولاً
         if(!navigator.onLine){
             toast("لا يوجد اتصال بالإنترنت. لا يمكن إرسال الطلب.","error");
             return;
         }
 
-        // التحقق من وجود بيانات الموقع الحالية
         if(curLat === null || curLon === null){
             toast("جاري تحديد موقعك... حاول مرة أخرى.","error");
             return;
         }
 
-        // التحقق من أن المستخدم داخل النطاق المحدد
         if(!zone || !zone.center_latitude){
             toast("بيانات النطاق الجغرافي غير متوفرة.","error");
             return;
@@ -716,7 +700,6 @@
             return;
         }
 
-        // كل التحققات نجحت — إرسال
         var sr=ref(db,"tablesB/table_"+TBL+"/sent_orders");
         var items = orders;
         for(var k in items){
@@ -772,7 +755,6 @@
         onValue(ref(db,"msgA/"+tk), function(sA){
             onValue(ref(db,"msgB/"+tk), function(sB){
                 renderMsgs(sA, sB);
-                // صوت فقط عند ورود رسالة جديدة من الكاشير
                 var newCount = sB.exists() ? Object.keys(sB.val()).length : 0;
                 if(newCount > prevMsgCount && prevMsgCount > 0){
                     msgSnd();
@@ -796,7 +778,6 @@
 
     function updUnread(count){
         if(count === undefined){
-            // قراءة العدد من Firebase
             onValue(ref(db,"msgB/table_"+TBL), function(s){
                 var d=s.val();
                 var c=0;
@@ -826,7 +807,6 @@
         unreadN=0;
         document.getElementById("msgDot").style.display="none";
         document.getElementById("chatModal").style.display="flex";
-        // إعادة تعيين العداد بعد فتح المحادثة
         prevMsgCount = 0;
     }
 
@@ -851,7 +831,6 @@
     }, {once:true});
 
     bindEvents();
-    initGeo();
 </script>
 </body>
 </html>

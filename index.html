@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدارة البيانات والنطاق الجغرافي</title>
+    <title>إدارة البيانات والنطاق الجغرافي الذكي</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -75,10 +75,15 @@
         }
         .location-status {
             font-size: 14px;
+            padding: 12px;
             margin-top: 8px;
             color: #0056b3;
             font-weight: bold;
             text-align: center;
+            border-radius: 5px;
+            background: #e7f3ff;
+            border: 1px solid #b8daff;
+            line-height: 1.6;
         }
         /* تصميم قائمة عرض المواقع */
         .location-item {
@@ -105,11 +110,26 @@
         }
         .badge-edit {
             background-color: #ffc107;
-            padding: 5px;
+            padding: 5px 10px;
             border-radius: 4px;
             font-size: 12px;
             display: inline-block;
             margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .pulse-loader {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: #dc3545;
+            border-radius: 50%;
+            margin-left: 5px;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(0.8); opacity: 0.5; }
         }
     </style>
 </head>
@@ -118,7 +138,7 @@
 <div class="form-container">
     <h2 id="formTitle">إضافة نسخة جديدة ونطاق جغرافي</h2>
     
-    <div id="editModeIndicator" style="display: none;" class="badge-edit">🔄 أنت الآن في وضع تعديل بيانات نسخة معينة</div>
+    <div id="editModeIndicator" style="display: none;" class="badge-edit">🔄 وضع التعديل النشط</div>
 
     <form id="dataForm">
         <div class="form-group">
@@ -127,12 +147,12 @@
         </div>
 
         <div class="form-group">
-            <button type="button" id="getLocationBtn" class="btn-primary">تحديد/تحديث مركز النطاق الحالي (100 متر)</button>
-            <div id="locationStatus" class="location-status">لم يتم تحديد الموقع بعد.</div>
+            <button type="button" id="getLocationBtn" class="btn-primary">ابدأ تحديث الموقع التلقائي (البحث عن أعلى دقة)</button>
+            <div id="locationStatus" class="location-status">البث متوقف. اضغط على الزر بالأعلى لبدء التحديث التلقائي الحي.</div>
         </div>
 
         <button type="submit" id="submitBtn" class="btn-success" disabled>حفظ البيانات في Firebase</button>
-        <button type="button" id="cancelEditBtn" class="btn-danger" style="display: none; width: 100%;">إلغاء التعديل والعودة للإضافة</button>
+        <button type="button" id="cancelEditBtn" class="btn-danger" style="display: none; width: 100%;">إلغاء التعديل والعودة للوضع العادي</button>
     </form>
 </div>
 
@@ -156,15 +176,14 @@
         appId: "1:268851425259:web:0074f52657190d7347b3ae"
     };
 
-    // تهيئة Firebase
     const app = initializeApp(firebaseConfig);
     const database = getDatabase(app);
 
-    // متغيرات التحكم بالوضع والموقع
     let centerLatitude = null;
     let centerLongitude = null;
     let locationAccuracy = null;
-    let editNodeKey = null; // سيحمل الـ ID الخاص بالسجل عند التعديل
+    let editNodeKey = null; 
+    let watchId = null; // الاحتفاظ بمعرّف التحديث التلقائي لإيقافه عند الحاجة
 
     const getLocationBtn = document.getElementById('getLocationBtn');
     const locationStatus = document.getElementById('locationStatus');
@@ -172,74 +191,94 @@
     const dataForm = document.getElementById('dataForm');
     const locationsList = document.getElementById('locationsList');
     
-    // عناصر واجهة التعديل
     const formTitle = document.getElementById('formTitle');
     const editModeIndicator = document.getElementById('editModeIndicator');
     const cancelEditBtn = document.getElementById('cancelEditBtn');
 
-    // --- 1. جلب الإحداثيات من الـ GPS ---
+    // --- 1. البحث التلقائي والمستمر عن الموقع للحصول على أفضل دقة ---
     getLocationBtn.addEventListener('click', () => {
+        // إذا كان هناك بث شغال مسبقاً، نقوم بإيقافه أولاً لإعادة تشغيله فريش
+        if (watchId !== null) {
+            navigator.geolocation.clearWatch(watchId);
+        }
+
         if (navigator.geolocation) {
-            locationStatus.innerText = "جاري تحديد الموقع بدقة عالية... انتظر قليلاً";
-            
+            locationStatus.innerHTML = `<span class="pulse-loader"></span> جاري البحث المباشر وتحديث الدقة تلقائياً... تحرك لمكان مكشوف`;
+            locationStatus.style.color = "#0056b3";
+            locationStatus.style.background = "#e7f3ff";
+
             const options = {
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 0
+                enableHighAccuracy: true, // إجبار الجهاز على تشغيل الـ GPS الفعلي
+                timeout: 15000,           // انتظر 15 ثانية كحد أقصى لكل تحديث
+                maximumAge: 0             // عدم قبول قراءات قديمة ومخزنة مؤقتاً
             };
 
-            navigator.geolocation.getCurrentPosition(successLocation, errorLocation, options);
+            // استخدام watchPosition للحصول على تحديثات مستمرة للموقع والدقة
+            watchId = navigator.geolocation.watchPosition(successLocation, errorLocation, options);
+            
+            // تغيير شكل الزر ليوضح أنه يعمل حالياً ويبحث بنشاط
+            getLocationBtn.innerText = "🔄 الـ GPS يعمل الآن (يحدّث تلقائياً)";
+            getLocationBtn.className = "btn-warning";
         } else {
             locationStatus.innerText = "المتصفح الخاص بك لا يدعم تحديد المواقع.";
         }
     });
 
     function successLocation(position) {
+        // تحديث المتغيرات بأحدث وأدق قراءة واصلة الآن
         centerLatitude = position.coords.latitude;
         centerLongitude = position.coords.longitude;
         locationAccuracy = position.coords.accuracy;
 
+        // عرض البيانات الفورية للمستخدم مع نسبة الخطأ (الأمتار)
         locationStatus.innerHTML = `
-            ✅ تم التقاط الإحداثيات بنجاح!<br>
-            خط العرض: ${centerLatitude.toFixed(7)}<br>
-            خط الطول: ${centerLongitude.toFixed(7)}<br>
-            نسبة الدقة: +/- ${locationAccuracy.toFixed(1)} متر
+            ✅ تم التقاط إحداثيات دقيقة ومحدثة تلقائياً!<br>
+            <b>خط العرض:</b> ${centerLatitude.toFixed(7)}<br>
+            <b>خط الطول:</b> ${centerLongitude.toFixed(7)}<br>
+            <b>مستوى الدقة الحالي:</b> <span style="color: #28a745;">+/- ${locationAccuracy.toFixed(1)} متر</span><br>
+            <small style="color: #666;">(كلما قلّ رقم الأمتار، زادت الدقة. اترك الجهاز لثوانٍ ليثبت على أفضل نتيجة)</small>
         `;
-        locationStatus.style.color = "#28a745";
-        submitBtn.disabled = false; 
+        locationStatus.style.color = "#155724";
+        locationStatus.style.background = "#d4edda";
+        locationStatus.style.border = "1px solid #c3e6cb";
+        
+        submitBtn.disabled = false; // تفعيل زر الحفظ مباشرة لأن لدينا قراءة ممتازة
     }
 
     function errorLocation(error) {
-        locationStatus.style.color = "#dc3545";
+        locationStatus.style.color = "#721c24";
+        locationStatus.style.background = "#f8d7da";
+        locationStatus.style.border = "1px solid #f5c6cb";
+        
         switch(error.code) {
             case error.PERMISSION_DENIED:
-                locationStatus.innerText = "يرجى السماح بالوصول إلى الموقع الجغرافي لتحديد الإحداثيات.";
+                locationStatus.innerText = "يرجى السماح بالوصول إلى الموقع الجغرافي من إعدادات المتصفح.";
                 break;
             case error.POSITION_UNAVAILABLE:
-                locationStatus.innerText = "معلومات الموقع غير متوفرة حالياً.";
+                locationStatus.innerText = "إشارة الـ GPS ضعيفة أو معلومات الموقع غير متوفرة حالياً.";
                 break;
             case error.TIMEOUT:
-                locationStatus.innerText = "انتهت مهلة جلب الموقع، يرجى المحاولة مجدداً في مكان مكشوف.";
+                locationStatus.innerText = "انتهت مهلة جلب الموقع، النظام مستمر في المحاولة...";
                 break;
             default:
-                locationStatus.innerText = "حدث خطأ غير معروف أثناء جلب الموقع.";
+                locationStatus.innerText = "حدث خطأ أثناء محاولة تحديث الموقع تلقائياً.";
                 break;
         }
     }
 
-    // --- 2. جلب وعرض البيانات المحفوظة في الوقت الفعلي (Realtime) ---
+    // --- 2. جلب وعرض البيانات من Firebase في الوقت الفعلي ---
     const cobesRef = ref(database, 'cobes');
     
     onValue(cobesRef, (snapshot) => {
-        locationsList.innerHTML = ""; // تنظيف القائمة قبل العرض الجديد
+        locationsList.innerHTML = ""; 
         
         if (snapshot.exists()) {
             const data = snapshot.val();
             
-            // تحويل الكائن إلى مصفوفة لعرض الأحدث أولاً
             Object.keys(data).reverse().forEach((key) => {
                 const item = data[key];
                 const geo = item.geo_zone || {};
+                const acc = geo.accuracy_registered ? geo.accuracy_registered.toFixed(1) : 'غير مسجل';
                 
                 const itemDiv = document.createElement('div');
                 itemDiv.className = 'location-item';
@@ -247,7 +286,8 @@
                     <h4>النسخة: ${item.version_number}</h4>
                     <p><b>خط العرض:</b> ${geo.center_latitude}</p>
                     <p><b>خط الطول:</b> ${geo.center_longitude}</p>
-                    <p><b>نصف القطر:</b> ${geo.radius_meters} متر</p>
+                    <p><b>نصف القطر الثابت:</b> ${geo.radius_meters} متر</p>
+                    <p><b>دقة الحفظ المسجلة:</b> +/- ${acc} متر</p>
                     <p><small style="color:#777;">تاريخ الحفظ: ${new Date(item.created_at).toLocaleString('ar-EG')}</small></p>
                     <div class="actions">
                         <button class="btn-edit" data-id="${key}">تعديل الموقِع</button>
@@ -257,15 +297,12 @@
                 locationsList.appendChild(itemDiv);
             });
 
-            // تفعيل أزرار التعديل والحذف برمجياً
             activateListButtons(data);
-
         } else {
             locationsList.innerText = "لا توجد مواقع محفوظة حالياً في قاعدة البيانات.";
         }
     });
 
-    // ربط الأفعال بأزرار التعديل والحذف داخل القائمة
     function activateListButtons(allData) {
         // أزرار الحذف
         document.querySelectorAll('.btn-danger[data-id]').forEach(btn => {
@@ -285,38 +322,36 @@
                 const id = e.target.getAttribute('data-id');
                 const targetData = allData[id];
                 
-                // الدخول في وضع التحرير
                 editNodeKey = id;
                 document.getElementById('versionNumber').value = targetData.version_number;
                 
-                // الاحتفاظ بالإحداثيات القديمة مؤقتاً لحين رغبة المستخدم بتغييرها
                 centerLatitude = targetData.geo_zone.center_latitude;
                 centerLongitude = targetData.geo_zone.center_longitude;
                 locationAccuracy = targetData.geo_zone.accuracy_registered || 0;
 
                 locationStatus.innerHTML = `
-                    ⚠️ تم تحميل بيانات الموقع القديم للتعديل.<br>
-                    خط العرض الحالي: ${centerLatitude}<br>
-                    خط الطول الحالي: ${centerLongitude}<br>
-                    (يمكنك الضغط على زر تحديد المركز بالأعلى لتحديث الإحداثيات لموقعك الحالي)
+                    ⚠️ تم تحميل إحداثيات الموقع المحفوظ مسبقاً.<br>
+                    <b>خط العرض:</b> ${centerLatitude}<br>
+                    <b>خط الطول:</b> ${centerLongitude}<br>
+                    (لتحديث الموقع بأعلى دقة الآن، اضغط على زر التحديث التلقائي بالأعلى قبل الحفظ)
                 `;
-                locationStatus.style.color = "#ffc107";
+                locationStatus.style.color = "#856404";
+                locationStatus.style.background = "#fff3cd";
+                locationStatus.style.border = "1px solid #ffeeba";
 
-                // تحويل شكل النموذج لواجهة التعديل
-                formTitle.innerText = "تعديل بيانات النسخة والنطاق";
+                formTitle.innerText = "تعديل بيانات النسخة ونطاقها";
                 editModeIndicator.style.display = "block";
                 cancelEditBtn.style.display = "block";
-                submitBtn.innerText = "تحديث البيانات في Firebase";
+                submitBtn.innerText = "تحديث وإعادة حفظ في Firebase";
                 submitBtn.className = "btn-warning";
-                submitBtn.disabled = false; // تفعيله مباشرة لأن هناك بيانات قديمة محملة بالفعل
+                submitBtn.disabled = false; 
                 
-                // الانتقال لأعلى الصفحة بسلاسة ليرى المستخدم النموذج
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             });
         });
     }
 
-    // --- 3. حفظ أو تحديث البيانات عند إرسال النموذج ---
+    // --- 3. إرسال النموذج (حفظ الجديد أو تحديث الحالي) ---
     dataForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const version = document.getElementById('versionNumber').value;
@@ -333,30 +368,34 @@
         };
 
         if (editNodeKey) {
-            // [وضع التعديل]: تحديث السجل الحالي بناءً على الـ ID الفريد
+            // تحديث السجل الحالي في وضع التحرير
             update(ref(database, `cobes/${editNodeKey}`), targetData)
             .then(() => {
-                alert('تم تحديث بيانات الموقع بنجاح!');
+                alert('تم تحديث البيانات والإحداثيات عالية الدقة بنجاح!');
                 resetFormToNormal();
             })
             .catch((error) => alert("خطأ أثناء التحديث: " + error.message));
         } else {
-            // [وضع الإضافة الجديد]: توليد ID جديد وإضافة البيانات
+            // إضافة سجل جديد تماماً
             const newCobeRef = push(cobesRef);
             set(newCobeRef, targetData)
             .then(() => {
-                alert('تم حفظ بيانات النسخة والنطاق الجديد بنجاح!');
+                alert('تم حفظ البيانات والنطاق الجغرافي الجديد بنجاح!');
                 resetFormToNormal();
             })
             .catch((error) => alert("خطأ أثناء الحفظ: " + error.message));
         }
     });
 
-    // إلغاء وضع التعديل والعودة للوضع الطبيعي عند الضغط على إلغاء
     cancelEditBtn.addEventListener('click', resetFormToNormal);
 
-    // دالة لإعادة تهيئة النموذج لوضعه الأصلي
     function resetFormToNormal() {
+        // إيقاف بث الـ GPS التلقائي عند الحفظ أو الإلغاء لتوفير بطارية المستخدم
+        if (watchId !== null) {
+            navigator.geolocation.clearWatch(watchId);
+            watchId = null;
+        }
+
         editNodeKey = null;
         centerLatitude = null;
         centerLongitude = null;
@@ -368,12 +407,17 @@
         editModeIndicator.style.display = "none";
         cancelEditBtn.style.display = "none";
         
+        getLocationBtn.innerText = "ابدأ تحديث الموقع التلقائي (البحث عن أعلى دقة)";
+        getLocationBtn.className = "btn-primary";
+
         submitBtn.innerText = "حفظ البيانات في Firebase";
         submitBtn.className = "btn-success";
         submitBtn.disabled = true;
 
-        locationStatus.innerText = "لم يتم تحديد الموقع بعد.";
+        locationStatus.innerText = "البث متوقف. اضغط على الزر بالأعلى لبدء التحديث التلقائي الحي.";
         locationStatus.style.color = "#0056b3";
+        locationStatus.style.background = "#e7f3ff";
+        locationStatus.style.border = "1px solid #b8daff";
     }
 </script>
 

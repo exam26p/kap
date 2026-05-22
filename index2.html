@@ -134,7 +134,7 @@
         @keyframes to{from{opacity:1}to{opacity:0;transform:translateY(-20px)}}
 
         @media(max-width:480px){.item-card{flex-direction:column;align-items:stretch;gap:8px}.ba{width:100%;text-align:center;padding:12px}.iw{width:100%;height:120px;border-radius:10px}.main-header{flex-direction:column;text-align:center;gap:10px}.hb{justify-content:center}}
-        @media print{body *{visibility:hidden}#menuContent,#menuContent *{visibility:visible}#menuContent{position:static;max-width:100%}.bottom-bar,#splashScreen,#blockScreen,.msg-fab,#chatModal,#invoiceModal{display:none!important}}
+        @media print{body *{visibility:hidden}#menuContent,#menuContent *{visibility:visible}#menuContent{position:static;max-width:100%}.bottom-bar,#splashScreen,#blockScreen,.msg-fab,#chatModal,#invoiceModal{display:none !important}}
     </style>
 </head>
 <body>
@@ -180,7 +180,7 @@
 </div>
 
 <div id="invoiceModal">
-    <div class="inv-c" onclick="event.stopPropagation()">
+    <div class="inv-c" id="invCard">
         <div class="inv-h"><h3>📄 الفاتورة</h3><button class="inv-x" id="invClose">&times;</button></div>
         <div id="invItems"><p style="color:#94a3b8;text-align:center;padding:20px;">لا توجد طلبات.</p></div>
         <div class="inv-tb" id="invTotal">الإجمالي: ٠ دينار</div>
@@ -190,7 +190,7 @@
 </div>
 
 <div id="chatModal">
-    <div class="ch-c" onclick="event.stopPropagation()">
+    <div class="ch-c" id="chatCard">
         <div class="ch-h"><h3><i class="fas fa-headset" style="margin-left:8px;color:#3b82f6;"></i> محادثة مع الكاشير</h3><button class="inv-x" id="chatClose">&times;</button></div>
         <div class="ch-m" id="chatMsgs"></div>
         <div class="ch-in"><input type="text" id="chatInput" placeholder="اكتب رسالتك..."><button id="chatSendBtn">إرسال</button></div>
@@ -198,212 +198,432 @@
 </div>
 
 <script type="module">
-    import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import{getDatabase,ref,set,push,onValue,remove,update,get}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {getDatabase, ref, set, push, onValue, remove, update, get} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-    const db=getDatabase(initializeApp({apiKey:"AIzaSyCEEqEALOCaQo5oSoR8A_Jh9eSpHS8Sz5o",authDomain:"game1-bb93e.firebaseapp.com",databaseURL:"https://game1-bb93e-default-rtdb.firebaseio.com",projectId:"game1-bb93e"}));
+    const db = getDatabase(initializeApp({
+        apiKey: "AIzaSyCEEqEALOCaQo5oSoR8A_Jh9eSpHS8Sz5o",
+        authDomain: "game1-bb93e.firebaseapp.com",
+        databaseURL: "https://game1-bb93e-default-rtdb.firebaseio.com",
+        projectId: "game1-bb93e"
+    }));
 
-    let TBL="",VER="",zone=null,watchID=null,orders={},menuOk=false,chatOn=false,unreadN=0;
-    const aC=new(window.AudioContext||window.webkitAudioContext)(),sC={};
-    let lClk=0;
+    let TBL = "", VER = "", zone = null, watchID = null, orders = {}, menuOk = false, chatOn = false, unreadN = 0;
+    const aC = new (window.AudioContext || window.webkitAudioContext)();
+    let lClk = 0;
+    // ذاكرة المنيو: مفتاح حسب [catId][itemId] = {name, price}
+    const menuLookup = {};
 
-    function fmt(n){return new Intl.NumberFormat('ar-IQ').format(n)}
-    function toast(m,t='info'){const c=document.getElementById('tw'),ic={success:'fa-circle-check',error:'fa-circle-xmark',info:'fa-circle-info'},el=document.createElement('div');el.className=`ts ${t}`;el.innerHTML=`<i class="fas ${ic[t]||ic.info}"></i> ${m}`;c.appendChild(el);setTimeout(()=>{if(el.parentNode)el.remove()},3200)}
-    function haversine(a,b,c,d){const R=6371000,dL=(c-a)*Math.PI/180,dN=(d-b)*Math.PI/180,x=Math.sin(dL/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dN/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x))}
+    function fmt(n) { return new Intl.NumberFormat("ar-IQ").format(n); }
 
-    // صوت نقر خفيف
-    function cSnd(){const n=Date.now();if(n-lClk<60)return;lClk=n;try{if(aC.state==='suspended')aC.resume();const o=aC.createOscillator(),g=aC.createGain();o.connect(g);g.connect(aC.destination);o.type='sine';o.frequency.setValueAtTime(800+Math.random()*600,aC.currentTime);g.gain.setValueAtTime(.015,aC.currentTime);g.gain.exponentialRampToValueAtTime(.001,aC.currentTime+.03);o.start(aC.currentTime);o.stop(aC.currentTime+.03)}catch(e){}}
-    document.addEventListener('click',cSnd,{passive:true});
-    document.addEventListener('touchstart',cSnd,{passive:true});
-
-    function playMp3(f){try{if(!sC[f]){sC[f]=new Audio("https://exam26p.github.io/kap/"+f);sC[f].volume=.7}const a=sC[f];a.currentTime=0;a.play()}catch(e){}}
-
-    // ===== ربط جميع الأحداث داخل الموديول =====
-    function bindEvents(){
-        document.getElementById('splashBtn').addEventListener('click',dismissSplash);
-        document.getElementById('bibBtn').addEventListener('click',()=>document.getElementById('invoiceModal').style.display='flex');
-        document.getElementById('invClose').addEventListener('click',closeInv);
-        document.getElementById('invoiceModal').addEventListener('click',e=>{if(e.target.id==='invoiceModal')closeInv()});
-        document.getElementById('btnSend').addEventListener('click',sendOrd);
-        document.getElementById('msgFab').addEventListener('click',openCh);
-        document.getElementById('chatClose').addEventListener('click',closeCh);
-        document.getElementById('chatModal').addEventListener('click',e=>{if(e.target.id==='chatModal')closeCh()});
-        document.getElementById('chatSendBtn').addEventListener('click',sendCh);
-        document.getElementById('chatInput').addEventListener('keydown',e=>{if(e.key==='Enter')sendCh()});
+    function toast(m, t) {
+        t = t || "info";
+        const c = document.getElementById("tw");
+        const icons = {success: "fa-circle-check", error: "fa-circle-xmark", info: "fa-circle-info"};
+        const el = document.createElement("div");
+        el.className = "ts " + t;
+        el.innerHTML = '<i class="fas ' + (icons[t] || icons.info) + '"></i> ' + m;
+        c.appendChild(el);
+        setTimeout(function() { if (el.parentNode) el.remove(); }, 3200);
     }
 
-    function dismissSplash(){
-        document.getElementById('splashScreen').classList.add('hide');
-        setTimeout(()=>{document.getElementById('splashScreen').style.display='none';document.getElementById('blockScreen').style.display='flex';initGeo()},600);
+    function haversine(a, b, c, d) {
+        var R = 6371000;
+        var dL = (c - a) * Math.PI / 180;
+        var dN = (d - b) * Math.PI / 180;
+        var x = Math.sin(dL / 2) * Math.sin(dL / 2) + Math.cos(a * Math.PI / 180) * Math.cos(c * Math.PI / 180) * Math.sin(dN / 2) * Math.sin(dN / 2);
+        return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
     }
-    setTimeout(()=>document.getElementById('splashBtn').classList.add('show'),5000);
 
-    async function initGeo(){
-        const u=new URLSearchParams(location.search);TBL=u.get('table')||'1';VER=u.get('version')||'';
-        document.getElementById('tblB').textContent=`طاولة ${TBL}`;
-        if(!VER){sGeo('err','⚠️','إصدار غير موجود','لم يتم العثور على رقم الإصدار في رابط الصفحة.');return}
-        sGeo('ld','🔄','جاري التحقق...','نبحث عن النطاق الجغرافي المخصص لإصدار جهازك.');
-        try{
-            const s=await get(ref(db,'cobes')),all=s.val();
-            if(!all){sGeo('err','📋','لا توجد نطاقات','لم يتم تسجيل أي نطاق جغرافي في النظام بعد.');return}
-            let f=null;for(let id in all){if(all[id].version_number===VER){f=all[id];break}}
-            if(!f){sGeo('err','🚫','إصدار غير معروف',`الإصدار "v${VER}" غير مسجل في النظام.`);return}
-            zone=f.geo_zone;
-            if(!zone||!zone.center_latitude){sGeo('err','📍','بيانات ناقصة','الإصدار موجود لكن بدون إحداثيات.');return}
-            sGeo('wait','✅','تم التحقق','تم ربط الإصدار بنطاق جغرافي. جاري تتبع موقعك...');
+    function cSnd() {
+        var n = Date.now();
+        if (n - lClk < 60) return;
+        lClk = n;
+        try {
+            if (aC.state === "suspended") aC.resume();
+            var o = aC.createOscillator();
+            var g = aC.createGain();
+            o.connect(g);
+            g.connect(aC.destination);
+            o.type = "sine";
+            o.frequency.setValueAtTime(800 + Math.random() * 600, aC.currentTime);
+            g.gain.setValueAtTime(0.015, aC.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001, aC.currentTime + 0.03);
+            o.start(aC.currentTime);
+            o.stop(aC.currentTime + 0.03);
+        } catch (e) {}
+    }
+    document.addEventListener("click", cSnd, {passive: true});
+    document.addEventListener("touchstart", cSnd, {passive: true});
+
+    // ===== ربط الأحداث =====
+    function bindEvents() {
+        document.getElementById("splashBtn").addEventListener("click", dismissSplash);
+        document.getElementById("bibBtn").addEventListener("click", function() {
+            document.getElementById("invoiceModal").style.display = "flex";
+        });
+        document.getElementById("invClose").addEventListener("click", closeInv);
+        document.getElementById("invoiceModal").addEventListener("click", function(e) {
+            if (e.target.id === "invoiceModal") closeInv();
+        });
+        document.getElementById("btnSend").addEventListener("click", sendOrd);
+        document.getElementById("msgFab").addEventListener("click", openCh);
+        document.getElementById("chatClose").addEventListener("click", closeCh);
+        document.getElementById("chatModal").addEventListener("click", function(e) {
+            if (e.target.id === "chatModal") closeCh();
+        });
+        document.getElementById("chatSendBtn").addEventListener("click", sendCh);
+        document.getElementById("chatInput").addEventListener("keydown", function(e) {
+            if (e.key === "Enter") sendCh();
+        });
+    }
+
+    function dismissSplash() {
+        document.getElementById("splashScreen").classList.add("hide");
+        setTimeout(function() {
+            document.getElementById("splashScreen").style.display = "none";
+            document.getElementById("blockScreen").style.display = "flex";
+            initGeo();
+        }, 600);
+    }
+    setTimeout(function() {
+        document.getElementById("splashBtn").classList.add("show");
+    }, 5000);
+
+    // ===== التحقق الجغرافي =====
+    async function initGeo() {
+        var u = new URLSearchParams(location.search);
+        TBL = u.get("table") || "1";
+        VER = u.get("version") || "";
+        document.getElementById("tblB").textContent = "\u0637\u0627\u0648\u0644\u0629 " + TBL;
+
+        if (!VER) {
+            sGeo("err", "\u26a0\ufe0f", "\u0625\u0635\u062f\u0627\u0631 \u063a\u064a\u0631 \u063a\u064a\u0631", "\u0644\u0645 \u064a\u062a\u0645 \u0627\u0644\u0639\u062b\u0631 \u0639\u0644\u0649 \u0641\u064a \u0631\u0628\u0637 \u0627\u0644\u0635\u0641\u062d\u0631\u0629.");
+            return;
+        }
+
+        sGeo("ld", "\ud83d\udd04", "\u062c\u0627\u0631\u064a \u0627\u0644\u062a\u062d\u0642\u0642...", "\u0646\u0628\u062d\u062b \u0639\u0646 \u0627\u0644\u0646\u0637\u0627\u0642 \u0627\u0644\u062c\u063a\u0631\u0627\u0641\u064a.");
+        try {
+            var snap = await get(ref(db, "cobes"));
+            var all = snap.val();
+            if (!all) {
+                sGeo("err", "\ud83d\udccb", "\u0644\u0627 \u062a\u0648\u062c\u062f \u0646\u0637\u0627\u0642\u0627\u062a", "\u0644\u0645 \u064a\u062a\u0645 \u062a\u0633\u062c\u064a\u0644 \u0623\u064a \u0646\u0637\u0627\u0642 \u062c\u063a\u0631\u0627\u0641\u064a.");
+                return;
+            }
+            var found = null;
+            for (var id in all) {
+                if (all[id].version_number === VER) { found = all[id]; break; }
+            }
+            if (!found) {
+                sGeo("err", "\ud83d\udeab", "\u0625\u0635\u062f\u0627\u0631 \u063a\u064a\u0631 \u063a\u064a\u0631", '\u0627\u0644\u0625\u0635\u062f\u0627\u0631 "v' + VER + '" \u063a\u064a\u0631 \u063a\u064a\u0631 \u0641\u064a \u0627\u0644\u0646\u0638\u0627\u0645.');
+                return;
+            }
+            zone = found.geo_zone;
+            if (!zone || !zone.center_latitude) {
+                sGeo("err", "\ud83d\udccd", "\u0628\u064a\u0627\u0646\u0627\u062a \u0646\u0627\u0642\u0635\u0635", "\u0627\u0644\u0625\u0635\u062f\u0627\u0631 \u0645\u0648\u062c\u0648\u062f \u0628\u0644\u0625\u062d\u062f\u0627\u062a\u064a\u0627\u062a.");
+                return;
+            }
+            sGeo("wait", "\u2705", "\u062a\u0645 \u0627\u0644\u062a\u062d\u0642\u0642", "\u062c\u0627\u0631\u064a \u062a\u062a\u0628\u0639 \u0645\u0648\u0642\u064a\u0643 \u0644\u062d\u0638\u0627.");
             startW();
-        }catch(e){sGeo('err','📶','خطأ في الاتصال','تعذر الاتصال بقاعدة البيانات حالياً.')}
-    }
-
-    function sGeo(ic,i,t,m){document.getElementById('geoIcon').className=`geo-icon ${ic}`;document.getElementById('geoIcon').innerHTML=i;document.getElementById('geoTitle').textContent=t;document.getElementById('geoMsg').textContent=m;document.getElementById('geoDist').style.display='none';document.getElementById('geoBlocked').style.display='none'}
-
-    function startW(){
-        if(!navigator.geolocation){document.getElementById('geoCard').style.display='none';document.getElementById('geoBlocked').style.display='block';return}
-        watchID=navigator.geolocation.watchPosition(onP,onE,{enableHighAccuracy:true,timeout:15000,maximumAge:0});
-    }
-
-    function onP(pos){
-        const la=pos.coords.latitude,lo=pos.coords.longitude,ac=pos.coords.accuracy;
-        const dist=haversine(la,lo,zone.center_latitude,zone.center_longitude);
-        const rad=zone.radius_meters||100;
-        const dEl=document.getElementById('geoDist');dEl.style.display='block';
-        if(dist<=rad){
-            dEl.className='geo-dist in';
-            dEl.innerHTML=`<i class="fas fa-circle-check" style="margin-left:5px;"></i><b>موقعك مُوثق</b><br>المسافة: ${dist.toFixed(1)} متر (الحد: ${rad} متر)`;
-            document.getElementById('blockScreen').style.display='none';
-            document.getElementById('menuContent').style.display='block';
-            document.getElementById('bottomBar').style.display='flex';
-            if(!menuOk)initMenu();
-        }else{
-            dEl.className='geo-dist out';
-            dEl.innerHTML=`<i class="fas fa-triangle-exclamation" style="margin-left:5px;"></i><b>خارج النطاق المسموح</b><br>المسافة: ${dist.toFixed(0)} متر — الحد: ${rad} متر`;
-            document.getElementById('menuContent').style.display='none';
-            document.getElementById('bottomBar').style.display='none';
-            document.getElementById('blockScreen').style.display='flex';
-            sGeo('err','🚫','خارج النطاق',`اقترب أكثر من المطعم. المسافة: ${dist.toFixed(0)} متر.`);
+        } catch (e) {
+            sGeo("err", "\ud83d\udce1", "\u062e\u0637\u0623 \u0641\u064a \u0627\u0644\u0627\u062a\u0635\u0627\u0644", "\u062a\u0639\u0630\u0631 \u0627\u0644\u0627\u062a\u0635\u0627\u0644 \u062d\u0627\u0644\u064a.");
         }
     }
 
-    function onE(){document.getElementById('geoCard').style.display='none';document.getElementById('geoBlocked').style.display='block'}
+    function sGeo(ic, i, t, m) {
+        var el = document.getElementById("geoIcon");
+        el.className = "geo-icon " + ic;
+        el.innerHTML = i;
+        document.getElementById("geoTitle").textContent = t;
+        document.getElementById("geoMsg").textContent = m;
+        document.getElementById("geoDist").style.display = "none";
+        document.getElementById("geoBlocked").style.display = "none";
+    }
 
-    function initMenu(){
-        menuOk=true;
-        onValue(ref(db,'orders'),s=>{
-            const d=s.val(),c=document.getElementById('menuCats');c.innerHTML='';
-            if(!d){c.innerHTML='<p style="color:#94a3b8;padding:30px;text-align:center;">المنيو فارغ حالياً.</p>';return}
-            for(let cid in d){
-                const cat=d[cid];
-                const cnt=cat.items?Object.keys(cat.items).length:0;
-                let ih='';
-                if(cat.items)for(let iid in cat.items){const it=cat.items[iid];ih+=`<div class="item-card"><div class="ir"><div class="iw"><img src="${it.image}" alt="" loading="eager" onerror="this.src='https://placehold.co/70x70/f1f5f9/94a3b8?text=🍽️'"></div><div class="ii"><h4>${it.name}</h4><p>${it.details}</p><span class="ip">${fmt(it.price)} د.ع</span></div></div><button class="ba" data-c="${cid}" data-i="${iid}" data-n="${it.name.replace(/"/g,'&quot;')}" data-p="${it.price}"><i class="fas fa-plus"></i> طلب</button></div>`}
-                const acc=document.createElement('div');acc.className='cat-acc';
-                acc.innerHTML=`<div class="cat-hd"><img src="${cat.image||''}" onerror="this.style.display='none'"><div class="cat-hi"><h3>${cat.name}</h3><span class="cc">${cnt} صنف</span></div><i class="fas fa-chevron-down cat-arr"></i></div><div class="cat-bd">${ih}</div>`;
+    function startW() {
+        if (!navigator.geolocation) {
+            document.getElementById("geoCard").style.display = "none";
+            document.getElementById("geoBlocked").style.display = "block";
+            return;
+        }
+        watchID = navigator.geolocation.watchPosition(onP, onE, {
+            enableHighAccuracy: true, timeout: 15000, maximumAge: 0
+        });
+    }
+
+    function onP(pos) {
+        var la = pos.coords.latitude;
+        var lo = pos.coords.longitude;
+        var dist = haversine(la, lo, zone.center_latitude, zone.center_longitude);
+        var rad = zone.radius_meters || 100;
+        var dEl = document.getElementById("geoDist");
+        dEl.style.display = "block";
+
+        if (dist <= rad) {
+            dEl.className = "geo-dist in";
+            dEl.innerHTML = '<i class="fas fa-circle-check" style="margin-left:5px;"></i><b>\u0645\u0648\u0642\u0639\u0643 \u0645\u064f\u062b\u0642</b><br>\u0627\u0644\u0645\u0633\u0627\u0641\u0629: ' + dist.toFixed(1) + ' \u0645\u062a\u0631 (الحد: ' + rad + ' \u0645\u062a\u0631)';
+            document.getElementById("blockScreen").style.display = "none";
+            document.getElementById("menuContent").style.display = "block";
+            document.getElementById("bottomBar").style.display = "flex";
+            if (!menuOk) initMenu();
+        } else {
+            dEl.className = "geo-dist out";
+            dEl.innerHTML = '<i class="fas fa-triangle-exclamation" style="margin-left:5px;"></i><b>\u062e\u0627\u0631\u062c \u0627\u0644\u0646\u0637\u0627\u0642 \u0627\u0644\u0645\u0633\u0645\u0648\u062d</b><br>\u0627\u0644\u0645\u0633\u0627\u0641\u0629: ' + dist.toFixed(0) + ' \u0645\u062a\u0631 — \u0627\u0644\u062d\u062f: ' + rad + ' \u0645\u062a\u0631';
+            document.getElementById("menuContent").style.display = "none";
+            document.getElementById("bottomBar").style.display = "none";
+            document.getElementById("blockScreen").style.display = "flex";
+            sGeo("err", "\ud83d\udeab", "\u062e\u0627\u0631\u062c \u0627\u0644\u0646\u0637\u0627\u0642", "\u0627\u0642\u062a\u0631\u0628 \u0623\u0643\u062b\u0631 \u0645\u0646 \u0627\u0644\u0645\u0637\u0639\u0645. \u0627\u0644\u0645\u0633\u0627\u0641\u0629: " + dist.toFixed(0) + " \u0645\u062a\u0631.");
+        }
+    }
+
+    function onE() {
+        document.getElementById("geoCard").style.display = "none";
+        document.getElementById("geoBlocked").style.display = "block";
+    }
+
+    // ===== تحميل المنيو =====
+    function initMenu() {
+        menuOk = true;
+        onValue(ref(db, "orders"), function(snap) {
+            var data = snap.val();
+            var c = document.getElementById("menuCats");
+            c.innerHTML = "";
+            // مسح الذاكرة
+            for (var key in menuLookup) { delete menuLookup[key]; }
+
+            if (!data) {
+                c.innerHTML = '<p style="color:#94a3b8;padding:30px;text-align:center;">\u0627\u0644\u0645\u0646\u064a\u0648 \u0641\u0627\u0631\u063a \u062d\u0627\u0644\u064a\u0627\u064b.</p>';
+                return;
+            }
+
+            for (var catId in data) {
+                var cat = data[catId];
+                var items = cat.items || {};
+                var cnt = Object.keys(items).length;
+                var itemHTML = "";
+
+                for (var itemId in items) {
+                    var it = items[itemId];
+                    // حفظ في الذاكرة بدلاً من data-attribute
+                    menuLookup[catId + "_" + itemId] = {name: it.name, price: it.price};
+                    itemHTML += '<div class="item-card"><div class="ir"><div class="iw"><img src="' + it.image + '" alt="" loading="eager" onerror="this.src=\'https://placehold.co/70x70/f1f5f9/94a3b8?text=\ud83c\udf7d\'"></div><div class="ii"><h4>' + it.name + '</h4><p>' + it.details + '</p><span class="ip">' + fmt(it.price) + ' \u062f.\u0639</span></div></div><button class="ba" data-c="' + catId + '" data-i="' + itemId + '"><i class="fas fa-plus"></i> \u0637\u0644\u0628</button></div>';
+                }
+
+                var acc = document.createElement("div");
+                acc.className = "cat-acc";
+                acc.innerHTML = '<div class="cat-hd"><img src="' + (cat.image || "") + '" onerror="this.style.display=\'none\'"><div class="cat-hi"><h3>' + cat.name + '</h3><span class="cc">' + cnt + ' \u0635\u0646\u0641</span></div><i class="fas fa-chevron-down cat-arr"></i></div><div class="cat-bd">' + itemHTML + '</div>';
                 c.appendChild(acc);
             }
-            // ربط أحداث الأزرار بعد إنشاء العناصر
-            c.querySelectorAll('.ba').forEach(btn=>{
-                btn.addEventListener('click',()=>{
-                    addIt(btn.dataset.c,btn.dataset.i,btn.dataset.n.replace(/&quot;/g,"'"),parseInt(btn.dataset.p));
+
+            // ربط الأحداث بعد إنشاء العناصر
+            c.querySelectorAll(".ba").forEach(function(btn) {
+                btn.addEventListener("click", function() {
+                    var cId = this.getAttribute("data-c");
+                    var iId = this.getAttribute("data-i");
+                    var item = menuLookup[cId + "_" + iId];
+                    if (item) {
+                        addIt(cId, iId, item.name, item.price);
+                    }
                 });
             });
-            c.querySelectorAll('.cat-hd').forEach(hd=>{
-                hd.addEventListener('click',()=>{
-                    const wasOpen=hd.parentElement.classList.contains('open');
-                    document.querySelectorAll('.cat-acc.open').forEach(a=>a.classList.remove('open'));
-                    if(!wasOpen)hd.parentElement.classList.add('open');
+
+            c.querySelectorAll(".cat-hd").forEach(function(hd) {
+                hd.addEventListener("click", function() {
+                    var wasOpen = hd.parentElement.classList.contains("open");
+                    document.querySelectorAll(".cat-acc.open").forEach(function(a) { a.classList.remove("open"); });
+                    if (!wasOpen) hd.parentElement.classList.add("open");
                 });
             });
         });
-        listenOrd();listenCh();
+        listenOrd();
+        listenCh();
     }
 
-    function addIt(c,i,n,p){
-        const k=`${c}_${i}`,r=ref(db,`table_${TBL}/current_orders/${k}`);
-        if(orders[k])update(r,{quantity:orders[k].quantity+1});else set(r,{name:n,price:p,quantity:1});
+    function addIt(cId, iId, name, price) {
+        var k = cId + "_" + iId;
+        var r = ref(db, "table_" + TBL + "/current_orders/" + k);
+        if (orders[k]) {
+            update(r, {quantity: orders[k].quantity + 1});
+        } else {
+            set(r, {name: name, price: price, quantity: 1});
+        }
     }
 
-    function listenOrd(){
-        const tk=`table_${TBL}`;
-        onValue(ref(db,`${tk}/current_orders`),s=>{
-            const d=s.val();orders=d||{};let total=0,count=0;
-            const ic=document.getElementById('invItems');
-            if(!d){ic.innerHTML='<p style="color:#94a3b8;text-align:center;padding:20px;">لا توجد طلبات.</p>';document.getElementById('btnSend').disabled=true;document.getElementById('barCount').textContent='٠';document.getElementById('barTotal').textContent='الإجمالي: ٠ دينار';document.getElementById('invTotal').textContent='الإجمالي: ٠ دينار';return}
-            document.getElementById('btnSend').disabled=false;ic.innerHTML='';
-            for(let k in d){const it=d[k],sub=it.price*it.quantity;total+=sub;count+=it.quantity;
-            const row=document.createElement('div');row.className='inv-i';
-            row.innerHTML=`<div><div class="inv-n">${it.name}</div><div class="inv-s">${fmt(it.price)} د.ع × ${it.quantity}</div></div><div style="display:flex;align-items:center;gap:10px"><span class="inv-t">${fmt(sub)} د.ع</span><div class="qc"><button class="qb qmin" data-k="${k}" data-d="-1">−</button><span class="qv">${it.quantity}</span><button class="qb qplu" data-k="${k}" data-d="1">+</button></div></div>`;
-            ic.appendChild(row);
+    function listenOrd() {
+        var tk = "table_" + TBL;
+
+        onValue(ref(db, tk + "/current_orders"), function(snap) {
+            var d = snap.val();
+            orders = d || {};
+            var total = 0, count = 0;
+            var ic = document.getElementById("invItems");
+
+            if (!d) {
+                ic.innerHTML = '<p style="color:#94a3b8;text-align:center;padding:20px;">\u0644\u062a\u0648\u062c\u062f \u0637\u0644\u0628\u0627\u062a \u0645\u0639\u0644\u0642\u0629.</p>';
+                document.getElementById("btnSend").disabled = true;
+                document.getElementById("barCount").textContent = "\u0660";
+                document.getElementById("barTotal").textContent = "\u0627\u0644\u0625\u062c\u0645\u0627\u0644: \u0660 \u062f\u064a\u0646\u0627\u0631";
+                document.getElementById("invTotal").textContent = "\u0627\u0644\u0625\u062c\u0645\u0627\u0644: \u0660 \u062f\u064a\u0646\u0627\u0631";
+                return;
             }
+
+            document.getElementById("btnSend").disabled = false;
+            ic.innerHTML = "";
+
+            for (var k in d) {
+                var it = d[k];
+                var sub = it.price * it.quantity;
+                total += sub;
+                count += it.quantity;
+                var row = document.createElement("div");
+                row.className = "inv-i";
+                row.innerHTML = '<div><div class="inv-n">' + it.name + '</div><div class="inv-s">' + fmt(it.price) + ' \u062f.\u0639 \u00d7 ' + it.quantity + '</div></div><div style="display:flex;align-items:center;gap:10px"><span class="inv-t">' + fmt(sub) + ' \u062f.\u0639</span><div class="qc"><button class="qb qmin" data-key="' + k + '" data-d="-1">−</button><span class="qv">' + it.quantity + '</span><button class="qb qplu" data-key="' + k + '" data-d="1">+</button></div></div>';
+                ic.appendChild(row);
+            }
+
             // ربط أزرار الكمية
-            ic.querySelectorAll('.qb').forEach(qb=>{
-                qb.addEventListener('click',()=>{
-                    const k=qb.dataset.k,d=parseInt(qb.dataset.d),r=ref(db,`table_${TBL}/current_orders/${k}`),n=orders[k].quantity+d;
-                    if(n<=0)remove(r);else update(r,{quantity:n});
+            ic.querySelectorAll(".qb").forEach(function(qb) {
+                qb.addEventListener("click", function() {
+                    var k = this.getAttribute("data-key");
+                    var d = parseInt(this.getAttribute("data-d"));
+                    var r = ref(db, "table_" + TBL + "/current_orders/" + k);
+                    var n = orders[k].quantity + d;
+                    if (n <= 0) { remove(r); }
+                    else { update(r, {quantity: n}); }
                 });
             });
-            document.getElementById('barCount').textContent=count;
-            document.getElementById('barTotal').textContent=`الإجمالي: ${fmt(total)} دينار`;
-            document.getElementById('invTotal').textContent=`الإجمالي: ${fmt(total)} دينار`;
+
+            document.getElementById("barCount").textContent = count;
+            document.getElementById("barTotal").textContent = "\u0627\u0644\u0625\u062c\u0645\u0627\u0644: " + fmt(total) + " \u062f\u064a\u0646\u0627\u0631";
+            document.getElementById("invTotal").textContent = "\u0627\u0644\u0625\u062c\u0645\u0627\u0644: " + fmt(total) + " \u062f\u064a\u0646\u0627\u0631";
         });
-        onValue(ref(db,`tablesB/${tk}/sent_orders`),s=>{
-            const d=s.val(),c=document.getElementById('sentItems');
-            if(!d){c.innerHTML='<p style="color:#94a3b8;font-size:13px;">لا توجد.</p>';return}
-            c.innerHTML='';for(let k in d){const it=d[k];c.innerHTML+=`<div class="si"><span>• ${it.name} (×${it.quantity})</span><span style="color:#94a3b8;font-size:11px;">${fmt(it.price*it.quantity)} د.ع</span></div>`}
+
+        onValue(ref(db, "tablesB/" + tk + "/sent_orders"), function(snap) {
+            var d = snap.val();
+            var c = document.getElementById("sentItems");
+            if (!d) {
+                c.innerHTML = '<p style="color:#94a3b8;font-size:13px;">\u0644\u062a\u0648\u062c\u062f.</p>';
+                return;
+            }
+            c.innerHTML = "";
+            for (var k in d) {
+                var it = d[k];
+                c.innerHTML += '<div class="si"><span>\u2022 ' + it.name + ' (\u00d7' + it.quantity + ')</span><span style="color:#94a3b8;font-size:11px;">' + fmt(it.price * it.quantity) + ' \u062f.\u0639</span></div>';
+            }
         });
     }
 
-    function sendOrd(){
-        if(!Object.keys(orders).length)return;
-        const sr=ref(db,`tablesB/table_${TBL}/sent_orders`);
-        for(let k in orders){const it=orders[k];set(push(sr),{name:it.name,price:it.price,quantity:it.quantity,sent_at:new Date().toISOString()})}
-        remove(ref(db,`table_${TBL}/current_orders`)).then(()=>{toast('تم إرسال طلباتك للمطبخ','success');closeInv()});
+    function sendOrd() {
+        if (!Object.keys(orders).length) return;
+        var sr = ref(db, "tablesB/table_" + TBL + "/sent_orders");
+        for (var k in orders) {
+            var it = orders[k];
+            set(push(sr), {
+                name: it.name, price: it.price, quantity: it.quantity,
+                settled_by: "customer", settled_at: new Date().toISOString()
+            });
+        }
+        remove(ref(db, "table_" + TBL + "/current_orders")).then(function() {
+            toast("\u062a\u0645 \u0625\u0631\u0633\u0627\u0644 \u0637\u0644\u0628\u0627\u062a\u0643 \u0644\u0644\u0645\u0637\u062e\u062e", "success");
+            closeInv();
+        });
     }
 
-    function closeInv(){document.getElementById('invoiceModal').style.display='none'}
+    function closeInv() {
+        document.getElementById("invoiceModal").style.display = "none";
+    }
 
     // ===== محادثة الكاشير =====
-    function listenCh(){
-        const tk=`table_${TBL}`;
-        function renderMsgs(sA,sB){
-            if(!chatOn)return;
-            const box=document.getElementById('chatMsgs');box.innerHTML='';let msgs=[];
-            if(sA.exists())Object.values(sA.val()).forEach(m=>{m.src='client';msgs.push(m)});
-            if(sB.exists())Object.values(sB.val()).forEach(m=>{m.src='cashier';msgs.push(m)});
-            msgs.sort((a,b)=>new Date(a.timestamp)-new Date(b.timestamp));
-            if(!msgs.length){box.innerHTML='<p style="color:#94a3b8;text-align:center;padding:20px;">ابدأ المحادثة مع الكاشير.</p>';return}
-            msgs.forEach(m=>{const t=new Date(m.timestamp).toLocaleTimeString('ar-IQ',{hour:'2-digit',minute:'2-digit'});box.innerHTML+=`<div class="cm ${m.src==='client'?'cm-cl':'cm-ca'}">${m.text}<div class="cm-t">${t}</div></div>`});
-            box.scrollTop=box.scrollHeight;
+    function listenCh() {
+        var tk = "table_" + TBL;
+
+        function renderMsgs(sA, sB) {
+            if (!chatOn) return;
+            var box = document.getElementById("chatMsgs");
+            box.innerHTML = "";
+            var msgs = [];
+            if (sA.exists()) {
+                var vA = sA.val();
+                for (var k in vA) { var m = vA[k]; m.src = "client"; msgs.push(m); }
+            }
+            if (sB.exists()) {
+                var vB = sB.val();
+                for (var k2 in vB) { var m2 = vB[k2]; m2.src = "cashier"; msgs.push(m2); }
+            }
+            msgs.sort(function(a, b) { return new Date(a.timestamp) - new Date(b.timestamp); });
+            if (!msgs.length) {
+                box.innerHTML = '<p style="color:#94a3b8;text-align:center;padding:20px;">\u0627\u0628\u062f\u0621 \u0627\u0644\u0645\u062d\u0627\u062f\u0629 \u0645\u0639 \u0627\u0644\u0643\u0627\u0634\u064a\u0631.</p>';
+                return;
+            }
+            for (var j = 0; j < msgs.length; j++) {
+                var msg = msgs[j];
+                var t = new Date(msg.timestamp).toLocaleTimeString("ar-IQ", {hour: "2-digit", minute: "2-digit"});
+                box.innerHTML += '<div class="cm ' + (msg.src === "client" ? "cm-cl" : "cm-ca") + '">' + msg.text + '<div class="cm-t">' + t + '</div></div>';
+            }
+            box.scrollTop = box.scrollHeight;
         }
-        onValue(ref(db,`msgA/${tk}`),sA=>{onValue(ref(db,`msgB/${tk}`),sB=>{renderMsgs(sA,sB);updUnread()}});
-        onValue(ref(db,`tablesC/${tk}/processing_orders`),s=>{
-            if(!s.exists()){remove(ref(db,`msgA/${tk}`));remove(ref(db,`msgB/${tk}`))}
+
+        onValue(ref(db, "msgA/" + tk), function(sA) {
+            onValue(ref(db, "msgB/" + tk), function(sB) {
+                renderMsgs(sA, sB);
+                updUnread();
+            });
         });
+
+        onValue(ref(db, "tablesC/" + tk + "/processing_orders"), function(s) {
+            if (!s.exists()) {
+                remove(ref(db, "msgA/" + tk));
+                remove(ref(db, "msgB/" + tk));
+            }
+        });
+
         updUnread();
     }
 
-    function updUnread(){
-        const tk=`table_${TBL}`;
-        onValue(ref(db,`msgB/${tk}`),s=>{
-            const d=s.val();let c=0;if(d)c=Object.keys(d).length;
-            const dot=document.getElementById('msgDot');
-            if(c>0){dot.style.display='flex';dot.textContent=c>9?'9+':c}else{dot.style.display='none'}
-            unreadN=c;
+    function updUnread() {
+        var tk = "table_" + TBL;
+        onValue(ref(db, "msgB/" + tk), function(s) {
+            var d = s.val();
+            var c = 0;
+            if (d) c = Object.keys(d).length;
+            var dot = document.getElementById("msgDot");
+            if (c > 0) {
+                dot.style.display = "flex";
+                dot.textContent = c > 9 ? "9+" : String(c);
+            } else {
+                dot.style.display = "none";
+            }
+            unreadN = c;
         });
     }
 
-    function openCh(){
-        chatOn=true;unreadN=0;document.getElementById('msgDot').style.display='none';
-        document.getElementById('chatModal').style.display='flex';
+    function openCh() {
+        chatOn = true;
+        unreadN = 0;
+        document.getElementById("msgDot").style.display = "none";
+        document.getElementById("chatModal").style.display = "flex";
     }
-    function closeCh(){chatOn=false;document.getElementById('chatModal').style.display='none'}
 
-    function sendCh(){
-        const i=document.getElementById('chatInput'),t=i.value.trim();if(!t)return;
-        set(push(ref(db,`msgA/table_${TBL}`)),{text:t,timestamp:new Date().toISOString()});i.value='';
+    function closeCh() {
+        chatOn = false;
+        document.getElementById("chatModal").style.display = "none";
+    }
+
+    function sendCh() {
+        var inp = document.getElementById("chatInput");
+        var t = inp.value.trim();
+        if (!t) return;
+        set(push(ref(db, "msgA/table_" + TBL)), {
+            text: t, timestamp: new Date().toISOString()
+        });
+        inp.value = "";
     }
 
     // ===== تشغيل =====
-    document.addEventListener('click',()=>{if(aC.state==='suspended')aC.resume()},{once:true});
+    document.addEventListener("click", function() {
+        if (aC.state === "suspended") aC.resume();
+    }, {once: true});
+
     bindEvents();
     initGeo();
 </script>

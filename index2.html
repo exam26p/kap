@@ -10,21 +10,52 @@
         *{box-sizing:border-box;margin:0;padding:0;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
         body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f0f2f5;margin:0;padding:0;padding-bottom:78px;color:#1a1a2e;overflow-x:hidden}
 
-        #splashScreen{position:fixed;inset:0;background:linear-gradient(160deg,#0f172a 0%,#1e293b 50%,#0f172a 100%);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .6s,transform .6s}
-        #splashScreen.hide{opacity:0;transform:scale(1.05);pointer-events:none}
-        .splash-logo{width:110px;height:110px;border-radius:28px;background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;font-size:55px;margin-bottom:30px;box-shadow:0 15px 40px rgba(245,158,11,.3);animation:logoFloat 3s ease-in-out infinite}
+        /* ===== شاشة البداية التفاعلية ===== */
+        #splashScreen{position:fixed;inset:0;background:linear-gradient(160deg,#0f172a 0%,#1e293b 50%,#0f172a 100%);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
+        #splashScreen.hide{opacity:0;transform:scale(1.05);pointer-events:none;transition:opacity .6s,transform .6s}
+        .splash-logo{width:110px;height:110px;border-radius:28px;background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;font-size:55px;margin-bottom:30px;box-shadow:0 15px 40px rgba(245,158,11,.3);animation:logoFloat 3s ease-in-out infinite;position:relative;z-index:2}
         @keyframes logoFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
-        .splash-title{color:#f8fafc;font-size:28px;font-weight:800;margin-bottom:8px}
-        .splash-sub{color:#64748b;font-size:14px;margin-bottom:40px}
-        .splash-dots{display:flex;gap:10px;margin-bottom:35px}
-        .splash-dot{width:12px;height:12px;border-radius:50%;background:#334155;animation:dotBounce 1.4s ease-in-out infinite}
-        .splash-dot:nth-child(2){animation-delay:.2s}
-        .splash-dot:nth-child(3){animation-delay:.4s}
-        @keyframes dotBounce{0%,80%,100%{transform:scale(.6);background:#334155}40%{transform:scale(1.2);background:#f59e0b}}
-        .splash-btn{background:linear-gradient(135deg,#f59e0b,#d97706);color:#0f172a;border:none;padding:16px 50px;font-size:17px;font-weight:800;border-radius:14px;cursor:pointer;font-family:inherit;opacity:0;transform:translateY(10px);transition:opacity .5s .1s,transform .5s .1s;box-shadow:0 6px 20px rgba(245,158,11,.3)}
-        .splash-btn.show{opacity:1;transform:translateY(0)}
-        .splash-btn:hover{transform:translateY(-2px)!important;box-shadow:0 10px 30px rgba(245,158,11,.4)}
+        .splash-title{color:#f8fafc;font-size:28px;font-weight:800;margin-bottom:8px;position:relative;z-index:2}
+        .splash-sub{color:#64748b;font-size:14px;margin-bottom:40px;position:relative;z-index:2}
 
+        /* حلقة التقدم التفاعلية */
+        .splash-progress{position:relative;z-index:2;margin-bottom:35px}
+        .progress-ring{width:90px;height:90px;transform:rotate(-90deg)}
+        .progress-ring-bg{fill:none;stroke:#1e293b;stroke-width:4}
+        .progress-ring-bar{fill:none;stroke:url(#progGrad);stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset .3s ease}
+        .progress-pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#f8fafc;font-size:18px;font-weight:800}
+
+        /* جسيمات متحركة */
+        .splash-particles{position:absolute;inset:0;overflow:hidden;z-index:0}
+        .sp{position:absolute;border-radius:50%;opacity:0;animation:spFloat linear infinite}
+        @keyframes spFloat{0%{transform:translateY(100vh) scale(0);opacity:0}10%{opacity:1}90%{opacity:.6}100%{transform:translateY(-10vh) scale(1);opacity:0}}
+        .sp:nth-child(1){width:6px;height:6px;background:#f59e0b;left:10%;animation-duration:4s;animation-delay:0s}
+        .sp:nth-child(2){width:4px;height:4px;background:#fbbf24;left:25%;animation-duration:5s;animation-delay:.5s}
+        .sp:nth-child(3){width:8px;height:8px;background:#d97706;left:40%;animation-duration:3.5s;animation-delay:1s}
+        .sp:nth-child(4){width:5px;height:5px;background:#f59e0b;left:55%;animation-duration:4.5s;animation-delay:.3s}
+        .sp:nth-child(5){width:7px;height:7px;background:#fbbf24;left:70%;animation-duration:3.8s;animation-delay:.8s}
+        .sp:nth-child(6){width:4px;height:4px;background:#d97706;left:85%;animation-duration:5.2s;animation-delay:1.2s}
+        .sp:nth-child(7){width:6px;height:6px;background:#f59e0b;left:15%;animation-duration:4.2s;animation-delay:.6s}
+        .sp:nth-child(8){width:5px;height:5px;background:#fbbf24;left:60%;animation-duration:3.9s;animation-delay:1.5s}
+        .sp:nth-child(9){width:3px;height:3px;background:#d97706;left:35%;animation-duration:4.8s;animation-delay:.2s}
+        .sp:nth-child(10){width:7px;height:7px;background:#f59e0b;left:80%;animation-duration:3.6s;animation-delay:1s}
+        .sp:nth-child(11){width:4px;height:4px;background:#fbbf24;left:5%;animation-duration:5.5s;animation-delay:.7s}
+        .sp:nth-child(12){width:6px;height:6px;background:#d97706;left:50%;animation-duration:4.1s;animation-delay:1.3s}
+
+        /* خطوط متوهجة في الخلفية */
+        .splash-lines{position:absolute;inset:0;z-index:0;overflow:hidden}
+        .sl{position:absolute;height:1px;background:linear-gradient(90deg,transparent,rgba(245,158,11,.15),transparent);animation:slMove 6s linear infinite}
+        .sl:nth-child(1){top:20%;width:60%;left:-60%;animation-delay:0s}
+        .sl:nth-child(2){top:40%;width:80%;left:-80%;animation-delay:2s}
+        .sl:nth-child(3){top:60%;width:50%;left:-50%;animation-delay:4s}
+        .sl:nth-child(4){top:80%;width:70%;left:-70%;animation-delay:1s}
+        @keyframes slMove{0%{transform:translateX(0)}100%{transform:translateX(calc(100vw + 100%))}}
+
+        .splash-btn{background:linear-gradient(135deg,#f59e0b,#d97706);color:#0f172a;border:none;padding:16px 50px;font-size:17px;font-weight:800;border-radius:14px;cursor:pointer;font-family:inherit;opacity:0;transform:translateY(10px);transition:opacity .5s .1s,transform .5s .1s;box-shadow:0 6px 20px rgba(245,158,11,.3);position:relative;z-index:2}
+        .splash-btn.show{opacity:1;transform:translateY(0)}
+        .splash-btn:active{transform:scale(.96)!important}
+
+        /* ===== شاشة التحقق الجغرافي ===== */
         #blockScreen{position:fixed;inset:0;background:linear-gradient(160deg,#0f172a,#1e293b);z-index:9999;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px}
         .geo-card{background:#1e293b;padding:35px 30px;border-radius:20px;box-shadow:0 20px 50px rgba(0,0,0,.4);max-width:420px;width:100%;border:1px solid #334155;text-align:center}
         .geo-icon{width:80px;height:80px;border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:38px;transition:all .5s}
@@ -43,16 +74,27 @@
         .geo-blocked h3{color:#f8fafc;font-size:18px;margin-bottom:8px}
         .geo-blocked p{color:#94a3b8;font-size:13px;line-height:1.7}
 
+        /* ===== شريط المسافة المتدرج ===== */
+        #distBar{display:none;width:100%;padding:10px 16px;background:#0f172a;box-sizing:border-box}
+        .dist-bar-inner{display:flex;align-items:center;gap:10px;max-width:600px;margin:0 auto}
+        .dist-label{color:#94a3b8;font-size:11px;font-weight:600;white-space:nowrap;min-width:50px;text-align:center}
+        .dist-track{flex:1;height:8px;background:#1e293b;border-radius:4px;overflow:hidden;position:relative}
+        .dist-fill{height:100%;border-radius:4px;transition:width .5s ease,background .5s ease;position:relative}
+        .dist-fill::after{content:'';position:absolute;right:-3px;top:-3px;width:14px;height:14px;border-radius:50%;background:inherit;border:2px solid #0f172a;box-shadow:0 0 8px rgba(0,0,0,.4)}
+        .dist-value{color:#f8fafc;font-size:13px;font-weight:800;min-width:60px;text-align:left;direction:ltr}
+
+        /* ===== الرأس ===== */
         .main-header{background:linear-gradient(135deg,#f59e0b,#d97706);padding:18px 20px;color:#0f172a;border-radius:0 0 20px 20px;margin-bottom:20px;box-shadow:0 4px 15px rgba(245,158,11,.2);display:flex;justify-content:space-between;align-items:center}
         .main-header .hi h2{margin:0 0 4px;font-size:20px}
         .main-header .hi p{margin:0;font-size:13px;opacity:.75}
         .hb{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
         .tbl-b{background:#0f172a;color:#fbbf24;padding:5px 14px;border-radius:20px;font-size:13px;font-weight:700}
         .msg-fab{position:relative;width:44px;height:44px;border-radius:50%;background:#0f172a;color:#fbbf24;border:none;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
-        .msg-fab:hover{transform:scale(1.1);box-shadow:0 4px 12px rgba(0,0,0,.2)}
+        .msg-fab:active{transform:scale(.92)}
         .msg-dot{position:absolute;top:2px;right:2px;min-width:14px;height:14px;border-radius:50%;background:#dc2626;color:#fff;font-size:9px;font-weight:800;display:none;align-items:center;justify-content:center;padding:0 3px;animation:bp .3s ease}
         @keyframes bp{from{transform:scale(0)}to{transform:scale(1)}}
 
+        /* ===== المنيو ===== */
         #menuContent{display:none;padding:0 15px;max-width:600px;margin:0 auto}
         .cat-acc{margin-bottom:10px;border-radius:14px;overflow:hidden;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.04);border:1px solid #e8ecf0;transition:box-shadow .3s}
         .cat-acc.open{box-shadow:0 4px 20px rgba(0,0,0,.08);border-color:#f59e0b}
@@ -69,7 +111,6 @@
 
         .item-card{display:flex;background:#fff;padding:14px;align-items:center;justify-content:space-between;border-bottom:1px solid #f1f5f9;gap:12px}
         .item-card:last-child{border-bottom:none}
-        .item-card:active{background:#f8f9fa}
         .ir{display:flex;align-items:center;gap:12px;flex:1;min-width:0}
         .iw{position:relative;width:70px;height:70px;border-radius:12px;overflow:hidden;flex-shrink:0;border:1px solid #e8ecf0}
         .iw img{width:100%;height:100%;object-fit:cover}
@@ -80,12 +121,14 @@
         .ba{background:linear-gradient(135deg,#059669,#047857);color:#fff;border:none;padding:10px 14px;font-size:13px;border-radius:10px;cursor:pointer;font-weight:700;white-space:nowrap;font-family:inherit;transition:all .15s;flex-shrink:0}
         .ba:active{transform:scale(.94)}
 
+        /* ===== شريط سفلي ===== */
         .bottom-bar{position:fixed;bottom:0;left:0;width:100%;background:linear-gradient(135deg,#1e293b,#0f172a);color:#fff;padding:12px 20px;box-sizing:border-box;display:none;justify-content:space-between;align-items:center;z-index:1000;box-shadow:0 -4px 20px rgba(0,0,0,.3);border-top:1px solid #334155}
         .bt{font-size:14px;font-weight:600}
         .bib{background:linear-gradient(135deg,#f59e0b,#d97706);color:#0f172a;border:none;padding:10px 22px;font-weight:800;border-radius:25px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:14px;font-family:inherit;transition:all .2s}
         .bib:active{transform:scale(.96)}
         .bc{background:#dc2626;color:#fff;border-radius:50%;padding:2px 8px;font-size:11px;font-weight:800;min-width:22px;text-align:center}
 
+        /* ===== نافذة الفاتورة ===== */
         #invoiceModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:2000;justify-content:center;align-items:flex-end;backdrop-filter:blur(4px)}
         .inv-c{background:#fff;width:100%;max-width:500px;border-radius:24px 24px 0 0;padding:24px;box-sizing:border-box;max-height:85vh;overflow-y:auto;text-align:right;animation:su .3s ease}
         @keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
@@ -110,6 +153,7 @@
         .sbox h4{margin:0 0 8px;color:#2563eb;font-size:14px}
         .si{display:flex;justify-content:space-between;color:#64748b;font-size:13px;padding:4px 0}
 
+        /* ===== نافذة المحادثة ===== */
         #chatModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:3000;justify-content:center;align-items:flex-end;backdrop-filter:blur(4px)}
         .ch-c{background:#fff;width:100%;max-width:500px;border-radius:24px 24px 0 0;padding:24px;box-sizing:border-box;height:80vh;display:flex;flex-direction:column;animation:su .3s ease}
         .ch-h{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #f1f5f9;padding-bottom:12px;margin-bottom:12px;flex-shrink:0}
@@ -125,6 +169,7 @@
         .ch-in input:focus{border-color:#3b82f6}
         .ch-in button{background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;border:none;padding:0 18px;border-radius:10px;cursor:pointer;font-weight:700;font-family:inherit;font-size:14px}
 
+        /* ===== إشعارات ===== */
         .tw{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:99999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
         .ts{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:12px 22px;color:#f1f5f9;font-size:14px;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.4);display:flex;align-items:center;gap:8px;animation:ti .4s ease,to .4s ease 2.6s forwards;white-space:nowrap}
         .ts.success{border-color:#059669}.ts.success i{color:#34d399}
@@ -133,22 +178,53 @@
         @keyframes ti{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
         @keyframes to{from{opacity:1}to{opacity:0;transform:translateY(-20px)}}
 
-        @media(max-width:480px){.item-card{flex-direction:column;align-items:stretch;gap:8px}.ba{width:100%;text-align:center;padding:12px}.iw{width:100%;height:120px;border-radius:10px}.main-header{flex-direction:column;text-align:center;gap:10px}.hb{justify-content:center}}
-        @media print{body *{visibility:hidden}#menuContent,#menuContent *{visibility:visible}#menuContent{position:static;max-width:100%}.bottom-bar,#splashScreen,#blockScreen,.msg-fab,#chatModal,#invoiceModal{display:none !important}}
+        /* ===== شاشة الإخراج ===== */
+        #kickScreen{position:fixed;inset:0;background:linear-gradient(160deg,#0f172a,#1e293b);z-index:99998;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center}
+        .kick-icon{width:90px;height:90px;border-radius:50%;background:rgba(239,68,68,.1);display:flex;align-items:center;justify-content:center;font-size:40px;color:#f87171;margin-bottom:20px}
+        .kick-title{color:#f8fafc;font-size:22px;font-weight:800;margin-bottom:10px}
+        .kick-msg{color:#94a3b8;font-size:14px;line-height:1.8;max-width:360px}
+
+        @media(max-width:480px){.item-card{flex-direction:column;align-items:stretch;gap:8px}.ba{width:100%;text-align:center;padding:12px}.iw{width:100%;height:120px;border-radius:10px}.main-header{flex-direction:column;text-align:center;gap:10px}.hb{justify-content:center}.dist-label{font-size:10px;min-width:40px}}
+        @media print{body *{visibility:hidden}#menuContent,#menuContent *{visibility:visible}#menuContent{position:static;max-width:100%}.bottom-bar,#splashScreen,#blockScreen,.msg-fab,#chatModal,#invoiceModal,#distBar,#kickScreen{display:none !important}}
     </style>
 </head>
 <body>
 
 <div class="tw" id="tw"></div>
 
+<!-- شاشة البداية التفاعلية -->
 <div id="splashScreen">
+    <svg style="position:absolute;width:0;height:0">
+        <defs>
+            <linearGradient id="progGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#dc2626"/>
+                <stop offset="50%" stop-color="#eab308"/>
+                <stop offset="100%" stop-color="#22c55e"/>
+            </linearGradient>
+        </defs>
+    </svg>
+    <div class="splash-particles">
+        <div class="sp"></div><div class="sp"></div><div class="sp"></div><div class="sp"></div><div class="sp"></div>
+        <div class="sp"></div><div class="sp"></div><div class="sp"></div><div class="sp"></div><div class="sp"></div>
+        <div class="sp"></div><div class="sp"></div>
+    </div>
+    <div class="splash-lines">
+        <div class="sl"></div><div class="sl"></div><div class="sl"></div><div class="sl"></div>
+    </div>
     <div class="splash-logo">🍽️</div>
     <div class="splash-title">أهلاً وسهلاً</div>
     <div class="splash-sub">نستمتع بتقديم أفضل الخدمات لكم</div>
-    <div class="splash-dots"><div class="splash-dot"></div><div class="splash-dot"></div><div class="splash-dot"></div></div>
+    <div class="splash-progress">
+        <svg class="progress-ring" viewBox="0 0 100 100">
+            <circle class="progress-ring-bg" cx="50" cy="50" r="42"/>
+            <circle class="progress-ring-bar" id="progBar" cx="50" cy="50" r="42" stroke-dasharray="263.9" stroke-dashoffset="263.9"/>
+        </svg>
+        <div class="progress-pct" id="progPct">0%</div>
+    </div>
     <button class="splash-btn" id="splashBtn">متابعة</button>
 </div>
 
+<!-- شاشة التحقق الجغرافي -->
 <div id="blockScreen">
     <div class="geo-card" id="geoCard">
         <div class="geo-icon wait" id="geoIcon">📡</div>
@@ -163,6 +239,24 @@
     </div>
 </div>
 
+<!-- شاشة الإخراج -->
+<div id="kickScreen">
+    <div class="kick-icon"><i class="fas fa-location-arrow"></i></div>
+    <div class="kick-title">ابتعدت عن منطقة المطعم</div>
+    <div class="kick-msg">عذراً، لقد تجاوزت النطاق المسموح به. يرجى العودة إلى منطقة المطعم والتحديث لاستخدام القائمة.</div>
+</div>
+
+<!-- شريط المسافة -->
+<div id="distBar">
+    <div class="dist-bar-inner">
+        <span class="dist-label">بعيد</span>
+        <div class="dist-track"><div class="dist-fill" id="distFill" style="width:0%;background:#dc2626"></div></div>
+        <span class="dist-label">قريب</span>
+        <span class="dist-value" id="distValue">-- م</span>
+    </div>
+</div>
+
+<!-- المحتوى الرئيسي -->
 <div id="menuContent">
     <div class="main-header">
         <div class="hi"><h2>🍽️ المنيو الرقمي</h2><p>اختر من تشكيلة وجباتنا المميزة</p></div>
@@ -208,230 +302,310 @@
         projectId: "game1-bb93e"
     }));
 
-    let TBL = "", VER = "", zone = null, watchID = null, orders = {}, menuOk = false, chatOn = false, unreadN = 0;
-    const aC = new (window.AudioContext || window.webkitAudioContext)();
-    let lClk = 0;
-    // ذاكرة المنيو: مفتاح حسب [catId][itemId] = {name, price}
+    /* ===== متغيرات عامة ===== */
+    let TBL = "", VER = "", zone = null, watchID = null;
+    let orders = {}, menuOk = false, chatOn = false, unreadN = 0;
+    let curLat = null, curLon = null, curDist = null, isInZone = false;
+    let prevMsgCount = 0;
     const menuLookup = {};
+    const CIRC = 2 * Math.PI * 42; // محيط حلقة التقدم
 
+    /* ===== تنسيق الأرقام ===== */
     function fmt(n) { return new Intl.NumberFormat("ar-IQ").format(n); }
 
+    /* ===== إشعارات Toast ===== */
     function toast(m, t) {
         t = t || "info";
-        const c = document.getElementById("tw");
-        const icons = {success: "fa-circle-check", error: "fa-circle-xmark", info: "fa-circle-info"};
-        const el = document.createElement("div");
+        var c = document.getElementById("tw");
+        var icons = {success:"fa-circle-check",error:"fa-circle-xmark",info:"fa-circle-info"};
+        var el = document.createElement("div");
         el.className = "ts " + t;
-        el.innerHTML = '<i class="fas ' + (icons[t] || icons.info) + '"></i> ' + m;
+        el.innerHTML = '<i class="fas '+(icons[t]||icons.info)+'"></i> '+m;
         c.appendChild(el);
-        setTimeout(function() { if (el.parentNode) el.remove(); }, 3200);
+        setTimeout(function(){ if(el.parentNode) el.remove(); }, 3200);
     }
 
-    function haversine(a, b, c, d) {
-        var R = 6371000;
-        var dL = (c - a) * Math.PI / 180;
-        var dN = (d - b) * Math.PI / 180;
-        var x = Math.sin(dL / 2) * Math.sin(dL / 2) + Math.cos(a * Math.PI / 180) * Math.cos(c * Math.PI / 180) * Math.sin(dN / 2) * Math.sin(dN / 2);
-        return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
+    /* ===== حساب المسافة ===== */
+    function haversine(a,b,c,d){
+        var R=6371000,dL=(c-a)*Math.PI/180,dN=(d-b)*Math.PI/180;
+        var x=Math.sin(dL/2)*Math.sin(dL/2)+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dN/2)*Math.sin(dN/2);
+        return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
     }
 
-    function cSnd() {
-        var n = Date.now();
-        if (n - lClk < 60) return;
-        lClk = n;
-        try {
-            if (aC.state === "suspended") aC.resume();
-            var o = aC.createOscillator();
-            var g = aC.createGain();
-            o.connect(g);
-            g.connect(aC.destination);
-            o.type = "sine";
-            o.frequency.setValueAtTime(800 + Math.random() * 600, aC.currentTime);
-            g.gain.setValueAtTime(0.015, aC.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.001, aC.currentTime + 0.03);
-            o.start(aC.currentTime);
-            o.stop(aC.currentTime + 0.03);
-        } catch (e) {}
+    /* ===== صوت الأزرار (فقط عند الضغط) ===== */
+    var aC = new (window.AudioContext||window.webkitAudioContext)();
+    var lClk = 0;
+    function cSnd(){
+        var n=Date.now(); if(n-lClk<60) return; lClk=n;
+        try{
+            if(aC.state==="suspended") aC.resume();
+            var o=aC.createOscillator(), g=aC.createGain();
+            o.connect(g); g.connect(aC.destination);
+            o.type="sine"; o.frequency.setValueAtTime(800+Math.random()*600,aC.currentTime);
+            g.gain.setValueAtTime(0.015,aC.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001,aC.currentTime+0.03);
+            o.start(aC.currentTime); o.stop(aC.currentTime+0.03);
+        }catch(e){}
     }
-    document.addEventListener("click", cSnd, {passive: true});
-    document.addEventListener("touchstart", cSnd, {passive: true});
+    document.addEventListener("click", cSnd, {passive:true});
+    document.addEventListener("touchstart", cSnd, {passive:true});
 
-    // ===== ربط الأحداث =====
-    function bindEvents() {
+    /* ===== صوت الرسائل الجديدة فقط ===== */
+    function msgSnd(){
+        try{
+            if(aC.state==="suspended") aC.resume();
+            var now=aC.currentTime;
+            [0,0.15,0.3].forEach(function(d,i){
+                var o=aC.createOscillator(), g=aC.createGain();
+                o.connect(g); g.connect(aC.destination);
+                o.type="sine";
+                o.frequency.setValueAtTime([880,1100,1320][i],now+d);
+                g.gain.setValueAtTime(0.08,now+d);
+                g.gain.exponentialRampToValueAtTime(0.001,now+d+0.12);
+                o.start(now+d); o.stop(now+d+0.12);
+            });
+        }catch(e){}
+    }
+
+    /* ===== حلقة التقدم في شاشة البداية ===== */
+    var progBar = document.getElementById("progBar");
+    var progPct = document.getElementById("progPct");
+    var progVal = 0;
+    var progInterval = setInterval(function(){
+        progVal += Math.random() * 8 + 2;
+        if(progVal > 100) progVal = 100;
+        var offset = CIRC - (progVal / 100) * CIRC;
+        progBar.style.strokeDashoffset = offset;
+        progPct.textContent = Math.round(progVal) + "%";
+        if(progVal >= 100){
+            clearInterval(progInterval);
+            document.getElementById("splashBtn").classList.add("show");
+        }
+    }, 200);
+
+    /* ===== ربط الأحداث ===== */
+    function bindEvents(){
         document.getElementById("splashBtn").addEventListener("click", dismissSplash);
-        document.getElementById("bibBtn").addEventListener("click", function() {
+        document.getElementById("bibBtn").addEventListener("click", function(){
             document.getElementById("invoiceModal").style.display = "flex";
         });
         document.getElementById("invClose").addEventListener("click", closeInv);
-        document.getElementById("invoiceModal").addEventListener("click", function(e) {
-            if (e.target.id === "invoiceModal") closeInv();
+        document.getElementById("invoiceModal").addEventListener("click", function(e){
+            if(e.target.id==="invoiceModal") closeInv();
         });
         document.getElementById("btnSend").addEventListener("click", sendOrd);
         document.getElementById("msgFab").addEventListener("click", openCh);
         document.getElementById("chatClose").addEventListener("click", closeCh);
-        document.getElementById("chatModal").addEventListener("click", function(e) {
-            if (e.target.id === "chatModal") closeCh();
+        document.getElementById("chatModal").addEventListener("click", function(e){
+            if(e.target.id==="chatModal") closeCh();
         });
         document.getElementById("chatSendBtn").addEventListener("click", sendCh);
-        document.getElementById("chatInput").addEventListener("keydown", function(e) {
-            if (e.key === "Enter") sendCh();
+        document.getElementById("chatInput").addEventListener("keydown", function(e){
+            if(e.key==="Enter") sendCh();
         });
     }
 
-    function dismissSplash() {
+    function dismissSplash(){
         document.getElementById("splashScreen").classList.add("hide");
-        setTimeout(function() {
+        setTimeout(function(){
             document.getElementById("splashScreen").style.display = "none";
             document.getElementById("blockScreen").style.display = "flex";
             initGeo();
         }, 600);
     }
-    setTimeout(function() {
-        document.getElementById("splashBtn").classList.add("show");
-    }, 5000);
 
-    // ===== التحقق الجغرافي =====
-    async function initGeo() {
+    /* ===== التحقق الجغرافي ===== */
+    async function initGeo(){
         var u = new URLSearchParams(location.search);
         TBL = u.get("table") || "1";
         VER = u.get("version") || "";
-        document.getElementById("tblB").textContent = "\u0637\u0627\u0648\u0644\u0629 " + TBL;
+        document.getElementById("tblB").textContent = "طاولة " + TBL;
 
-        if (!VER) {
-            sGeo("err", "\u26a0\ufe0f", "\u0625\u0635\u062f\u0627\u0631 \u063a\u064a\u0631 \u063a\u064a\u0631", "\u0644\u0645 \u064a\u062a\u0645 \u0627\u0644\u0639\u062b\u0631 \u0639\u0644\u0649 \u0641\u064a \u0631\u0628\u0637 \u0627\u0644\u0635\u0641\u062d\u0631\u0629.");
+        if(!VER){
+            sGeo("err","\u26a0\ufe0f","إصدار غير صالح","لم يتم العثور على ربط للصفحة.");
             return;
         }
 
-        sGeo("ld", "\ud83d\udd04", "\u062c\u0627\u0631\u064a \u0627\u0644\u062a\u062d\u0642\u0642...", "\u0646\u0628\u062d\u062b \u0639\u0646 \u0627\u0644\u0646\u0637\u0627\u0642 \u0627\u0644\u062c\u063a\u0631\u0627\u0641\u064a.");
-        try {
-            var snap = await get(ref(db, "cobes"));
+        sGeo("ld","\ud83d\udd04","جاري التحقق...","نبحث عن النطاق الجغرافي.");
+        try{
+            var snap = await get(ref(db,"cobes"));
             var all = snap.val();
-            if (!all) {
-                sGeo("err", "\ud83d\udccb", "\u0644\u0627 \u062a\u0648\u062c\u062f \u0646\u0637\u0627\u0642\u0627\u062a", "\u0644\u0645 \u064a\u062a\u0645 \u062a\u0633\u062c\u064a\u0644 \u0623\u064a \u0646\u0637\u0627\u0642 \u062c\u063a\u0631\u0627\u0641\u064a.");
+            if(!all){
+                sGeo("err","\ud83d\udccb","لا توجد نطاقات","لم يتم تسجيل أي نطاق جغرافي.");
                 return;
             }
             var found = null;
-            for (var id in all) {
-                if (all[id].version_number === VER) { found = all[id]; break; }
+            for(var id in all){
+                if(all[id].version_number === VER){ found = all[id]; break; }
             }
-            if (!found) {
-                sGeo("err", "\ud83d\udeab", "\u0625\u0635\u062f\u0627\u0631 \u063a\u064a\u0631 \u063a\u064a\u0631", '\u0627\u0644\u0625\u0635\u062f\u0627\u0631 "v' + VER + '" \u063a\u064a\u0631 \u063a\u064a\u0631 \u0641\u064a \u0627\u0644\u0646\u0638\u0627\u0645.');
+            if(!found){
+                sGeo("err","\ud83d\udeab","إصدار غير صالح",'الإصدار "v'+VER+'" غير موجود في النظام.');
                 return;
             }
             zone = found.geo_zone;
-            if (!zone || !zone.center_latitude) {
-                sGeo("err", "\ud83d\udccd", "\u0628\u064a\u0627\u0646\u0627\u062a \u0646\u0627\u0642\u0635\u0635", "\u0627\u0644\u0625\u0635\u062f\u0627\u0631 \u0645\u0648\u062c\u0648\u062f \u0628\u0644\u0625\u062d\u062f\u0627\u062a\u064a\u0627\u062a.");
+            if(!zone || !zone.center_latitude){
+                sGeo("err","\ud83d\udccd","بيانات ناقصة","الإصدار موجود لكن بدون إحداثيات.");
                 return;
             }
-            sGeo("wait", "\u2705", "\u062a\u0645 \u0627\u0644\u062a\u062d\u0642\u0642", "\u062c\u0627\u0631\u064a \u062a\u062a\u0628\u0639 \u0645\u0648\u0642\u064a\u0643 \u0644\u062d\u0638\u0627.");
+            sGeo("wait","\u2705","تم التحقق","جاري تتبع موقعك لحظياً.");
             startW();
-        } catch (e) {
-            sGeo("err", "\ud83d\udce1", "\u062e\u0637\u0623 \u0641\u064a \u0627\u0644\u0627\u062a\u0635\u0627\u0644", "\u062a\u0639\u0630\u0631 \u0627\u0644\u0627\u062a\u0635\u0627\u0644 \u062d\u0627\u0644\u064a.");
+        }catch(e){
+            sGeo("err","\ud83d\udce1","خطأ في الاتصال","تعذر الاتصال حالياً.");
         }
     }
 
-    function sGeo(ic, i, t, m) {
-        var el = document.getElementById("geoIcon");
-        el.className = "geo-icon " + ic;
-        el.innerHTML = i;
-        document.getElementById("geoTitle").textContent = t;
-        document.getElementById("geoMsg").textContent = m;
-        document.getElementById("geoDist").style.display = "none";
-        document.getElementById("geoBlocked").style.display = "none";
+    function sGeo(ic,i,t,m){
+        var el=document.getElementById("geoIcon");
+        el.className="geo-icon "+ic; el.innerHTML=i;
+        document.getElementById("geoTitle").textContent=t;
+        document.getElementById("geoMsg").textContent=m;
+        document.getElementById("geoDist").style.display="none";
+        document.getElementById("geoBlocked").style.display="none";
     }
 
-    function startW() {
-        if (!navigator.geolocation) {
-            document.getElementById("geoCard").style.display = "none";
-            document.getElementById("geoBlocked").style.display = "block";
+    function startW(){
+        if(!navigator.geolocation){
+            document.getElementById("geoCard").style.display="none";
+            document.getElementById("geoBlocked").style.display="block";
             return;
         }
         watchID = navigator.geolocation.watchPosition(onP, onE, {
-            enableHighAccuracy: true, timeout: 15000, maximumAge: 0
+            enableHighAccuracy:true, timeout:15000, maximumAge:0
         });
     }
 
-    function onP(pos) {
-        var la = pos.coords.latitude;
-        var lo = pos.coords.longitude;
-        var dist = haversine(la, lo, zone.center_latitude, zone.center_longitude);
+    /* ===== معالجة تحديث الموقع ===== */
+    function onP(pos){
+        curLat = pos.coords.latitude;
+        curLon = pos.coords.longitude;
+        curDist = haversine(curLat, curLon, zone.center_latitude, zone.center_longitude);
         var rad = zone.radius_meters || 100;
-        var dEl = document.getElementById("geoDist");
-        dEl.style.display = "block";
 
-        if (dist <= rad) {
-            dEl.className = "geo-dist in";
-            dEl.innerHTML = '<i class="fas fa-circle-check" style="margin-left:5px;"></i><b>\u0645\u0648\u0642\u0639\u0643 \u0645\u064f\u062b\u0642</b><br>\u0627\u0644\u0645\u0633\u0627\u0641\u0629: ' + dist.toFixed(1) + ' \u0645\u062a\u0631 (الحد: ' + rad + ' \u0645\u062a\u0631)';
-            document.getElementById("blockScreen").style.display = "none";
-            document.getElementById("menuContent").style.display = "block";
-            document.getElementById("bottomBar").style.display = "flex";
-            if (!menuOk) initMenu();
-        } else {
+        // تحديث شريط المسافة دائماً
+        updateDistBar(curDist, rad);
+
+        if(curDist <= rad){
+            // داخل النطاق
+            if(!isInZone){
+                isInZone = true;
+                document.getElementById("blockScreen").style.display = "none";
+                document.getElementById("kickScreen").style.display = "none";
+                document.getElementById("menuContent").style.display = "block";
+                document.getElementById("bottomBar").style.display = "flex";
+                document.getElementById("distBar").style.display = "block";
+                if(!menuOk) initMenu();
+            }
+        } else if(curDist <= rad * 2){
+            // بين 100% و 200% — خارج النطاق لكن لم يُطرد بعد
+            if(isInZone){
+                isInZone = false;
+                document.getElementById("menuContent").style.display = "none";
+                document.getElementById("bottomBar").style.display = "none";
+                document.getElementById("distBar").style.display = "none";
+                document.getElementById("blockScreen").style.display = "flex";
+                sGeo("err","\ud83d\udeab","خارج النطاق","اقترب أكثر من المطعم. المسافة: "+curDist.toFixed(0)+" متر.");
+            }
+            // تحديث الشاشة بدون إخفاء/إظهار متكرر
+            var dEl = document.getElementById("geoDist");
+            dEl.style.display = "block";
             dEl.className = "geo-dist out";
-            dEl.innerHTML = '<i class="fas fa-triangle-exclamation" style="margin-left:5px;"></i><b>\u062e\u0627\u0631\u062c \u0627\u0644\u0646\u0637\u0627\u0642 \u0627\u0644\u0645\u0633\u0645\u0648\u062d</b><br>\u0627\u0644\u0645\u0633\u0627\u0641\u0629: ' + dist.toFixed(0) + ' \u0645\u062a\u0631 — \u0627\u0644\u062d\u062f: ' + rad + ' \u0645\u062a\u0631';
-            document.getElementById("menuContent").style.display = "none";
-            document.getElementById("bottomBar").style.display = "none";
-            document.getElementById("blockScreen").style.display = "flex";
-            sGeo("err", "\ud83d\udeab", "\u062e\u0627\u0631\u062c \u0627\u0644\u0646\u0637\u0627\u0642", "\u0627\u0642\u062a\u0631\u0628 \u0623\u0643\u062b\u0631 \u0645\u0646 \u0627\u0644\u0645\u0637\u0639\u0645. \u0627\u0644\u0645\u0633\u0627\u0641\u0629: " + dist.toFixed(0) + " \u0645\u062a\u0631.");
+            dEl.innerHTML = '<i class="fas fa-triangle-exclamation" style="margin-left:5px;"></i><b>خارج النطاق المسموح</b><br>المسافة: '+curDist.toFixed(0)+' متر — الحد: '+rad+' متر';
+        } else {
+            // أكثر من 200% — إخراج من الصفحة
+            if(!document.getElementById("kickScreen").style.display || document.getElementById("kickScreen").style.display === "none"){
+                isInZone = false;
+                document.getElementById("menuContent").style.display = "none";
+                document.getElementById("bottomBar").style.display = "none";
+                document.getElementById("distBar").style.display = "none";
+                document.getElementById("blockScreen").style.display = "none";
+                document.getElementById("kickScreen").style.display = "flex";
+            }
         }
     }
 
-    function onE() {
-        document.getElementById("geoCard").style.display = "none";
-        document.getElementById("geoBlocked").style.display = "block";
+    function onE(){
+        document.getElementById("geoCard").style.display="none";
+        document.getElementById("geoBlocked").style.display="block";
     }
 
-    // ===== تحميل المنيو =====
-    function initMenu() {
+    /* ===== تحديث شريط المسافة المتدرج ===== */
+    function updateDistBar(dist, radius){
+        var pct = Math.min((dist / radius) * 100, 100);
+        var fill = document.getElementById("distFill");
+        var val = document.getElementById("distValue");
+
+        // عكس النسبة: 0% = قريب (أخضر)، 100% = بعيد (أحمر)
+        var w = Math.max(0, Math.min(100, pct));
+        fill.style.width = w + "%";
+
+        // حساب اللون: أخضر عند القرب → أصفر → أحمر عند البعد
+        var r, g, b;
+        if(pct <= 50){
+            // أخضر → أصفر
+            var t = pct / 50;
+            r = Math.round(34 + (234 - 34) * t);
+            g = Math.round(197 + (179 - 197) * t);
+            b = Math.round(94 + (8 - 94) * t);
+        } else {
+            // أصفر → أحمر
+            var t2 = (pct - 50) / 50;
+            r = Math.round(234 + (220 - 234) * t2);
+            g = Math.round(179 - 179 * t2);
+            b = Math.round(8 + (38 - 8) * t2);
+        }
+        var color = "rgb("+r+","+g+","+b+")";
+        fill.style.background = color;
+
+        val.textContent = dist.toFixed(0) + " م";
+        // لون النص يتغير أيضاً
+        val.style.color = color;
+    }
+
+    /* ===== تحميل المنيو ===== */
+    function initMenu(){
         menuOk = true;
-        onValue(ref(db, "orders"), function(snap) {
+        onValue(ref(db,"orders"), function(snap){
             var data = snap.val();
             var c = document.getElementById("menuCats");
             c.innerHTML = "";
-            // مسح الذاكرة
-            for (var key in menuLookup) { delete menuLookup[key]; }
+            for(var key in menuLookup){ delete menuLookup[key]; }
 
-            if (!data) {
-                c.innerHTML = '<p style="color:#94a3b8;padding:30px;text-align:center;">\u0627\u0644\u0645\u0646\u064a\u0648 \u0641\u0627\u0631\u063a \u062d\u0627\u0644\u064a\u0627\u064b.</p>';
+            if(!data){
+                c.innerHTML = '<p style="color:#94a3b8;padding:30px;text-align:center;">المنيو فارغ حالياً.</p>';
                 return;
             }
 
-            for (var catId in data) {
+            for(var catId in data){
                 var cat = data[catId];
                 var items = cat.items || {};
                 var cnt = Object.keys(items).length;
                 var itemHTML = "";
 
-                for (var itemId in items) {
+                for(var itemId in items){
                     var it = items[itemId];
-                    // حفظ في الذاكرة بدلاً من data-attribute
-                    menuLookup[catId + "_" + itemId] = {name: it.name, price: it.price};
-                    itemHTML += '<div class="item-card"><div class="ir"><div class="iw"><img src="' + it.image + '" alt="" loading="eager" onerror="this.src=\'https://placehold.co/70x70/f1f5f9/94a3b8?text=\ud83c\udf7d\'"></div><div class="ii"><h4>' + it.name + '</h4><p>' + it.details + '</p><span class="ip">' + fmt(it.price) + ' \u062f.\u0639</span></div></div><button class="ba" data-c="' + catId + '" data-i="' + itemId + '"><i class="fas fa-plus"></i> \u0637\u0644\u0628</button></div>';
+                    menuLookup[catId+"_"+itemId] = {name:it.name, price:it.price};
+                    itemHTML += '<div class="item-card"><div class="ir"><div class="iw"><img src="'+it.image+'" alt="" loading="eager" onerror="this.src=\'https://placehold.co/70x70/f1f5f9/94a3b8?text=\ud83c\udf7d\'"></div><div class="ii"><h4>'+it.name+'</h4><p>'+it.details+'</p><span class="ip">'+fmt(it.price)+' د.ع</span></div></div><button class="ba" data-c="'+catId+'" data-i="'+itemId+'"><i class="fas fa-plus"></i> طلب</button></div>';
                 }
 
                 var acc = document.createElement("div");
                 acc.className = "cat-acc";
-                acc.innerHTML = '<div class="cat-hd"><img src="' + (cat.image || "") + '" onerror="this.style.display=\'none\'"><div class="cat-hi"><h3>' + cat.name + '</h3><span class="cc">' + cnt + ' \u0635\u0646\u0641</span></div><i class="fas fa-chevron-down cat-arr"></i></div><div class="cat-bd">' + itemHTML + '</div>';
+                acc.innerHTML = '<div class="cat-hd"><img src="'+(cat.image||"")+'" onerror="this.style.display=\'none\'"><div class="cat-hi"><h3>'+cat.name+'</h3><span class="cc">'+cnt+' صنف</span></div><i class="fas fa-chevron-down cat-arr"></i></div><div class="cat-bd">'+itemHTML+'</div>';
                 c.appendChild(acc);
             }
 
-            // ربط الأحداث بعد إنشاء العناصر
-            c.querySelectorAll(".ba").forEach(function(btn) {
-                btn.addEventListener("click", function() {
-                    var cId = this.getAttribute("data-c");
-                    var iId = this.getAttribute("data-i");
-                    var item = menuLookup[cId + "_" + iId];
-                    if (item) {
-                        addIt(cId, iId, item.name, item.price);
-                    }
+            c.querySelectorAll(".ba").forEach(function(btn){
+                btn.addEventListener("click", function(){
+                    var cId=this.getAttribute("data-c"), iId=this.getAttribute("data-i");
+                    var item=menuLookup[cId+"_"+iId];
+                    if(item) addIt(cId,iId,item.name,item.price);
                 });
             });
 
-            c.querySelectorAll(".cat-hd").forEach(function(hd) {
-                hd.addEventListener("click", function() {
-                    var wasOpen = hd.parentElement.classList.contains("open");
-                    document.querySelectorAll(".cat-acc.open").forEach(function(a) { a.classList.remove("open"); });
-                    if (!wasOpen) hd.parentElement.classList.add("open");
+            c.querySelectorAll(".cat-hd").forEach(function(hd){
+                hd.addEventListener("click", function(){
+                    var wasOpen=hd.parentElement.classList.contains("open");
+                    document.querySelectorAll(".cat-acc.open").forEach(function(a){a.classList.remove("open");});
+                    if(!wasOpen) hd.parentElement.classList.add("open");
                 });
             });
         });
@@ -439,190 +613,242 @@
         listenCh();
     }
 
-    function addIt(cId, iId, name, price) {
-        var k = cId + "_" + iId;
-        var r = ref(db, "table_" + TBL + "/current_orders/" + k);
-        if (orders[k]) {
-            update(r, {quantity: orders[k].quantity + 1});
-        } else {
-            set(r, {name: name, price: price, quantity: 1});
+    function addIt(cId,iId,name,price){
+        var k=cId+"_"+iId;
+        var r=ref(db,"table_"+TBL+"/current_orders/"+k);
+        if(orders[k]){
+            update(r,{quantity:orders[k].quantity+1});
+        }else{
+            set(r,{name:name,price:price,quantity:1});
         }
     }
 
-    function listenOrd() {
-        var tk = "table_" + TBL;
+    /* ===== الاستماع للطلبات ===== */
+    function listenOrd(){
+        var tk="table_"+TBL;
 
-        onValue(ref(db, tk + "/current_orders"), function(snap) {
-            var d = snap.val();
-            orders = d || {};
-            var total = 0, count = 0;
-            var ic = document.getElementById("invItems");
+        onValue(ref(db,tk+"/current_orders"), function(snap){
+            var d=snap.val();
+            orders=d||{};
+            var total=0, count=0;
+            var ic=document.getElementById("invItems");
 
-            if (!d) {
-                ic.innerHTML = '<p style="color:#94a3b8;text-align:center;padding:20px;">\u0644\u062a\u0648\u062c\u062f \u0637\u0644\u0628\u0627\u062a \u0645\u0639\u0644\u0642\u0629.</p>';
-                document.getElementById("btnSend").disabled = true;
-                document.getElementById("barCount").textContent = "\u0660";
-                document.getElementById("barTotal").textContent = "\u0627\u0644\u0625\u062c\u0645\u0627\u0644: \u0660 \u062f\u064a\u0646\u0627\u0631";
-                document.getElementById("invTotal").textContent = "\u0627\u0644\u0625\u062c\u0645\u0627\u0644: \u0660 \u062f\u064a\u0646\u0627\u0631";
+            if(!d){
+                ic.innerHTML='<p style="color:#94a3b8;text-align:center;padding:20px;">لا توجد طلبات معلقة.</p>';
+                document.getElementById("btnSend").disabled=true;
+                document.getElementById("barCount").textContent="\u0660";
+                document.getElementById("barTotal").textContent="الإجمالي: \u0660 دينار";
+                document.getElementById("invTotal").textContent="الإجمالي: \u0660 دينار";
                 return;
             }
 
-            document.getElementById("btnSend").disabled = false;
-            ic.innerHTML = "";
+            document.getElementById("btnSend").disabled=false;
+            ic.innerHTML="";
 
-            for (var k in d) {
-                var it = d[k];
-                var sub = it.price * it.quantity;
-                total += sub;
-                count += it.quantity;
-                var row = document.createElement("div");
-                row.className = "inv-i";
-                row.innerHTML = '<div><div class="inv-n">' + it.name + '</div><div class="inv-s">' + fmt(it.price) + ' \u062f.\u0639 \u00d7 ' + it.quantity + '</div></div><div style="display:flex;align-items:center;gap:10px"><span class="inv-t">' + fmt(sub) + ' \u062f.\u0639</span><div class="qc"><button class="qb qmin" data-key="' + k + '" data-d="-1">−</button><span class="qv">' + it.quantity + '</span><button class="qb qplu" data-key="' + k + '" data-d="1">+</button></div></div>';
+            for(var k in d){
+                var it=d[k];
+                var sub=it.price*it.quantity;
+                total+=sub; count+=it.quantity;
+                var row=document.createElement("div");
+                row.className="inv-i";
+                row.innerHTML='<div><div class="inv-n">'+it.name+'</div><div class="inv-s">'+fmt(it.price)+' د.ع \u00d7 '+it.quantity+'</div></div><div style="display:flex;align-items:center;gap:10px"><span class="inv-t">'+fmt(sub)+' د.ع</span><div class="qc"><button class="qb qmin" data-key="'+k+'" data-d="-1">\u2212</button><span class="qv">'+it.quantity+'</span><button class="qb qplu" data-key="'+k+'" data-d="1">+</button></div></div>';
                 ic.appendChild(row);
             }
 
-            // ربط أزرار الكمية
-            ic.querySelectorAll(".qb").forEach(function(qb) {
-                qb.addEventListener("click", function() {
-                    var k = this.getAttribute("data-key");
-                    var d = parseInt(this.getAttribute("data-d"));
-                    var r = ref(db, "table_" + TBL + "/current_orders/" + k);
-                    var n = orders[k].quantity + d;
-                    if (n <= 0) { remove(r); }
-                    else { update(r, {quantity: n}); }
+            ic.querySelectorAll(".qb").forEach(function(qb){
+                qb.addEventListener("click", function(){
+                    var k=this.getAttribute("data-key");
+                    var d=parseInt(this.getAttribute("data-d"));
+                    var r=ref(db,"table_"+TBL+"/current_orders/"+k);
+                    var n=orders[k].quantity+d;
+                    if(n<=0){ remove(r); }
+                    else{ update(r,{quantity:n}); }
                 });
             });
 
-            document.getElementById("barCount").textContent = count;
-            document.getElementById("barTotal").textContent = "\u0627\u0644\u0625\u062c\u0645\u0627\u0644: " + fmt(total) + " \u062f\u064a\u0646\u0627\u0631";
-            document.getElementById("invTotal").textContent = "\u0627\u0644\u0625\u062c\u0645\u0627\u0644: " + fmt(total) + " \u062f\u064a\u0646\u0627\u0631";
+            document.getElementById("barCount").textContent=count;
+            document.getElementById("barTotal").textContent="الإجمالي: "+fmt(total)+" دينار";
+            document.getElementById("invTotal").textContent="الإجمالي: "+fmt(total)+" دينار";
         });
 
-        onValue(ref(db, "tablesB/" + tk + "/sent_orders"), function(snap) {
-            var d = snap.val();
-            var c = document.getElementById("sentItems");
-            if (!d) {
-                c.innerHTML = '<p style="color:#94a3b8;font-size:13px;">\u0644\u062a\u0648\u062c\u062f.</p>';
+        onValue(ref(db,"tablesB/"+tk+"/sent_orders"), function(snap){
+            var d=snap.val();
+            var c=document.getElementById("sentItems");
+            if(!d){
+                c.innerHTML='<p style="color:#94a3b8;font-size:13px;">لا توجد.</p>';
                 return;
             }
-            c.innerHTML = "";
-            for (var k in d) {
-                var it = d[k];
-                c.innerHTML += '<div class="si"><span>\u2022 ' + it.name + ' (\u00d7' + it.quantity + ')</span><span style="color:#94a3b8;font-size:11px;">' + fmt(it.price * it.quantity) + ' \u062f.\u0639</span></div>';
+            c.innerHTML="";
+            for(var k in d){
+                var it=d[k];
+                c.innerHTML+='<div class="si"><span>\u2022 '+it.name+' (\u00d7'+it.quantity+')</span><span style="color:#94a3b8;font-size:11px;">'+fmt(it.price*it.quantity)+' د.ع</span></div>';
             }
         });
     }
 
-    function sendOrd() {
-        if (!Object.keys(orders).length) return;
-        var sr = ref(db, "tablesB/table_" + TBL + "/sent_orders");
-        for (var k in orders) {
-            var it = orders[k];
-            set(push(sr), {
-                name: it.name, price: it.price, quantity: it.quantity,
-                settled_by: "customer", settled_at: new Date().toISOString()
+    /* ===== إرسال الطلب مع التحقق من الموقع ===== */
+    function sendOrd(){
+        if(!Object.keys(orders).length) return;
+
+        // التحقق من الاتصال أولاً
+        if(!navigator.onLine){
+            toast("لا يوجد اتصال بالإنترنت. لا يمكن إرسال الطلب.","error");
+            return;
+        }
+
+        // التحقق من وجود بيانات الموقع الحالية
+        if(curLat === null || curLon === null){
+            toast("جاري تحديد موقعك... حاول مرة أخرى.","error");
+            return;
+        }
+
+        // التحقق من أن المستخدم داخل النطاق المحدد
+        if(!zone || !zone.center_latitude){
+            toast("بيانات النطاق الجغرافي غير متوفرة.","error");
+            return;
+        }
+
+        var dist = haversine(curLat, curLon, zone.center_latitude, zone.center_longitude);
+        var rad = zone.radius_meters || 100;
+
+        if(dist > rad){
+            toast("أنت خارج منطقة المطعم ("+dist.toFixed(0)+" م). لا يمكن الإرسال.","error");
+            return;
+        }
+
+        // كل التحققات نجحت — إرسال
+        var sr=ref(db,"tablesB/table_"+TBL+"/sent_orders");
+        var items = orders;
+        for(var k in items){
+            var it=items[k];
+            set(push(sr),{
+                name:it.name, price:it.price, quantity:it.quantity,
+                settled_by:"customer", settled_at:new Date().toISOString(),
+                sent_distance: Math.round(dist)
             });
         }
-        remove(ref(db, "table_" + TBL + "/current_orders")).then(function() {
-            toast("\u062a\u0645 \u0625\u0631\u0633\u0627\u0644 \u0637\u0644\u0628\u0627\u062a\u0643 \u0644\u0644\u0645\u0637\u062e\u062e", "success");
+        remove(ref(db,"table_"+TBL+"/current_orders")).then(function(){
+            toast("تم إرسال طلباتك للمطبخ بنجاح","success");
             closeInv();
+        }).catch(function(){
+            toast("حدث خطأ أثناء الإرسال. حاول مرة أخرى.","error");
         });
     }
 
-    function closeInv() {
-        document.getElementById("invoiceModal").style.display = "none";
+    function closeInv(){
+        document.getElementById("invoiceModal").style.display="none";
     }
 
-    // ===== محادثة الكاشير =====
-    function listenCh() {
-        var tk = "table_" + TBL;
+    /* ===== محادثة الكاشير ===== */
+    function listenCh(){
+        var tk="table_"+TBL;
 
-        function renderMsgs(sA, sB) {
-            if (!chatOn) return;
-            var box = document.getElementById("chatMsgs");
-            box.innerHTML = "";
-            var msgs = [];
-            if (sA.exists()) {
-                var vA = sA.val();
-                for (var k in vA) { var m = vA[k]; m.src = "client"; msgs.push(m); }
+        function renderMsgs(sA, sB){
+            if(!chatOn) return;
+            var box=document.getElementById("chatMsgs");
+            box.innerHTML="";
+            var msgs=[];
+            if(sA.exists()){
+                var vA=sA.val();
+                for(var k in vA){ var m=vA[k]; m.src="client"; msgs.push(m); }
             }
-            if (sB.exists()) {
-                var vB = sB.val();
-                for (var k2 in vB) { var m2 = vB[k2]; m2.src = "cashier"; msgs.push(m2); }
+            if(sB.exists()){
+                var vB=sB.val();
+                for(var k2 in vB){ var m2=vB[k2]; m2.src="cashier"; msgs.push(m2); }
             }
-            msgs.sort(function(a, b) { return new Date(a.timestamp) - new Date(b.timestamp); });
-            if (!msgs.length) {
-                box.innerHTML = '<p style="color:#94a3b8;text-align:center;padding:20px;">\u0627\u0628\u062f\u0621 \u0627\u0644\u0645\u062d\u0627\u062f\u0629 \u0645\u0639 \u0627\u0644\u0643\u0627\u0634\u064a\u0631.</p>';
+            msgs.sort(function(a,b){ return new Date(a.timestamp)-new Date(b.timestamp); });
+            if(!msgs.length){
+                box.innerHTML='<p style="color:#94a3b8;text-align:center;padding:20px;">ابدأ المحادثة مع الكاشير.</p>';
                 return;
             }
-            for (var j = 0; j < msgs.length; j++) {
-                var msg = msgs[j];
-                var t = new Date(msg.timestamp).toLocaleTimeString("ar-IQ", {hour: "2-digit", minute: "2-digit"});
-                box.innerHTML += '<div class="cm ' + (msg.src === "client" ? "cm-cl" : "cm-ca") + '">' + msg.text + '<div class="cm-t">' + t + '</div></div>';
+            for(var j=0;j<msgs.length;j++){
+                var msg=msgs[j];
+                var t=new Date(msg.timestamp).toLocaleTimeString("ar-IQ",{hour:"2-digit",minute:"2-digit"});
+                box.innerHTML+='<div class="cm '+(msg.src==="client"?"cm-cl":"cm-ca")+'">'+msg.text+'<div class="cm-t">'+t+'</div></div>';
             }
-            box.scrollTop = box.scrollHeight;
+            box.scrollTop=box.scrollHeight;
         }
 
-        onValue(ref(db, "msgA/" + tk), function(sA) {
-            onValue(ref(db, "msgB/" + tk), function(sB) {
+        onValue(ref(db,"msgA/"+tk), function(sA){
+            onValue(ref(db,"msgB/"+tk), function(sB){
                 renderMsgs(sA, sB);
-                updUnread();
+                // صوت فقط عند ورود رسالة جديدة من الكاشير
+                var newCount = sB.exists() ? Object.keys(sB.val()).length : 0;
+                if(newCount > prevMsgCount && prevMsgCount > 0){
+                    msgSnd();
+                }
+                if(!chatOn){
+                    prevMsgCount = newCount;
+                }
+                updUnread(newCount);
             });
         });
 
-        onValue(ref(db, "tablesC/" + tk + "/processing_orders"), function(s) {
-            if (!s.exists()) {
-                remove(ref(db, "msgA/" + tk));
-                remove(ref(db, "msgB/" + tk));
+        onValue(ref(db,"tablesC/"+tk+"/processing_orders"), function(s){
+            if(!s.exists()){
+                remove(ref(db,"msgA/"+tk));
+                remove(ref(db,"msgB/"+tk));
             }
         });
 
-        updUnread();
+        updUnread(0);
     }
 
-    function updUnread() {
-        var tk = "table_" + TBL;
-        onValue(ref(db, "msgB/" + tk), function(s) {
-            var d = s.val();
-            var c = 0;
-            if (d) c = Object.keys(d).length;
-            var dot = document.getElementById("msgDot");
-            if (c > 0) {
-                dot.style.display = "flex";
-                dot.textContent = c > 9 ? "9+" : String(c);
-            } else {
-                dot.style.display = "none";
-            }
-            unreadN = c;
+    function updUnread(count){
+        if(count === undefined){
+            // قراءة العدد من Firebase
+            onValue(ref(db,"msgB/table_"+TBL), function(s){
+                var d=s.val();
+                var c=0;
+                if(d) c=Object.keys(d).length;
+                showUnread(c);
+                prevMsgCount = c;
+            });
+            return;
+        }
+        showUnread(count);
+        prevMsgCount = count;
+    }
+
+    function showUnread(c){
+        var dot=document.getElementById("msgDot");
+        if(c>0){
+            dot.style.display="flex";
+            dot.textContent=c>9?"9+":String(c);
+        }else{
+            dot.style.display="none";
+        }
+        unreadN=c;
+    }
+
+    function openCh(){
+        chatOn=true;
+        unreadN=0;
+        document.getElementById("msgDot").style.display="none";
+        document.getElementById("chatModal").style.display="flex";
+        // إعادة تعيين العداد بعد فتح المحادثة
+        prevMsgCount = 0;
+    }
+
+    function closeCh(){
+        chatOn=false;
+        document.getElementById("chatModal").style.display="none";
+    }
+
+    function sendCh(){
+        var inp=document.getElementById("chatInput");
+        var t=inp.value.trim();
+        if(!t) return;
+        set(push(ref(db,"msgA/table_"+TBL)),{
+            text:t, timestamp:new Date().toISOString()
         });
+        inp.value="";
     }
 
-    function openCh() {
-        chatOn = true;
-        unreadN = 0;
-        document.getElementById("msgDot").style.display = "none";
-        document.getElementById("chatModal").style.display = "flex";
-    }
-
-    function closeCh() {
-        chatOn = false;
-        document.getElementById("chatModal").style.display = "none";
-    }
-
-    function sendCh() {
-        var inp = document.getElementById("chatInput");
-        var t = inp.value.trim();
-        if (!t) return;
-        set(push(ref(db, "msgA/table_" + TBL)), {
-            text: t, timestamp: new Date().toISOString()
-        });
-        inp.value = "";
-    }
-
-    // ===== تشغيل =====
-    document.addEventListener("click", function() {
-        if (aC.state === "suspended") aC.resume();
-    }, {once: true});
+    /* ===== تشغيل ===== */
+    document.addEventListener("click", function(){
+        if(aC.state==="suspended") aC.resume();
+    }, {once:true});
 
     bindEvents();
     initGeo();

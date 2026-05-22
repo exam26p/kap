@@ -6,7 +6,7 @@
     <title>المنيو الرقمي</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Noto+Kufi+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Noto+Kufi+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         :root {
@@ -25,203 +25,202 @@
             --text-muted: #8A9B87;
             --border: #E8E0D4;
             --border-soft: #EDE7DB;
-            --shadow: rgba(61,90,62,0.08);
-            --shadow-gold: rgba(201,169,110,0.15);
+            --shadow: rgba(61, 90, 62, 0.08);
+            --shadow-gold: rgba(201, 169, 110, 0.15);
             --red: #B85450;
             --red-soft: #F2DDD9;
             --green-btn: #4A7C59;
             --green-btn-dark: #3D6A4B;
         }
 
-        *{box-sizing:border-box;margin:0;padding:0;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
-        body{font-family:'Noto Kufi Arabic',sans-serif;background:var(--bg);margin:0;padding:0;padding-bottom:78px;color:var(--text-dark);overflow-x:hidden;min-height:100vh}
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent }
+        body { font-family: 'Noto Kufi Arabic', sans-serif; background: var(--bg); margin: 0; padding: 0; padding-bottom: 78px; color: var(--text-dark); overflow-x: hidden; min-height: 100vh }
 
-        body::before{content:'';position:fixed;inset:0;z-index:-2;background:var(--bg);background-image:radial-gradient(ellipse 300px 400px at 10% 20%,rgba(141,175,139,0.1) 0%,transparent 70%),radial-gradient(ellipse 250px 350px at 90% 70%,rgba(201,169,110,0.07) 0%,transparent 70%),radial-gradient(ellipse 200px 200px at 50% 50%,rgba(212,228,209,0.12) 0%,transparent 70%)}
-        body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:0.035;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='600' viewBox='0 0 400 600'%3E%3Cpath d='M50 0C50 0 80 80 60 140C40 200 70 260 50 320C30 380 60 440 45 500C30 560 55 600 55 600' fill='none' stroke='%233D5A3E' stroke-width='1.5'/%3E%3Cpath d='M120 600C120 600 140 520 125 460C110 400 135 340 118 280C101 220 130 160 115 100C100 40 125 0 125 0' fill='none' stroke='%233D5A3E' stroke-width='1'/%3E%3Cpath d='M320 0C320 0 295 70 310 130C325 190 300 250 315 310C330 370 305 430 320 490C335 550 310 600 310 600' fill='none' stroke='%23C9A96E' stroke-width='1.2'/%3E%3Cpath d='M370 600C370 600 355 530 365 470C375 410 358 350 370 290C382 230 365 170 378 110C391 50 375 0 375 0' fill='none' stroke='%233D5A3E' stroke-width='0.8'/%3E%3Cellipse cx='200' cy='300' rx='120' ry='180' fill='none' stroke='%23C9A96E' stroke-width='0.5' stroke-dasharray='4 8'/%3E%3C/svg%3E");background-size:400px 600px;background-position:center}
+        /* ===== خلفية نباتية ثابتة ===== */
+        body::before {
+            content: ''; position: fixed; inset: 0; z-index: -2;
+            background: var(--bg);
+            background-image:
+                radial-gradient(ellipse 300px 400px at 10% 20%, rgba(141,175,139,0.1) 0%, transparent 70%),
+                radial-gradient(ellipse 250px 350px at 90% 70%, rgba(201,169,110,0.07) 0%, transparent 70%),
+                radial-gradient(ellipse 200px 200px at 50% 50%, rgba(212,228,209,0.12) 0%, transparent 70%);
+        }
+        body::after {
+            content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: 0.035;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='600' viewBox='0 0 400 600'%3E%3Cpath d='M50 0C50 0 80 80 60 140C40 200 70 260 50 320C30 380 60 440 45 500C30 560 55 600 55 600' fill='none' stroke='%233D5A3E' stroke-width='1.5'/%3E%3Cpath d='M120 600C120 600 140 520 125 460C110 400 135 340 118 280C101 220 130 160 115 100C100 40 125 0 125 0' fill='none' stroke='%233D5A3E' stroke-width='1'/%3E%3Cpath d='M320 0C320 0 295 70 310 130C325 190 300 250 315 310C330 370 305 430 320 490C335 550 310 600 310 600' fill='none' stroke='%23C9A96E' stroke-width='1.2'/%3E%3Cpath d='M370 600C370 600 355 530 365 470C375 410 358 350 370 290C382 230 365 170 378 110C391 50 375 0 375 0' fill='none' stroke='%233D5A3E' stroke-width='0.8'/%3E%3Cellipse cx='200' cy='300' rx='120' ry='180' fill='none' stroke='%23C9A96E' stroke-width='0.5' stroke-dasharray='4 8'/%3E%3C/svg%3E");
+            background-size: 400px 600px;
+            background-position: center;
+        }
 
         /* ===== شاشة البداية ===== */
-        #splashScreen{position:fixed;inset:0;background:linear-gradient(160deg,#2C3E2D 0%,#3D5A3E 40%,#4A6B4C 100%);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
-        #splashScreen.hide{opacity:0;transform:scale(1.05);pointer-events:none;transition:opacity .6s,transform .6s}
-        .splash-leaf{position:absolute;opacity:0;animation:leafDrift linear infinite}
-        @keyframes leafDrift{0%{transform:translateY(-20px) rotate(0deg) scale(0);opacity:0}15%{opacity:0.3}85%{opacity:0.15}100%{transform:translateY(100vh) rotate(360deg) scale(1);opacity:0}}
-        .splash-leaf:nth-child(1){left:8%;width:30px;height:30px;background:radial-gradient(ellipse,rgba(201,169,110,0.3),transparent);border-radius:50% 0 50% 0;animation-duration:7s;animation-delay:0s}
-        .splash-leaf:nth-child(2){left:25%;width:22px;height:22px;background:radial-gradient(ellipse,rgba(141,175,139,0.3),transparent);border-radius:50% 0 50% 0;animation-duration:9s;animation-delay:1s}
-        .splash-leaf:nth-child(3){left:45%;width:35px;height:35px;background:radial-gradient(ellipse,rgba(201,169,110,0.2),transparent);border-radius:50% 0 50% 0;animation-duration:8s;animation-delay:2s}
-        .splash-leaf:nth-child(4){left:65%;width:20px;height:20px;background:radial-gradient(ellipse,rgba(141,175,139,0.25),transparent);border-radius:50% 0 50% 0;animation-duration:10s;animation-delay:.5s}
-        .splash-leaf:nth-child(5){left:80%;width:28px;height:28px;background:radial-gradient(ellipse,rgba(201,169,110,0.25),transparent);border-radius:50% 0 50% 0;animation-duration:7.5s;animation-delay:1.5s}
-        .splash-leaf:nth-child(6){left:92%;width:18px;height:18px;background:radial-gradient(ellipse,rgba(141,175,139,0.2),transparent);border-radius:50% 0 50% 0;animation-duration:8.5s;animation-delay:3s}
-        .splash-logo{width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-dark));display:flex;align-items:center;justify-content:center;font-size:48px;box-shadow:0 10px 40px rgba(201,169,110,0.3);animation:logoFloat 3s ease-in-out infinite;border:3px solid rgba(255,255,255,0.15);position:relative;z-index:2}
-        @keyframes logoFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
-        .splash-title{color:#F5EFE6;font-family:'Playfair Display',serif;font-size:30px;font-weight:700;margin-bottom:6px;position:relative;z-index:2;letter-spacing:1px}
-        .splash-sub{color:rgba(212,228,209,0.7);font-size:13px;margin-bottom:40px;position:relative;z-index:2;font-weight:300}
-        .splash-progress{position:relative;z-index:2;margin-bottom:35px}
-        .progress-ring{width:80px;height:80px;transform:rotate(-90deg)}
-        .progress-ring-bg{fill:none;stroke:rgba(255,255,255,0.08);stroke-width:3}
-        .progress-ring-bar{fill:none;stroke:var(--gold);stroke-width:3;stroke-linecap:round;transition:stroke-dashoffset .3s ease}
-        .progress-pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--gold-light);font-size:16px;font-weight:600;font-family:'Playfair Display',serif}
-        .splash-btn{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#2C3E2D;border:none;padding:15px 50px;font-size:15px;font-weight:700;border-radius:50px;cursor:pointer;font-family:'Noto Kufi Arabic',sans-serif;opacity:0;transform:translateY(10px);transition:opacity .5s .1s,transform .5s .1s;box-shadow:0 6px 25px rgba(201,169,110,0.3);position:relative;z-index:2;letter-spacing:.5px}
-        .splash-btn.show{opacity:1;transform:translateY(0)}
-        .splash-btn:active{transform:scale(.96)!important}
+        #splashScreen { position: fixed; inset: 0; background: linear-gradient(160deg, #2C3E2D 0%, #3D5A3E 40%, #4A6B4C 100%); z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden }
+        #splashScreen.hide { opacity: 0; transform: scale(1.05); pointer-events: none; transition: opacity .6s, transform .6s }
+        .splash-leaf { position: absolute; opacity: 0; animation: leafDrift linear infinite }
+        @keyframes leafDrift { 0% { transform: translateY(-20px) rotate(0deg) scale(0); opacity: 0 } 15% { opacity: 0.3 } 85% { opacity: 0.15 } 100% { transform: translateY(100vh) rotate(360deg) scale(1); opacity: 0 } }
+        .splash-leaf:nth-child(1) { left: 8%; width: 30px; height: 30px; background: radial-gradient(ellipse, rgba(201,169,110,0.3), transparent); border-radius: 50% 0 50% 0; animation-duration: 7s; animation-delay: 0s }
+        .splash-leaf:nth-child(2) { left: 25%; width: 22px; height: 22px; background: radial-gradient(ellipse, rgba(141,175,139,0.3), transparent); border-radius: 50% 0 50% 0; animation-duration: 9s; animation-delay: 1s }
+        .splash-leaf:nth-child(3) { left: 45%; width: 35px; height: 35px; background: radial-gradient(ellipse, rgba(201,169,110,0.2), transparent); border-radius: 50% 0 50% 0; animation-duration: 8s; animation-delay: 2s }
+        .splash-leaf:nth-child(4) { left: 65%; width: 20px; height: 20px; background: radial-gradient(ellipse, rgba(141,175,139,0.25), transparent); border-radius: 50% 0 50% 0; animation-duration: 10s; animation-delay: .5s }
+        .splash-leaf:nth-child(5) { left: 80%; width: 28px; height: 28px; background: radial-gradient(ellipse, rgba(201,169,110,0.25), transparent); border-radius: 50% 0 50% 0; animation-duration: 7.5s; animation-delay: 1.5s }
+        .splash-leaf:nth-child(6) { left: 92%; width: 18px; height: 18px; background: radial-gradient(ellipse, rgba(141,175,139,0.2), transparent); border-radius: 50% 0 50% 0; animation-duration: 8.5s; animation-delay: 3s }
+        .splash-logo-wrap { position: relative; z-index: 2; margin-bottom: 30px }
+        .splash-logo { width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, var(--gold), var(--gold-dark)); display: flex; align-items: center; justify-content: center; font-size: 48px; box-shadow: 0 10px 40px rgba(201,169,110,0.3); animation: logoFloat 3s ease-in-out infinite; border: 3px solid rgba(255,255,255,0.15) }
+        @keyframes logoFloat { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-10px) } }
+        .splash-title { color: #F5EFE6; font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 700; margin-bottom: 6px; position: relative; z-index: 2; letter-spacing: 1px }
+        .splash-sub { color: rgba(212,228,209,0.7); font-size: 13px; margin-bottom: 40px; position: relative; z-index: 2; font-weight: 300 }
+        .splash-progress { position: relative; z-index: 2; margin-bottom: 35px }
+        .progress-ring { width: 80px; height: 80px; transform: rotate(-90deg) }
+        .progress-ring-bg { fill: none; stroke: rgba(255,255,255,0.08); stroke-width: 3 }
+        .progress-ring-bar { fill: none; stroke: var(--gold); stroke-width: 3; stroke-linecap: round; transition: stroke-dashoffset .3s ease }
+        .progress-pct { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--gold-light); font-size: 16px; font-weight: 600; font-family: 'Playfair Display', serif }
+        .splash-btn { background: linear-gradient(135deg, var(--gold), var(--gold-dark)); color: #2C3E2D; border: none; padding: 15px 50px; font-size: 15px; font-weight: 700; border-radius: 50px; cursor: pointer; font-family: 'Noto Kufi Arabic', sans-serif; opacity: 0; transform: translateY(10px); transition: opacity .5s .1s, transform .5s .1s; box-shadow: 0 6px 25px rgba(201,169,110,0.3); position: relative; z-index: 2; letter-spacing: 0.5px }
+        .splash-btn.show { opacity: 1; transform: translateY(0) }
+        .splash-btn:active { transform: scale(.96) !important }
 
-        /* ===== شاشة التحقق ===== */
-        #blockScreen{position:fixed;inset:0;background:linear-gradient(160deg,#2C3E2D,#3D5A3E);z-index:9999;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px}
-        .geo-card{background:rgba(255,255,255,0.06);backdrop-filter:blur(20px);padding:35px 28px;border-radius:24px;box-shadow:0 20px 50px rgba(0,0,0,.3);max-width:400px;width:100%;border:1px solid rgba(255,255,255,0.08);text-align:center}
-        .geo-icon{width:75px;height:75px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:34px;transition:all .5s}
-        .geo-icon.wait{background:rgba(255,255,255,0.05)}
-        .geo-icon.ok{background:rgba(74,124,89,0.3)}
-        .geo-icon.err{background:rgba(184,84,80,0.3)}
-        .geo-icon.ld{background:rgba(201,169,110,0.2);animation:iconPulse 1.5s infinite}
-        @keyframes iconPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
-        .geo-title{color:#F5EFE6;font-size:20px;margin-bottom:10px;font-weight:600}
-        .geo-msg{color:rgba(212,228,209,0.6);font-size:13px;line-height:1.7;margin-bottom:18px}
-        .geo-dist{font-size:13px;font-weight:600;padding:12px;border-radius:12px;margin-bottom:14px;display:none;line-height:1.8}
-        .geo-dist.in{color:#8FAF8B;background:rgba(143,175,139,0.1);border:1px solid rgba(143,175,139,0.2)}
-        .geo-dist.out{color:#E8A09C;background:rgba(184,84,80,0.1);border:1px solid rgba(184,84,80,0.2)}
-        .geo-blocked{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:20px;padding:28px;max-width:380px;width:100%;text-align:center;display:none}
-        .geo-blocked .bi{width:55px;height:55px;border-radius:50%;background:rgba(184,84,80,0.15);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:24px;color:#E8A09C}
-        .geo-blocked h3{color:#F5EFE6;font-size:17px;margin-bottom:8px}
-        .geo-blocked p{color:rgba(212,228,209,0.5);font-size:12px;line-height:1.8}
+        /* ===== شاشة التحقق الجغرافي ===== */
+        #blockScreen { position: fixed; inset: 0; background: linear-gradient(160deg, #2C3E2D, #3D5A3E); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px }
+        .geo-card { background: rgba(255,255,255,0.06); backdrop-filter: blur(20px); padding: 35px 28px; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,.3); max-width: 400px; width: 100%; border: 1px solid rgba(255,255,255,0.08); text-align: center }
+        .geo-icon { width: 75px; height: 75px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 18px; font-size: 34px; transition: all .5s }
+        .geo-icon.wait { background: rgba(255,255,255,0.05) }
+        .geo-icon.ok { background: rgba(74,124,89,0.3) }
+        .geo-icon.err { background: rgba(184,84,80,0.3) }
+        .geo-icon.ld { background: rgba(201,169,110,0.2); animation: iconPulse 1.5s infinite }
+        @keyframes iconPulse { 0%,100% { transform: scale(1) } 50% { transform: scale(1.08) } }
+        .geo-title { color: #F5EFE6; font-size: 20px; margin-bottom: 10px; font-weight: 600 }
+        .geo-msg { color: rgba(212,228,209,0.6); font-size: 13px; line-height: 1.7; margin-bottom: 18px }
+        .geo-dist { font-size: 13px; font-weight: 600; padding: 12px; border-radius: 12px; margin-bottom: 14px; display: none; line-height: 1.8 }
+        .geo-dist.in { color: #8FAF8B; background: rgba(143,175,139,0.1); border: 1px solid rgba(143,175,139,0.2) }
+        .geo-dist.out { color: #E8A09C; background: rgba(184,84,80,0.1); border: 1px solid rgba(184,84,80,0.2) }
+        .geo-blocked { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; padding: 28px; max-width: 380px; width: 100%; text-align: center; display: none }
+        .geo-blocked .bi { width: 55px; height: 55px; border-radius: 50%; background: rgba(184,84,80,0.15); display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; font-size: 24px; color: #E8A09C }
+        .geo-blocked h3 { color: #F5EFE6; font-size: 17px; margin-bottom: 8px }
+        .geo-blocked p { color: rgba(212,228,209,0.5); font-size: 12px; line-height: 1.8 }
 
         /* ===== شريط المسافة ===== */
-        #distBar{display:none;width:100%;padding:10px 16px;background:linear-gradient(180deg,var(--bg),var(--bg-warm));box-sizing:border-box;border-bottom:1px solid var(--border-soft)}
-        .dist-bar-inner{display:flex;align-items:center;gap:10px;max-width:500px;margin:0 auto}
-        .dist-label{color:var(--text-muted);font-size:10px;font-weight:600;white-space:nowrap;min-width:40px;text-align:center}
-        .dist-track{flex:1;height:6px;background:var(--border-soft);border-radius:3px;overflow:hidden;position:relative}
-        .dist-fill{height:100%;border-radius:3px;transition:width .5s ease,background .5s ease;position:relative}
-        .dist-fill::after{content:'';position:absolute;right:-4px;top:-4px;width:14px;height:14px;border-radius:50%;background:inherit;border:2px solid var(--bg);box-shadow:0 2px 6px rgba(0,0,0,0.15)}
-        .dist-value{color:var(--olive);font-size:12px;font-weight:700;min-width:55px;text-align:left;direction:ltr;font-family:'Playfair Display',serif}
+        #distBar { display: none; width: 100%; padding: 10px 16px; background: linear-gradient(180deg, var(--bg), var(--bg-warm)); box-sizing: border-box; border-bottom: 1px solid var(--border-soft) }
+        .dist-bar-inner { display: flex; align-items: center; gap: 10px; max-width: 500px; margin: 0 auto }
+        .dist-label { color: var(--text-muted); font-size: 10px; font-weight: 600; white-space: nowrap; min-width: 40px; text-align: center }
+        .dist-track { flex: 1; height: 6px; background: var(--border-soft); border-radius: 3px; overflow: hidden; position: relative }
+        .dist-fill { height: 100%; border-radius: 3px; transition: width .5s ease, background .5s ease; position: relative }
+        .dist-fill::after { content: ''; position: absolute; right: -4px; top: -4px; width: 14px; height: 14px; border-radius: 50%; background: inherit; border: 2px solid var(--bg); box-shadow: 0 2px 6px rgba(0,0,0,0.15) }
+        .dist-value { color: var(--olive); font-size: 12px; font-weight: 700; min-width: 55px; text-align: left; direction: ltr; font-family: 'Playfair Display', serif }
 
         /* ===== الهيدر ===== */
-        .main-header{position:relative;padding:24px 20px 20px;margin:0 12px 16px;border-radius:20px;overflow:hidden;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,var(--olive),var(--olive-light));box-shadow:0 4px 20px var(--shadow)}
-        .main-header::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Cpath d='M30 180C30 180 50 120 35 80C20 40 45 10 45 10' fill='none' stroke='rgba(201,169,110,0.12)' stroke-width='1.5'/%3E%3Cpath d='M170 10C170 10 155 60 168 100C181 140 160 180 160 180' fill='none' stroke='rgba(201,169,110,0.1)' stroke-width='1'/%3E%3Ccircle cx='100' cy='100' r='60' fill='none' stroke='rgba(255,255,255,0.04)' stroke-width='0.5'/%3E%3C/svg%3E");background-size:200px}
-        .main-header::after{content:'';position:absolute;bottom:-2px;left:0;right:0;height:40px;background:linear-gradient(180deg,transparent,var(--bg));border-radius:0 0 20px 20px}
-        .main-header .hi{position:relative;z-index:1}
-        .main-header .hi h2{margin:0 0 3px;font-size:18px;color:#F5EFE6;font-weight:700;font-family:'Playfair Display','Noto Kufi Arabic',serif}
-        .main-header .hi p{margin:0;font-size:11px;color:rgba(212,228,209,0.6);font-weight:300}
-        .hb{display:flex;gap:8px;align-items:center;position:relative;z-index:1}
-        .tbl-b{background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);color:var(--gold-light);padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(255,255,255,0.08)}
-        .msg-fab{position:relative;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);color:var(--gold-light);border:1px solid rgba(255,255,255,0.08);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
-        .msg-fab:active{transform:scale(.92)}
-        .msg-dot{position:absolute;top:0;right:0;min-width:14px;height:14px;border-radius:50%;background:var(--red);color:#fff;font-size:9px;font-weight:800;display:none;align-items:center;justify-content:center;padding:0 3px;animation:bp .3s ease}
-        @keyframes bp{from{transform:scale(0)}to{transform:scale(1)}}
-
-        /* ===== فاصل ===== */
-        .section-deco{display:flex;align-items:center;justify-content:center;gap:12px;margin:8px 0 14px;padding:0 20px}
-        .section-deco::before,.section-deco::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--gold-light),transparent)}
-        .section-deco span{color:var(--gold);font-size:16px;opacity:.6}
+        .main-header { position: relative; padding: 24px 20px 20px; margin: 0 12px 16px; border-radius: 20px; overflow: hidden; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, var(--olive), var(--olive-light)); box-shadow: 0 4px 20px var(--shadow) }
+        .main-header::before { content: ''; position: absolute; inset: 0; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Cpath d='M30 180C30 180 50 120 35 80C20 40 45 10 45 10' fill='none' stroke='rgba(201,169,110,0.12)' stroke-width='1.5'/%3E%3Cpath d='M170 10C170 10 155 60 168 100C181 140 160 180 160 180' fill='none' stroke='rgba(201,169,110,0.1)' stroke-width='1'/%3E%3Ccircle cx='100' cy='100' r='60' fill='none' stroke='rgba(255,255,255,0.04)' stroke-width='0.5'/%3E%3C/svg%3E"); background-size: 200px }
+        .main-header::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 40px; background: linear-gradient(180deg, transparent, var(--bg)); border-radius: 0 0 20px 20px }
+        .main-header .hi { position: relative; z-index: 1 }
+        .main-header .hi h2 { margin: 0 0 3px; font-size: 18px; color: #F5EFE6; font-weight: 700; font-family: 'Playfair Display', 'Noto Kufi Arabic', serif }
+        .main-header .hi p { margin: 0; font-size: 11px; color: rgba(212,228,209,0.6); font-weight: 300 }
+        .hb { display: flex; gap: 8px; align-items: center; position: relative; z-index: 1 }
+        .tbl-b { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); color: var(--gold-light); padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; border: 1px solid rgba(255,255,255,0.08) }
+        .msg-fab { position: relative; width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); color: var(--gold-light); border: 1px solid rgba(255,255,255,0.08); font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s }
+        .msg-fab:active { transform: scale(.92) }
+        .msg-dot { position: absolute; top: 0; right: 0; min-width: 14px; height: 14px; border-radius: 50%; background: var(--red); color: #fff; font-size: 9px; font-weight: 800; display: none; align-items: center; justify-content: center; padding: 0 3px; animation: bp .3s ease }
+        @keyframes bp { from { transform: scale(0) } to { transform: scale(1) } }
 
         /* ===== المنيو ===== */
-        #menuContent{display:none;padding:0 12px;max-width:500px;margin:0 auto}
-        .cat-acc{margin-bottom:14px;border-radius:20px;overflow:hidden;background:var(--bg-card);box-shadow:0 2px 12px var(--shadow);border:1px solid var(--border-soft);transition:all .3s}
-        .cat-acc.open{box-shadow:0 6px 24px var(--shadow),0 0 0 1px var(--gold-light);border-color:var(--gold-light)}
+        #menuContent { display: none; padding: 0 12px; max-width: 500px; margin: 0 auto }
+        .cat-acc { margin-bottom: 12px; border-radius: 20px; overflow: hidden; background: var(--bg-card); box-shadow: 0 2px 12px var(--shadow); border: 1px solid var(--border-soft); transition: all .3s; position: relative }
+        .cat-acc::before { content: ''; position: absolute; top: 0; right: 0; width: 80px; height: 80px; background: radial-gradient(circle at top right, rgba(212,228,209,0.3), transparent 70%); pointer-events: none; border-radius: 0 20px 0 0 }
+        .cat-acc.open { box-shadow: 0 6px 24px var(--shadow), 0 0 0 1px var(--gold-light); border-color: var(--gold-light) }
+        .cat-hd { display: flex; align-items: center; gap: 12px; padding: 14px 16px; cursor: pointer; transition: background .2s; position: relative }
+        .cat-hd:active { background: rgba(212,228,209,0.15) }
+        .cat-hd img { width: 48px; height: 48px; border-radius: 14px; object-fit: cover; border: 2px solid var(--border-soft); box-shadow: 0 2px 8px var(--shadow) }
+        .cat-hi { flex: 1; text-align: right }
+        .cat-hi h3 { margin: 0; font-size: 16px; color: var(--text-dark); font-weight: 700 }
+        .cat-hi .cc { font-size: 11px; color: var(--text-muted); font-weight: 500; margin-top: 2px }
+        .cat-arr { color: var(--text-muted); font-size: 12px; transition: all .3s; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--bg); box-shadow: 0 1px 4px var(--shadow) }
+        .cat-acc.open .cat-arr { transform: rotate(180deg); color: var(--gold-dark); background: var(--gold-light) }
+        .cat-bd { max-height: 0; overflow: hidden; transition: max-height .4s ease }
+        .cat-acc.open .cat-bd { max-height: 3000px }
 
-        /* ===== رأس القسم - صورة كاملة العرض ===== */
-        .cat-hd{position:relative;height:160px;cursor:pointer;overflow:hidden;transition:height .4s cubic-bezier(.4,0,.2,1)}
-        .cat-hd img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .6s cubic-bezier(.4,0,.2,1)}
-        .cat-acc.open .cat-hd img{transform:scale(1.05)}
-        .cat-hd::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(44,62,45,0.05) 0%,rgba(44,62,45,0.55) 100%);z-index:1;transition:background .4s}
-        .cat-acc.open .cat-hd::before{background:linear-gradient(180deg,rgba(44,62,45,0.1) 0%,rgba(44,62,45,0.7) 100%)}
-        .cat-hd::after{content:'';position:absolute;bottom:0;left:0;right:0;height:50%;background:linear-gradient(180deg,transparent,var(--bg-card));z-index:2;opacity:0;transition:opacity .4s}
-        .cat-acc.open .cat-hd::after{opacity:1}
-
-        .cat-hd-content{position:absolute;bottom:16px;right:18px;left:60px;z-index:3;display:flex;align-items:center;justify-content:space-between;transition:bottom .4s}
-        .cat-acc.open .cat-hd-content{bottom:12px}
-        .cat-hi h3{margin:0 0 2px;font-size:20px;color:#F5EFE6;font-weight:800;text-shadow:0 2px 8px rgba(0,0,0,0.3);transition:color .4s,text-shadow .4s}
-        .cat-acc.open .cat-hi h3{color:var(--text-dark);text-shadow:none}
-        .cat-hi .cc{font-size:12px;color:rgba(212,228,209,0.8);font-weight:500;transition:color .4s}
-        .cat-acc.open .cat-hi .cc{color:var(--text-muted)}
-
-        .cat-arr{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.15);backdrop-filter:blur(8px);color:rgba(255,255,255,0.9);font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .35s cubic-bezier(.4,0,.2,1);flex-shrink:0;border:1px solid rgba(255,255,255,0.1)}
-        .cat-acc.open .cat-arr{transform:rotate(180deg);color:var(--gold-dark);background:var(--gold-light);border-color:var(--gold-light);box-shadow:0 2px 10px rgba(201,169,110,0.25)}
-
-        /* بدل الصورة عند عدم وجودها */
-        .cat-hd-fallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:60px;z-index:0;opacity:.25}
-
-        .cat-bd{max-height:0;overflow:hidden;transition:max-height .4s ease}
-        .cat-acc.open .cat-bd{max-height:3000px}
-
-        /* ===== بطاقة الصنف ===== */
-        .item-card{display:flex;background:var(--bg-card);padding:14px 16px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border-soft);gap:12px;transition:background .2s}
-        .item-card:last-child{border-bottom:none}
-        .item-card:active{background:rgba(212,228,209,0.08)}
-        .ir{display:flex;align-items:center;gap:12px;flex:1;min-width:0}
-        .iw{position:relative;width:68px;height:68px;border-radius:16px;overflow:hidden;flex-shrink:0;border:2px solid var(--border-soft);box-shadow:0 2px 8px var(--shadow)}
-        .iw img{width:100%;height:100%;object-fit:cover;transition:transform .3s}
-        .iw::after{content:'';position:absolute;inset:0;border-radius:14px;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.3);pointer-events:none}
-        .ii{min-width:0;flex:1}
-        .ii h4{margin:0 0 3px;font-size:14px;color:var(--text-dark);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-        .ii p{margin:0;font-size:11px;color:var(--text-muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-        .ip{font-weight:700;color:var(--red);font-size:14px;margin-top:4px;display:block;font-family:'Playfair Display',serif}
-        .ba{background:linear-gradient(135deg,var(--green-btn),var(--green-btn-dark));color:#fff;border:none;padding:9px 14px;font-size:12px;border-radius:12px;cursor:pointer;font-weight:600;white-space:nowrap;font-family:'Noto Kufi Arabic',sans-serif;transition:all .15s;flex-shrink:0;box-shadow:0 2px 8px rgba(74,124,89,0.2)}
-        .ba:active{transform:scale(.94);box-shadow:0 1px 4px rgba(74,124,89,0.3)}
+        .item-card { display: flex; background: var(--bg-card); padding: 14px 16px; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-soft); gap: 12px; transition: background .2s }
+        .item-card:last-child { border-bottom: none }
+        .item-card:active { background: rgba(212,228,209,0.08) }
+        .ir { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0 }
+        .iw { position: relative; width: 68px; height: 68px; border-radius: 16px; overflow: hidden; flex-shrink: 0; border: 2px solid var(--border-soft); box-shadow: 0 2px 8px var(--shadow) }
+        .iw img { width: 100%; height: 100%; object-fit: cover; transition: transform .3s }
+        .iw::after { content: ''; position: absolute; inset: 0; border-radius: 14px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.3); pointer-events: none }
+        .ii { min-width: 0; flex: 1 }
+        .ii h4 { margin: 0 0 3px; font-size: 14px; color: var(--text-dark); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+        .ii p { margin: 0; font-size: 11px; color: var(--text-muted); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden }
+        .ip { font-weight: 700; color: var(--red); font-size: 14px; margin-top: 4px; display: block; font-family: 'Playfair Display', serif }
+        .ba { background: linear-gradient(135deg, var(--green-btn), var(--green-btn-dark)); color: #fff; border: none; padding: 9px 14px; font-size: 12px; border-radius: 12px; cursor: pointer; font-weight: 600; white-space: nowrap; font-family: 'Noto Kufi Arabic', sans-serif; transition: all .15s; flex-shrink: 0; box-shadow: 0 2px 8px rgba(74,124,89,0.2) }
+        .ba:active { transform: scale(.94); box-shadow: 0 1px 4px rgba(74,124,89,0.3) }
 
         /* ===== شريط سفلي ===== */
-        .bottom-bar{position:fixed;bottom:0;left:0;width:100%;background:rgba(255,252,247,0.92);backdrop-filter:blur(20px) saturate(1.5);color:var(--text-dark);padding:12px 20px;box-sizing:border-box;display:none;justify-content:space-between;align-items:center;z-index:1000;box-shadow:0 -2px 20px var(--shadow);border-top:1px solid var(--border-soft)}
-        .bt{font-size:13px;font-weight:600;color:var(--text-body)}
-        .bt span{color:var(--olive);font-weight:700;font-family:'Playfair Display',serif}
-        .bib{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#fff;border:none;padding:10px 20px;font-weight:700;border-radius:50px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:13px;font-family:'Noto Kufi Arabic',sans-serif;transition:all .2s;box-shadow:0 4px 15px var(--shadow-gold)}
-        .bib:active{transform:scale(.96)}
-        .bc{background:var(--red);border-radius:50%;padding:1px 7px;font-size:10px;font-weight:800;min-width:20px;text-align:center;color:#fff}
+        .bottom-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(255,252,247,0.92); backdrop-filter: blur(20px) saturate(1.5); color: var(--text-dark); padding: 12px 20px; box-sizing: border-box; display: none; justify-content: space-between; align-items: center; z-index: 1000; box-shadow: 0 -2px 20px var(--shadow); border-top: 1px solid var(--border-soft) }
+        .bt { font-size: 13px; font-weight: 600; color: var(--text-body) }
+        .bt span { color: var(--olive); font-weight: 700; font-family: 'Playfair Display', serif }
+        .bib { background: linear-gradient(135deg, var(--gold), var(--gold-dark)); color: #fff; border: none; padding: 10px 20px; font-weight: 700; border-radius: 50px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 13px; font-family: 'Noto Kufi Arabic', sans-serif; transition: all .2s; box-shadow: 0 4px 15px var(--shadow-gold) }
+        .bib:active { transform: scale(.96) }
+        .bc { background: var(--red); border-radius: 50%; padding: 1px 7px; font-size: 10px; font-weight: 800; min-width: 20px; text-align: center; color: #fff }
 
         /* ===== نافذة الفاتورة ===== */
-        #invoiceModal{display:none;position:fixed;inset:0;background:rgba(44,62,45,0.4);z-index:2000;justify-content:center;align-items:flex-end;backdrop-filter:blur(6px)}
-        .inv-c{background:var(--bg);width:100%;max-width:500px;border-radius:28px 28px 0 0;padding:24px;box-sizing:border-box;max-height:85vh;overflow-y:auto;text-align:right;animation:su .3s ease;border-top:3px solid var(--gold-light)}
-        @keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
-        .inv-c::-webkit-scrollbar{width:3px}.inv-c::-webkit-scrollbar-thumb{background:var(--gold-light);border-radius:2px}
-        .inv-h{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--border-soft);padding-bottom:14px;margin-bottom:16px}
-        .inv-h h3{margin:0;font-size:17px;color:var(--text-dark);font-family:'Playfair Display','Noto Kufi Arabic',serif}
-        .inv-x{font-size:24px;cursor:pointer;background:none;border:none;color:var(--text-muted);padding:0;line-height:1;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .2s}
-        .inv-x:active{background:var(--red-soft);color:var(--red)}
-        .inv-i{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border-soft)}
-        .inv-n{font-size:13px;color:var(--text-dark);font-weight:600}
-        .inv-s{font-size:11px;color:var(--text-muted);margin-top:2px}
-        .inv-t{font-size:13px;color:var(--red);font-weight:700;font-family:'Playfair Display',serif}
-        .qc{display:flex;align-items:center;gap:8px}
-        .qb{background:var(--bg);border:1px solid var(--border);color:var(--text-body);width:30px;height:30px;border-radius:50%;font-weight:700;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;font-family:inherit;transition:all .15s}
-        .qb:active{transform:scale(.9)}
-        .qmin:active{background:var(--red-soft);color:var(--red);border-color:var(--red-soft)}
-        .qplu:active{background:var(--olive-pale);color:var(--olive);border-color:var(--olive-pale)}
-        .qv{font-weight:700;min-width:22px;text-align:center;font-size:14px;color:var(--olive)}
-        .inv-tb{font-weight:700;font-size:17px;margin-top:16px;border-top:2px solid var(--gold-light);padding-top:14px;color:var(--olive);text-align:center;font-family:'Playfair Display','Noto Kufi Arabic',serif}
-        .bs{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#fff;width:100%;padding:14px;font-size:15px;font-weight:700;border:none;border-radius:14px;cursor:pointer;margin-top:16px;font-family:'Noto Kufi Arabic',sans-serif;transition:all .2s;box-shadow:0 4px 15px var(--shadow-gold)}
-        .bs:active{transform:scale(.98)}.bs:disabled{opacity:.35;cursor:not-allowed;transform:none;box-shadow:none}
-        .sbox{background:var(--bg-warm);padding:14px;border-radius:16px;margin-top:18px;border:1px dashed var(--border)}
-        .sbox h4{margin:0 0 8px;color:var(--olive);font-size:13px;font-weight:600}
-        .sbox h4 i{color:var(--green-btn)}
-        .si{display:flex;justify-content:space-between;color:var(--text-body);font-size:12px;padding:3px 0}
+        #invoiceModal { display: none; position: fixed; inset: 0; background: rgba(44,62,45,0.4); z-index: 2000; justify-content: center; align-items: flex-end; backdrop-filter: blur(6px) }
+        .inv-c { background: var(--bg); width: 100%; max-width: 500px; border-radius: 28px 28px 0 0; padding: 24px; box-sizing: border-box; max-height: 85vh; overflow-y: auto; text-align: right; animation: su .3s ease; border-top: 3px solid var(--gold-light) }
+        @keyframes su { from { transform: translateY(100%) } to { transform: translateY(0) } }
+        .inv-c::-webkit-scrollbar { width: 3px } .inv-c::-webkit-scrollbar-thumb { background: var(--gold-light); border-radius: 2px }
+        .inv-h { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-soft); padding-bottom: 14px; margin-bottom: 16px }
+        .inv-h h3 { margin: 0; font-size: 17px; color: var(--text-dark); font-family: 'Playfair Display', 'Noto Kufi Arabic', serif }
+        .inv-x { font-size: 24px; cursor: pointer; background: none; border: none; color: var(--text-muted); padding: 0; line-height: 1; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all .2s }
+        .inv-x:active { background: var(--red-soft); color: var(--red) }
+        .inv-i { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border-soft) }
+        .inv-n { font-size: 13px; color: var(--text-dark); font-weight: 600 }
+        .inv-s { font-size: 11px; color: var(--text-muted); margin-top: 2px }
+        .inv-t { font-size: 13px; color: var(--red); font-weight: 700; font-family: 'Playfair Display', serif }
+        .qc { display: flex; align-items: center; gap: 8px }
+        .qb { background: var(--bg); border: 1px solid var(--border); color: var(--text-body); width: 30px; height: 30px; border-radius: 50%; font-weight: 700; cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; font-family: inherit; transition: all .15s }
+        .qb:active { transform: scale(.9) }
+        .qmin:active { background: var(--red-soft); color: var(--red); border-color: var(--red-soft) }
+        .qplu:active { background: var(--olive-pale); color: var(--olive); border-color: var(--olive-pale) }
+        .qv { font-weight: 700; min-width: 22px; text-align: center; font-size: 14px; color: var(--olive) }
+        .inv-tb { font-weight: 700; font-size: 17px; margin-top: 16px; border-top: 2px solid var(--gold-light); padding-top: 14px; color: var(--olive); text-align: center; font-family: 'Playfair Display', 'Noto Kufi Arabic', serif }
+        .bs { background: linear-gradient(135deg, var(--gold), var(--gold-dark)); color: #fff; width: 100%; padding: 14px; font-size: 15px; font-weight: 700; border: none; border-radius: 14px; cursor: pointer; margin-top: 16px; font-family: 'Noto Kufi Arabic', sans-serif; transition: all .2s; box-shadow: 0 4px 15px var(--shadow-gold) }
+        .bs:active { transform: scale(.98) } .bs:disabled { opacity: .35; cursor: not-allowed; transform: none; box-shadow: none }
+        .sbox { background: var(--bg-warm); padding: 14px; border-radius: 16px; margin-top: 18px; border: 1px dashed var(--border) }
+        .sbox h4 { margin: 0 0 8px; color: var(--olive); font-size: 13px; font-weight: 600 }
+        .sbox h4 i { color: var(--green-btn) }
+        .si { display: flex; justify-content: space-between; color: var(--text-body); font-size: 12px; padding: 3px 0 }
 
         /* ===== نافذة المحادثة ===== */
-        #chatModal{display:none;position:fixed;inset:0;background:rgba(44,62,45,0.4);z-index:3000;justify-content:center;align-items:flex-end;backdrop-filter:blur(6px)}
-        .ch-c{background:var(--bg);width:100%;max-width:500px;border-radius:28px 28px 0 0;padding:24px;box-sizing:border-box;height:80vh;display:flex;flex-direction:column;animation:su .3s ease;border-top:3px solid var(--gold-light)}
-        .ch-h{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--border-soft);padding-bottom:14px;margin-bottom:12px;flex-shrink:0}
-        .ch-h h3{margin:0;font-size:16px;color:var(--text-dark)}
-        .ch-h h3 i{color:var(--olive);margin-left:8px}
-        .ch-m{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:8px 0}
-        .ch-m::-webkit-scrollbar{width:3px}.ch-m::-webkit-scrollbar-thumb{background:var(--gold-light);border-radius:2px}
-        .cm{max-width:80%;padding:10px 14px;border-radius:16px;font-size:13px;line-height:1.6}
-        .cm-cl{background:var(--bg-warm);color:var(--text-body);align-self:flex-start;border-bottom-right-radius:4px}
-        .cm-ca{background:var(--olive);color:#E8F0E6;align-self:flex-end;border-bottom-left-radius:4px}
-        .cm-t{font-size:9px;opacity:.5;margin-top:4px}
-        .ch-in{display:flex;gap:8px;padding-top:12px;border-top:1px solid var(--border-soft);flex-shrink:0}
-        .ch-in input{flex:1;padding:11px 14px;border:1px solid var(--border);border-radius:14px;font-size:13px;font-family:'Noto Kufi Arabic',sans-serif;outline:none;color:var(--text-dark);background:var(--bg-card);transition:border-color .2s}
-        .ch-in input:focus{border-color:var(--olive-soft)}
-        .ch-in button{background:linear-gradient(135deg,var(--olive),var(--olive-light));color:#fff;border:none;padding:0 18px;border-radius:14px;cursor:pointer;font-weight:600;font-family:'Noto Kufi Arabic',sans-serif;font-size:13px;transition:all .2s}
-        .ch-in button:active{transform:scale(.96)}
+        #chatModal { display: none; position: fixed; inset: 0; background: rgba(44,62,45,0.4); z-index: 3000; justify-content: center; align-items: flex-end; backdrop-filter: blur(6px) }
+        .ch-c { background: var(--bg); width: 100%; max-width: 500px; border-radius: 28px 28px 0 0; padding: 24px; box-sizing: border-box; height: 80vh; display: flex; flex-direction: column; animation: su .3s ease; border-top: 3px solid var(--gold-light) }
+        .ch-h { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-soft); padding-bottom: 14px; margin-bottom: 12px; flex-shrink: 0 }
+        .ch-h h3 { margin: 0; font-size: 16px; color: var(--text-dark) }
+        .ch-h h3 i { color: var(--olive); margin-left: 8px }
+        .ch-m { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 8px 0 }
+        .ch-m::-webkit-scrollbar { width: 3px } .ch-m::-webkit-scrollbar-thumb { background: var(--gold-light); border-radius: 2px }
+        .cm { max-width: 80%; padding: 10px 14px; border-radius: 16px; font-size: 13px; line-height: 1.6 }
+        .cm-cl { background: var(--bg-warm); color: var(--text-body); align-self: flex-start; border-bottom-right-radius: 4px }
+        .cm-ca { background: var(--olive); color: #E8F0E6; align-self: flex-end; border-bottom-left-radius: 4px }
+        .cm-t { font-size: 9px; opacity: .5; margin-top: 4px }
+        .ch-in { display: flex; gap: 8px; padding-top: 12px; border-top: 1px solid var(--border-soft); flex-shrink: 0 }
+        .ch-in input { flex: 1; padding: 11px 14px; border: 1px solid var(--border); border-radius: 14px; font-size: 13px; font-family: 'Noto Kufi Arabic', sans-serif; outline: none; color: var(--text-dark); background: var(--bg-card); transition: border-color .2s }
+        .ch-in input:focus { border-color: var(--olive-soft) }
+        .ch-in button { background: linear-gradient(135deg, var(--olive), var(--olive-light)); color: #fff; border: none; padding: 0 18px; border-radius: 14px; cursor: pointer; font-weight: 600; font-family: 'Noto Kufi Arabic', sans-serif; font-size: 13px; transition: all .2s }
+        .ch-in button:active { transform: scale(.96) }
 
         /* ===== إشعارات ===== */
-        .tw{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:99999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
-        .ts{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:12px 20px;color:var(--text-dark);font-size:13px;font-weight:600;box-shadow:0 8px 30px rgba(44,62,45,0.15);display:flex;align-items:center;gap:8px;animation:ti .4s ease,to .4s ease 2.6s forwards;white-space:nowrap}
-        .ts.success{border-color:var(--olive-soft)}.ts.success i{color:var(--green-btn)}
-        .ts.error{border-color:var(--red-soft)}.ts.error i{color:var(--red)}
-        .ts.info{border-color:var(--gold-light)}.ts.info i{color:var(--gold-dark)}
-        @keyframes ti{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
-        @keyframes to{from{opacity:1}to{opacity:0;transform:translateY(-20px)}}
+        .tw { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); z-index: 99999; display: flex; flex-direction: column; gap: 8px; pointer-events: none }
+        .ts { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 12px 20px; color: var(--text-dark); font-size: 13px; font-weight: 600; box-shadow: 0 8px 30px rgba(44,62,45,0.15); display: flex; align-items: center; gap: 8px; animation: ti .4s ease, to .4s ease 2.6s forwards; white-space: nowrap }
+        .ts.success { border-color: var(--olive-soft) } .ts.success i { color: var(--green-btn) }
+        .ts.error { border-color: var(--red-soft) } .ts.error i { color: var(--red) }
+        .ts.info { border-color: var(--gold-light) } .ts.info i { color: var(--gold-dark) }
+        @keyframes ti { from { opacity: 0; transform: translateY(-20px) } to { opacity: 1; transform: translateY(0) } }
+        @keyframes to { from { opacity: 1 } to { opacity: 0; transform: translateY(-20px) } }
 
         /* ===== شاشة الإخراج ===== */
-        #kickScreen{position:fixed;inset:0;background:linear-gradient(160deg,#2C3E2D,#3D5A3E);z-index:99998;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center}
-        .kick-icon{width:85px;height:85px;border-radius:50%;background:rgba(184,84,80,0.12);display:flex;align-items:center;justify-content:center;font-size:36px;color:#E8A09C;margin-bottom:20px}
-        .kick-title{color:#F5EFE6;font-size:20px;font-weight:700;margin-bottom:10px}
-        .kick-msg{color:rgba(212,228,209,0.5);font-size:13px;line-height:1.8;max-width:340px}
+        #kickScreen { position: fixed; inset: 0; background: linear-gradient(160deg, #2C3E2D, #3D5A3E); z-index: 99998; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center }
+        .kick-icon { width: 85px; height: 85px; border-radius: 50%; background: rgba(184,84,80,0.12); display: flex; align-items: center; justify-content: center; font-size: 36px; color: #E8A09C; margin-bottom: 20px }
+        .kick-title { color: #F5EFE6; font-size: 20px; font-weight: 700; margin-bottom: 10px }
+        .kick-msg { color: rgba(212,228,209,0.5); font-size: 13px; line-height: 1.8; max-width: 340px }
+
+        /* ===== فاصل زخرفي ===== */
+        .section-deco { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 8px 0 14px; padding: 0 20px }
+        .section-deco::before, .section-deco::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--gold-light), transparent) }
+        .section-deco span { color: var(--gold); font-size: 16px; opacity: 0.6 }
 
         @media(max-width:480px){
             .item-card{flex-direction:column;align-items:stretch;gap:10px}
@@ -229,7 +228,6 @@
             .iw{width:100%;height:110px;border-radius:14px}
             .main-header{flex-direction:column;text-align:center;gap:10px;margin:0 8px 12px}
             .hb{justify-content:center}
-            .cat-hd{height:140px}
             .dist-label{font-size:9px;min-width:35px}
         }
         @media print{body *{visibility:hidden}#menuContent,#menuContent *{visibility:visible}#menuContent{position:static;max-width:100%}.bottom-bar,#splashScreen,#blockScreen,.msg-fab,#chatModal,#invoiceModal,#distBar,#kickScreen{display:none !important}}
@@ -239,10 +237,13 @@
 
 <div class="tw" id="tw"></div>
 
+<!-- شاشة البداية -->
 <div id="splashScreen">
     <div class="splash-leaf"></div><div class="splash-leaf"></div><div class="splash-leaf"></div>
     <div class="splash-leaf"></div><div class="splash-leaf"></div><div class="splash-leaf"></div>
-    <div class="splash-logo">🌿</div>
+    <div class="splash-logo-wrap">
+        <div class="splash-logo">🌿</div>
+    </div>
     <div class="splash-title" id="splashTitle">أهلاً وسهلاً</div>
     <div class="splash-sub">نستمتع بتقديم أفضل الخدمات لكم</div>
     <div class="splash-progress">
@@ -255,6 +256,7 @@
     <button class="splash-btn" id="splashBtn">متابعة</button>
 </div>
 
+<!-- شاشة التحقق الجغرافي -->
 <div id="blockScreen">
     <div class="geo-card" id="geoCard">
         <div class="geo-icon wait" id="geoIcon">📡</div>
@@ -269,12 +271,14 @@
     </div>
 </div>
 
+<!-- شاشة الإخراج -->
 <div id="kickScreen">
     <div class="kick-icon"><i class="fas fa-location-arrow"></i></div>
     <div class="kick-title">ابتعدت عن منطقة المطعم</div>
     <div class="kick-msg">عذراً، لقد تجاوزت النطاق المسموح به. يرجى العودة إلى منطقة المطعم والتحديث لاستخدام القائمة.</div>
 </div>
 
+<!-- شريط المسافة -->
 <div id="distBar">
     <div class="dist-bar-inner">
         <span class="dist-label">بعيد</span>
@@ -284,6 +288,7 @@
     </div>
 </div>
 
+<!-- المحتوى الرئيسي -->
 <div id="menuContent">
     <div class="main-header">
         <div class="hi"><h2 id="headerTitle">🌿 المنيو الرقمي</h2><p>اختر من تشكيلة وجباتنا المميزة</p></div>
@@ -330,21 +335,24 @@
         projectId: "game1-bb93e"
     }));
 
-    let TBL="",VER="",zone=null,watchID=null,restName="";
-    let orders={},menuOk=false,chatOn=false,unreadN=0;
-    let curLat=null,curLon=null,curDist=null,isInZone=false;
-    let prevMsgCount=0;
-    const menuLookup={};
-    const CIRC=2*Math.PI*42;
+    let TBL = "", VER = "", zone = null, watchID = null, restName = "";
+    let orders = {}, menuOk = false, chatOn = false, unreadN = 0;
+    let curLat = null, curLon = null, curDist = null, isInZone = false;
+    let prevMsgCount = 0;
+    const menuLookup = {};
+    const CIRC = 2 * Math.PI * 42;
 
-    function fmt(n){return new Intl.NumberFormat("ar-IQ").format(n)}
+    function fmt(n) { return new Intl.NumberFormat("ar-IQ").format(n); }
 
-    function toast(m,t){
-        t=t||"info";var c=document.getElementById("tw");
-        var icons={success:"fa-circle-check",error:"fa-circle-xmark",info:"fa-circle-info"};
-        var el=document.createElement("div");el.className="ts "+t;
-        el.innerHTML='<i class="fas '+(icons[t]||icons.info)+'"></i> '+m;
-        c.appendChild(el);setTimeout(function(){if(el.parentNode)el.remove()},3200);
+    function toast(m, t) {
+        t = t || "info";
+        var c = document.getElementById("tw");
+        var icons = {success:"fa-circle-check",error:"fa-circle-xmark",info:"fa-circle-info"};
+        var el = document.createElement("div");
+        el.className = "ts " + t;
+        el.innerHTML = '<i class="fas '+(icons[t]||icons.info)+'"></i> '+m;
+        c.appendChild(el);
+        setTimeout(function(){ if(el.parentNode) el.remove(); }, 3200);
     }
 
     function haversine(a,b,c,d){
@@ -353,148 +361,352 @@
         return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
     }
 
-    var aC=new(window.AudioContext||window.webkitAudioContext)();var lClk=0;
-    function cSnd(){var n=Date.now();if(n-lClk<60)return;lClk=n;try{if(aC.state==="suspended")aC.resume();var o=aC.createOscillator(),g=aC.createGain();o.connect(g);g.connect(aC.destination);o.type="sine";o.frequency.setValueAtTime(600+Math.random()*400,aC.currentTime);g.gain.setValueAtTime(0.012,aC.currentTime);g.gain.exponentialRampToValueAtTime(0.001,aC.currentTime+0.04);o.start(aC.currentTime);o.stop(aC.currentTime+0.04)}catch(e){}}
-    document.addEventListener("click",cSnd,{passive:true});
-    document.addEventListener("touchstart",cSnd,{passive:true});
+    var aC = new (window.AudioContext||window.webkitAudioContext)();
+    var lClk = 0;
+    function cSnd(){
+        var n=Date.now(); if(n-lClk<60) return; lClk=n;
+        try{
+            if(aC.state==="suspended") aC.resume();
+            var o=aC.createOscillator(), g=aC.createGain();
+            o.connect(g); g.connect(aC.destination);
+            o.type="sine"; o.frequency.setValueAtTime(600+Math.random()*400,aC.currentTime);
+            g.gain.setValueAtTime(0.012,aC.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001,aC.currentTime+0.04);
+            o.start(aC.currentTime); o.stop(aC.currentTime+0.04);
+        }catch(e){}
+    }
+    document.addEventListener("click", cSnd, {passive:true});
+    document.addEventListener("touchstart", cSnd, {passive:true});
 
-    function msgSnd(){try{if(aC.state==="suspended")aC.resume();var now=aC.currentTime;[0,0.15,0.3].forEach(function(d,i){var o=aC.createOscillator(),g=aC.createGain();o.connect(g);g.connect(aC.destination);o.type="sine";o.frequency.setValueAtTime([660,880,1100][i],now+d);g.gain.setValueAtTime(0.06,now+d);g.gain.exponentialRampToValueAtTime(0.001,now+d+0.12);o.start(now+d);o.stop(now+d+0.12)})}catch(e){}}
-
-    async function loadRestName(){
-        try{var snap=await get(ref(db,"app_settings/restaurantName"));var name=snap.val();
-        if(name&&name.trim()){restName=name.trim();document.title=restName;document.getElementById("headerTitle").innerHTML="🌿 "+restName;document.getElementById("splashTitle").textContent=restName}}catch(e){}
+    function msgSnd(){
+        try{
+            if(aC.state==="suspended") aC.resume();
+            var now=aC.currentTime;
+            [0,0.15,0.3].forEach(function(d,i){
+                var o=aC.createOscillator(), g=aC.createGain();
+                o.connect(g); g.connect(aC.destination);
+                o.type="sine";
+                o.frequency.setValueAtTime([660,880,1100][i],now+d);
+                g.gain.setValueAtTime(0.06,now+d);
+                g.gain.exponentialRampToValueAtTime(0.001,now+d+0.12);
+                o.start(now+d); o.stop(now+d+0.12);
+            });
+        }catch(e){}
     }
 
-    var progBar=document.getElementById("progBar");var progPct=document.getElementById("progPct");var progVal=0;
-    var progInterval=setInterval(function(){progVal+=Math.random()*8+2;if(progVal>100)progVal=100;progBar.style.strokeDashoffset=CIRC-(progVal/100)*CIRC;progPct.textContent=Math.round(progVal)+"%";if(progVal>=100){clearInterval(progInterval);document.getElementById("splashBtn").classList.add("show")}},200);
+    /* ===== جلب اسم المطعم ===== */
+    async function loadRestName(){
+        try{
+            var snap = await get(ref(db,"app_settings/restaurantName"));
+            var name = snap.val();
+            if(name && name.trim()){
+                restName = name.trim();
+                document.title = restName;
+                document.getElementById("headerTitle").innerHTML = "🌿 " + restName;
+                document.getElementById("splashTitle").textContent = restName;
+            }
+        }catch(e){}
+    }
 
+    /* ===== حلقة التقدم ===== */
+    var progBar = document.getElementById("progBar");
+    var progPct = document.getElementById("progPct");
+    var progVal = 0;
+    var progInterval = setInterval(function(){
+        progVal += Math.random() * 8 + 2;
+        if(progVal > 100) progVal = 100;
+        progBar.style.strokeDashoffset = CIRC - (progVal / 100) * CIRC;
+        progPct.textContent = Math.round(progVal) + "%";
+        if(progVal >= 100){
+            clearInterval(progInterval);
+            document.getElementById("splashBtn").classList.add("show");
+        }
+    }, 200);
+
+    /* ===== ربط الأحداث ===== */
     function bindEvents(){
-        document.getElementById("splashBtn").addEventListener("click",dismissSplash);
-        document.getElementById("bibBtn").addEventListener("click",function(){document.getElementById("invoiceModal").style.display="flex"});
-        document.getElementById("invClose").addEventListener("click",closeInv);
-        document.getElementById("invoiceModal").addEventListener("click",function(e){if(e.target.id==="invoiceModal")closeInv()});
-        document.getElementById("btnSend").addEventListener("click",sendOrd);
-        document.getElementById("msgFab").addEventListener("click",openCh);
-        document.getElementById("chatClose").addEventListener("click",closeCh);
-        document.getElementById("chatModal").addEventListener("click",function(e){if(e.target.id==="chatModal")closeCh()});
-        document.getElementById("chatSendBtn").addEventListener("click",sendCh);
-        document.getElementById("chatInput").addEventListener("keydown",function(e){if(e.key==="Enter")sendCh()});
+        document.getElementById("splashBtn").addEventListener("click", dismissSplash);
+        document.getElementById("bibBtn").addEventListener("click", function(){
+            document.getElementById("invoiceModal").style.display = "flex";
+        });
+        document.getElementById("invClose").addEventListener("click", closeInv);
+        document.getElementById("invoiceModal").addEventListener("click", function(e){
+            if(e.target.id==="invoiceModal") closeInv();
+        });
+        document.getElementById("btnSend").addEventListener("click", sendOrd);
+        document.getElementById("msgFab").addEventListener("click", openCh);
+        document.getElementById("chatClose").addEventListener("click", closeCh);
+        document.getElementById("chatModal").addEventListener("click", function(e){
+            if(e.target.id==="chatModal") closeCh();
+        });
+        document.getElementById("chatSendBtn").addEventListener("click", sendCh);
+        document.getElementById("chatInput").addEventListener("keydown", function(e){
+            if(e.key==="Enter") sendCh();
+        });
     }
 
     function dismissSplash(){
         document.getElementById("splashScreen").classList.add("hide");
-        setTimeout(function(){document.getElementById("splashScreen").style.display="none";document.getElementById("blockScreen").style.display="flex";setTimeout(function(){initGeo()},100)},600);
+        setTimeout(function(){
+            document.getElementById("splashScreen").style.display = "none";
+            document.getElementById("blockScreen").style.display = "flex";
+            setTimeout(function(){ initGeo(); }, 100);
+        }, 600);
     }
 
+    /* ===== التحقق الجغرافي ===== */
     async function initGeo(){
-        var u=new URLSearchParams(location.search);TBL=u.get("table")||"1";VER=u.get("version")||"";
-        document.getElementById("tblB").textContent="طاولة "+TBL;
-        if(!VER){sGeo("err","\u26a0\ufe0f","إصدار غير صالح","لم يتم العثور على ربط للصفحة.");return}
+        var u = new URLSearchParams(location.search);
+        TBL = u.get("table") || "1";
+        VER = u.get("version") || "";
+        document.getElementById("tblB").textContent = "طاولة " + TBL;
+        if(!VER){ sGeo("err","\u26a0\ufe0f","إصدار غير صالح","لم يتم العثور على ربط للصفحة."); return; }
         sGeo("ld","\ud83d\udd04","جاري التحقق...","نبحث عن النطاق الجغرافي.");
-        try{var snap=await get(ref(db,"cobes"));var all=snap.val();
-        if(!all){sGeo("err","\ud83d\udccb","لا توجد نطاقات","لم يتم تسجيل أي نطاق جغرافي.");return}
-        var found=null;for(var id in all){if(all[id].version_number===VER){found=all[id];break}}
-        if(!found){sGeo("err","\ud83d\udeab","إصدار غير صالح",'الإصدار "v'+VER+'" غير موجود.');return}
-        zone=found.geo_zone;if(!zone||!zone.center_latitude){sGeo("err","\ud83d\udccd","بيانات ناقصة","الإصدار موجود لكن بدون إحداثيات.");return}
-        sGeo("wait","\u2705","تم التحقق","جاري تتبع موقعك لحظياً.");startW()}catch(e){sGeo("err","\ud83d\udce1","خطأ في الاتصال","تعذر الاتصال حالياً.")}
+        try{
+            var snap = await get(ref(db,"cobes"));
+            var all = snap.val();
+            if(!all){ sGeo("err","\ud83d\udccb","لا توجد نطاقات","لم يتم تسجيل أي نطاق جغرافي."); return; }
+            var found = null;
+            for(var id in all){ if(all[id].version_number === VER){ found = all[id]; break; } }
+            if(!found){ sGeo("err","\ud83d\udeab","إصدار غير صالح",'الإصدار "v'+VER+'" غير موجود.'); return; }
+            zone = found.geo_zone;
+            if(!zone || !zone.center_latitude){ sGeo("err","\ud83d\udccd","بيانات ناقصة","الإصدار موجود لكن بدون إحداثيات."); return; }
+            sGeo("wait","\u2705","تم التحقق","جاري تتبع موقعك لحظياً.");
+            startW();
+        }catch(e){ sGeo("err","\ud83d\udce1","خطأ في الاتصال","تعذر الاتصال حالياً."); }
     }
 
-    function sGeo(ic,i,t,m){var el=document.getElementById("geoIcon");el.className="geo-icon "+ic;el.innerHTML=i;document.getElementById("geoTitle").textContent=t;document.getElementById("geoMsg").textContent=m;document.getElementById("geoDist").style.display="none";document.getElementById("geoBlocked").style.display="none"}
+    function sGeo(ic,i,t,m){
+        var el=document.getElementById("geoIcon");
+        el.className="geo-icon "+ic; el.innerHTML=i;
+        document.getElementById("geoTitle").textContent=t;
+        document.getElementById("geoMsg").textContent=m;
+        document.getElementById("geoDist").style.display="none";
+        document.getElementById("geoBlocked").style.display="none";
+    }
 
-    function startW(){if(!navigator.geolocation){document.getElementById("geoCard").style.display="none";document.getElementById("geoBlocked").style.display="block";return}watchID=navigator.geolocation.watchPosition(onP,onE,{enableHighAccuracy:true,timeout:15000,maximumAge:0})}
+    function startW(){
+        if(!navigator.geolocation){ document.getElementById("geoCard").style.display="none"; document.getElementById("geoBlocked").style.display="block"; return; }
+        watchID = navigator.geolocation.watchPosition(onP, onE, { enableHighAccuracy:true, timeout:15000, maximumAge:0 });
+    }
 
     function onP(pos){
-        curLat=pos.coords.latitude;curLon=pos.coords.longitude;curDist=haversine(curLat,curLon,zone.center_latitude,zone.center_longitude);var rad=zone.radius_meters||100;
-        updateDistBar(curDist,rad);
-        if(curDist<=rad){if(!isInZone){isInZone=true;document.getElementById("blockScreen").style.display="none";document.getElementById("kickScreen").style.display="none";document.getElementById("menuContent").style.display="block";document.getElementById("bottomBar").style.display="flex";document.getElementById("distBar").style.display="block";if(!menuOk)initMenu()}}
-        else if(curDist<=rad*2){if(isInZone){isInZone=false;document.getElementById("menuContent").style.display="none";document.getElementById("bottomBar").style.display="none";document.getElementById("distBar").style.display="none";document.getElementById("blockScreen").style.display="flex";sGeo("err","\ud83d\udeab","خارج النطاق","اقترب أكثر من المطعم. المسافة: "+curDist.toFixed(0)+" متر.")}var dEl=document.getElementById("geoDist");dEl.style.display="block";dEl.className="geo-dist out";dEl.innerHTML='<i class="fas fa-triangle-exclamation" style="margin-left:5px;"></i><b>خارج النطاق المسموح</b><br>المسافة: '+curDist.toFixed(0)+' متر — الحد: '+rad+' متر'}
-        else{if(!document.getElementById("kickScreen").style.display||document.getElementById("kickScreen").style.display==="none"){isInZone=false;document.getElementById("menuContent").style.display="none";document.getElementById("bottomBar").style.display="none";document.getElementById("distBar").style.display="none";document.getElementById("blockScreen").style.display="none";document.getElementById("kickScreen").style.display="flex"}}
+        curLat = pos.coords.latitude; curLon = pos.coords.longitude;
+        curDist = haversine(curLat, curLon, zone.center_latitude, zone.center_longitude);
+        var rad = zone.radius_meters || 100;
+        updateDistBar(curDist, rad);
+        if(curDist <= rad){
+            if(!isInZone){
+                isInZone = true;
+                document.getElementById("blockScreen").style.display = "none";
+                document.getElementById("kickScreen").style.display = "none";
+                document.getElementById("menuContent").style.display = "block";
+                document.getElementById("bottomBar").style.display = "flex";
+                document.getElementById("distBar").style.display = "block";
+                if(!menuOk) initMenu();
+            }
+        } else if(curDist <= rad * 2){
+            if(isInZone){
+                isInZone = false;
+                document.getElementById("menuContent").style.display = "none";
+                document.getElementById("bottomBar").style.display = "none";
+                document.getElementById("distBar").style.display = "none";
+                document.getElementById("blockScreen").style.display = "flex";
+                sGeo("err","\ud83d\udeab","خارج النطاق","اقترب أكثر من المطعم. المسافة: "+curDist.toFixed(0)+" متر.");
+            }
+            var dEl = document.getElementById("geoDist");
+            dEl.style.display = "block"; dEl.className = "geo-dist out";
+            dEl.innerHTML = '<i class="fas fa-triangle-exclamation" style="margin-left:5px;"></i><b>خارج النطاق المسموح</b><br>المسافة: '+curDist.toFixed(0)+' متر — الحد: '+rad+' متر';
+        } else {
+            if(!document.getElementById("kickScreen").style.display || document.getElementById("kickScreen").style.display === "none"){
+                isInZone = false;
+                document.getElementById("menuContent").style.display = "none";
+                document.getElementById("bottomBar").style.display = "none";
+                document.getElementById("distBar").style.display = "none";
+                document.getElementById("blockScreen").style.display = "none";
+                document.getElementById("kickScreen").style.display = "flex";
+            }
+        }
     }
 
-    function onE(){document.getElementById("geoCard").style.display="none";document.getElementById("geoBlocked").style.display="block"}
+    function onE(){ document.getElementById("geoCard").style.display="none"; document.getElementById("geoBlocked").style.display="block"; }
 
-    function updateDistBar(dist,radius){
-        var pct=Math.min((dist/radius)*100,100);var fill=document.getElementById("distFill");var val=document.getElementById("distValue");
-        fill.style.width=Math.max(0,Math.min(100,pct))+"%";
-        var r,g,b;if(pct<=50){var t=pct/50;r=Math.round(74+(180-74)*t);g=Math.round(124+(160-124)*t);b=Math.round(89+(60-89)*t)}
-        else{var t2=(pct-50)/50;r=Math.round(180+(184-180)*t2);g=Math.round(160-160*t2);b=Math.round(60+(80-60)*t2)}
-        var color="rgb("+r+","+g+","+b+")";fill.style.background=color;val.textContent=dist.toFixed(0)+" م";val.style.color=color;
+    function updateDistBar(dist, radius){
+        var pct = Math.min((dist / radius) * 100, 100);
+        var fill = document.getElementById("distFill");
+        var val = document.getElementById("distValue");
+        fill.style.width = Math.max(0, Math.min(100, pct)) + "%";
+        var r, g, b;
+        if(pct <= 50){ var t=pct/50; r=Math.round(74+(180-74)*t); g=Math.round(124+(160-124)*t); b=Math.round(89+(60-89)*t); }
+        else { var t2=(pct-50)/50; r=Math.round(180+(184-180)*t2); g=Math.round(160-160*t2); b=Math.round(60+(80-60)*t2); }
+        var color="rgb("+r+","+g+","+b+")"; fill.style.background=color;
+        val.textContent = dist.toFixed(0)+" م"; val.style.color = color;
     }
 
+    /* ===== تحميل المنيو ===== */
     function initMenu(){
-        menuOk=true;
-        onValue(ref(db,"orders"),function(snap){
-            var data=snap.val();var c=document.getElementById("menuCats");c.innerHTML="";
-            for(var key in menuLookup){delete menuLookup[key]}
-            if(!data){c.innerHTML='<p style="color:var(--text-muted);padding:30px;text-align:center;font-size:13px;">المنيو فارغ حالياً.</p>';return}
+        menuOk = true;
+        onValue(ref(db,"orders"), function(snap){
+            var data = snap.val();
+            var c = document.getElementById("menuCats");
+            c.innerHTML = "";
+            for(var key in menuLookup){ delete menuLookup[key]; }
+            if(!data){ c.innerHTML = '<p style="color:var(--text-muted);padding:30px;text-align:center;font-size:13px;">المنيو فارغ حالياً.</p>'; return; }
             for(var catId in data){
-                var cat=data[catId];var items=cat.items||{};var cnt=Object.keys(items).length;var itemHTML="";
+                var cat = data[catId];
+                var items = cat.items || {};
+                var cnt = Object.keys(items).length;
+                var itemHTML = "";
                 for(var itemId in items){
-                    var it=items[itemId];menuLookup[catId+"_"+itemId]={name:it.name,price:it.price};
-                    itemHTML+='<div class="item-card"><div class="ir"><div class="iw"><img src="'+it.image+'" alt="" loading="eager" onerror="this.src=\'https://placehold.co/68x68/F5EFE6/8A9B87?text=\ud83c\udf7d\'"></div><div class="ii"><h4>'+it.name+'</h4><p>'+it.details+'</p><span class="ip">'+fmt(it.price)+' د.ع</span></div></div><button class="ba" data-c="'+catId+'" data-i="'+itemId+'"><i class="fas fa-plus"></i> طلب</button></div>';
+                    var it = items[itemId];
+                    menuLookup[catId+"_"+itemId] = {name:it.name, price:it.price};
+                    itemHTML += '<div class="item-card"><div class="ir"><div class="iw"><img src="'+it.image+'" alt="" loading="eager" onerror="this.src=\'https://placehold.co/68x68/F5EFE6/8A9B87?text=\ud83c\udf7d\'"></div><div class="ii"><h4>'+it.name+'</h4><p>'+it.details+'</p><span class="ip">'+fmt(it.price)+' د.ع</span></div></div><button class="ba" data-c="'+catId+'" data-i="'+itemId+'"><i class="fas fa-plus"></i> طلب</button></div>';
                 }
-                var catImg=cat.image||"";
-                var hasImg=catImg&&catImg.length>10;
-                var acc=document.createElement("div");acc.className="cat-acc";
-                var imgPart=hasImg?'<img src="'+catImg+'" alt="">':'<div class="cat-hd-fallback">\ud83c\udf7d</div>';
-                acc.innerHTML='<div class="cat-hd">'+imgPart+'<div class="cat-hd-content"><div class="cat-hi"><h3>'+cat.name+'</h3><span class="cc">'+cnt+' صنف</span></div><i class="fas fa-chevron-down cat-arr"></i></div></div><div class="cat-bd">'+itemHTML+'</div>';
+                var acc = document.createElement("div");
+                acc.className = "cat-acc";
+                acc.innerHTML = '<div class="cat-hd"><img src="'+(cat.image||"")+'" onerror="this.style.display=\'none\'"><div class="cat-hi"><h3>'+cat.name+'</h3><span class="cc">'+cnt+' صنف</span></div><i class="fas fa-chevron-down cat-arr"></i></div><div class="cat-bd">'+itemHTML+'</div>';
                 c.appendChild(acc);
             }
-            c.querySelectorAll(".ba").forEach(function(btn){btn.addEventListener("click",function(){var cId=this.getAttribute("data-c"),iId=this.getAttribute("data-i");var item=menuLookup[cId+"_"+iId];if(item)addIt(cId,iId,item.name,item.price)})});
-            c.querySelectorAll(".cat-hd").forEach(function(hd){hd.addEventListener("click",function(){var wasOpen=hd.parentElement.classList.contains("open");document.querySelectorAll(".cat-acc.open").forEach(function(a){a.classList.remove("open")});if(!wasOpen)hd.parentElement.classList.add("open")})});
+            c.querySelectorAll(".ba").forEach(function(btn){
+                btn.addEventListener("click", function(){
+                    var cId=this.getAttribute("data-c"), iId=this.getAttribute("data-i");
+                    var item=menuLookup[cId+"_"+iId];
+                    if(item) addIt(cId,iId,item.name,item.price);
+                });
+            });
+            c.querySelectorAll(".cat-hd").forEach(function(hd){
+                hd.addEventListener("click", function(){
+                    var wasOpen=hd.parentElement.classList.contains("open");
+                    document.querySelectorAll(".cat-acc.open").forEach(function(a){a.classList.remove("open");});
+                    if(!wasOpen) hd.parentElement.classList.add("open");
+                });
+            });
         });
-        listenOrd();listenCh();
+        listenOrd();
+        listenCh();
     }
 
-    function addIt(cId,iId,name,price){var k=cId+"_"+iId;var r=ref(db,"table_"+TBL+"/current_orders/"+k);if(orders[k]){update(r,{quantity:orders[k].quantity+1})}else{set(r,{name:name,price:price,quantity:1})}}
+    function addIt(cId,iId,name,price){
+        var k=cId+"_"+iId;
+        var r=ref(db,"table_"+TBL+"/current_orders/"+k);
+        if(orders[k]){ update(r,{quantity:orders[k].quantity+1}); }
+        else{ set(r,{name:name,price:price,quantity:1}); }
+    }
 
+    /* ===== الاستماع للطلبات ===== */
     function listenOrd(){
         var tk="table_"+TBL;
-        onValue(ref(db,tk+"/current_orders"),function(snap){
-            var d=snap.val();orders=d||{};var total=0,count=0;var ic=document.getElementById("invItems");
-            if(!d){ic.innerHTML='<p style="color:var(--text-muted);text-align:center;padding:20px;font-size:13px;">لا توجد طلبات معلقة.</p>';document.getElementById("btnSend").disabled=true;document.getElementById("barCount").textContent="\u0660";document.getElementById("barTotal").innerHTML='الإجمالي: <span>\u0660 دينار</span>';document.getElementById("invTotal").textContent="الإجمالي: \u0660 دينار";return}
-            document.getElementById("btnSend").disabled=false;ic.innerHTML="";
-            for(var k in d){var it=d[k];var sub=it.price*it.quantity;total+=sub;count+=it.quantity;var row=document.createElement("div");row.className="inv-i";row.innerHTML='<div><div class="inv-n">'+it.name+'</div><div class="inv-s">'+fmt(it.price)+' د.ع \u00d7 '+it.quantity+'</div></div><div style="display:flex;align-items:center;gap:10px"><span class="inv-t">'+fmt(sub)+' د.ع</span><div class="qc"><button class="qb qmin" data-key="'+k+'" data-d="-1">\u2212</button><span class="qv">'+it.quantity+'</span><button class="qb qplu" data-key="'+k+'" data-d="1">+</button></div></div>';ic.appendChild(row)}
-            ic.querySelectorAll(".qb").forEach(function(qb){qb.addEventListener("click",function(){var k=this.getAttribute("data-key");var d=parseInt(this.getAttribute("data-d"));var r=ref(db,"table_"+TBL+"/current_orders/"+k);var n=orders[k].quantity+d;if(n<=0){remove(r)}else{update(r,{quantity:n})}})});
-            document.getElementById("barCount").textContent=count;document.getElementById("barTotal").innerHTML='الإجمالي: <span>'+fmt(total)+' دينار</span>';document.getElementById("invTotal").textContent="الإجمالي: "+fmt(total)+" دينار";
+        onValue(ref(db,tk+"/current_orders"), function(snap){
+            var d=snap.val(); orders=d||{};
+            var total=0, count=0;
+            var ic=document.getElementById("invItems");
+            if(!d){
+                ic.innerHTML='<p style="color:var(--text-muted);text-align:center;padding:20px;font-size:13px;">لا توجد طلبات معلقة.</p>';
+                document.getElementById("btnSend").disabled=true;
+                document.getElementById("barCount").textContent="\u0660";
+                document.getElementById("barTotal").innerHTML='الإجمالي: <span>\u0660 دينار</span>';
+                document.getElementById("invTotal").textContent="الإجمالي: \u0660 دينار";
+                return;
+            }
+            document.getElementById("btnSend").disabled=false;
+            ic.innerHTML="";
+            for(var k in d){
+                var it=d[k]; var sub=it.price*it.quantity; total+=sub; count+=it.quantity;
+                var row=document.createElement("div"); row.className="inv-i";
+                row.innerHTML='<div><div class="inv-n">'+it.name+'</div><div class="inv-s">'+fmt(it.price)+' د.ع \u00d7 '+it.quantity+'</div></div><div style="display:flex;align-items:center;gap:10px"><span class="inv-t">'+fmt(sub)+' د.ع</span><div class="qc"><button class="qb qmin" data-key="'+k+'" data-d="-1">\u2212</button><span class="qv">'+it.quantity+'</span><button class="qb qplu" data-key="'+k+'" data-d="1">+</button></div></div>';
+                ic.appendChild(row);
+            }
+            ic.querySelectorAll(".qb").forEach(function(qb){
+                qb.addEventListener("click", function(){
+                    var k=this.getAttribute("data-key"); var d=parseInt(this.getAttribute("data-d"));
+                    var r=ref(db,"table_"+TBL+"/current_orders/"+k); var n=orders[k].quantity+d;
+                    if(n<=0){ remove(r); } else{ update(r,{quantity:n}); }
+                });
+            });
+            document.getElementById("barCount").textContent=count;
+            document.getElementById("barTotal").innerHTML='الإجمالي: <span>'+fmt(total)+' دينار</span>';
+            document.getElementById("invTotal").textContent="الإجمالي: "+fmt(total)+" دينار";
         });
-        onValue(ref(db,"tablesB/"+tk+"/sent_orders"),function(snap){var d=snap.val();var c=document.getElementById("sentItems");if(!d){c.innerHTML='<p style="color:var(--text-muted);font-size:12px;">لا توجد.</p>';return}c.innerHTML="";for(var k in d){var it=d[k];c.innerHTML+='<div class="si"><span>\u2022 '+it.name+' (\u00d7'+it.quantity+')</span><span style="color:var(--text-muted);font-size:11px;">'+fmt(it.price*it.quantity)+' د.ع</span></div>'}});
+        onValue(ref(db,"tablesB/"+tk+"/sent_orders"), function(snap){
+            var d=snap.val(); var c=document.getElementById("sentItems");
+            if(!d){ c.innerHTML='<p style="color:var(--text-muted);font-size:12px;">لا توجد.</p>'; return; }
+            c.innerHTML="";
+            for(var k in d){ var it=d[k]; c.innerHTML+='<div class="si"><span>\u2022 '+it.name+' (\u00d7'+it.quantity+')</span><span style="color:var(--text-muted);font-size:11px;">'+fmt(it.price*it.quantity)+' د.ع</span></div>'; }
+        });
     }
 
     function sendOrd(){
-        if(!Object.keys(orders).length)return;if(!navigator.onLine){toast("لا يوجد اتصال بالإنترنت.","error");return}
-        if(curLat===null||curLon===null){toast("جاري تحديد موقعك...","error");return}
-        if(!zone||!zone.center_latitude){toast("بيانات النطاق غير متوفرة.","error");return}
-        var dist=haversine(curLat,curLon,zone.center_latitude,zone.center_longitude);var rad=zone.radius_meters||100;
-        if(dist>rad){toast("أنت خارج المنطقة ("+dist.toFixed(0)+" م).","error");return}
-        var sr=ref(db,"tablesB/table_"+TBL+"/sent_orders");for(var k in orders){var it=orders[k];set(push(sr),{name:it.name,price:it.price,quantity:it.quantity,settled_by:"customer",settled_at:new Date().toISOString(),sent_distance:Math.round(dist)})}
-        remove(ref(db,"table_"+TBL+"/current_orders")).then(function(){toast("تم إرسال طلباتك بنجاح","success");closeInv()}).catch(function(){toast("حدث خطأ أثناء الإرسال.","error")});
+        if(!Object.keys(orders).length) return;
+        if(!navigator.onLine){ toast("لا يوجد اتصال بالإنترنت.","error"); return; }
+        if(curLat===null||curLon===null){ toast("جاري تحديد موقعك...","error"); return; }
+        if(!zone||!zone.center_latitude){ toast("بيانات النطاق غير متوفرة.","error"); return; }
+        var dist=haversine(curLat,curLon,zone.center_latitude,zone.center_longitude);
+        var rad=zone.radius_meters||100;
+        if(dist>rad){ toast("أنت خارج المنطقة ("+dist.toFixed(0)+" م).","error"); return; }
+        var sr=ref(db,"tablesB/table_"+TBL+"/sent_orders");
+        for(var k in orders){ var it=orders[k]; set(push(sr),{name:it.name,price:it.price,quantity:it.quantity,settled_by:"customer",settled_at:new Date().toISOString(),sent_distance:Math.round(dist)}); }
+        remove(ref(db,"table_"+TBL+"/current_orders")).then(function(){ toast("تم إرسال طلباتك بنجاح","success"); closeInv(); }).catch(function(){ toast("حدث خطأ أثناء الإرسال.","error"); });
     }
 
-    function closeInv(){document.getElementById("invoiceModal").style.display="none"}
+    function closeInv(){ document.getElementById("invoiceModal").style.display="none"; }
 
+    /* ===== محادثة الكاشير ===== */
     function listenCh(){
         var tk="table_"+TBL;
-        function renderMsgs(sA,sB){if(!chatOn)return;var box=document.getElementById("chatMsgs");box.innerHTML="";var msgs=[];
-        if(sA.exists()){var vA=sA.val();for(var k in vA){var m=vA[k];m.src="client";msgs.push(m)}}
-        if(sB.exists()){var vB=sB.val();for(var k2 in vB){var m2=vB[k2];m2.src="cashier";msgs.push(m2)}}
-        msgs.sort(function(a,b){return new Date(a.timestamp)-new Date(b.timestamp)});
-        if(!msgs.length){box.innerHTML='<p style="color:var(--text-muted);text-align:center;padding:20px;font-size:13px;">ابدأ المحادثة مع الكاشير.</p>';return}
-        for(var j=0;j<msgs.length;j++){var msg=msgs[j];var t=new Date(msg.timestamp).toLocaleTimeString("ar-IQ",{hour:"2-digit",minute:"2-digit"});box.innerHTML+='<div class="cm '+(msg.src==="client"?"cm-cl":"cm-ca")+'">'+msg.text+'<div class="cm-t">'+t+'</div></div>'}
-        box.scrollTop=box.scrollHeight}
-        onValue(ref(db,"msgA/"+tk),function(sA){onValue(ref(db,"msgB/"+tk),function(sB){renderMsgs(sA,sB);var newCount=sB.exists()?Object.keys(sB.val()).length:0;if(newCount>prevMsgCount&&prevMsgCount>0)msgSnd();if(!chatOn)prevMsgCount=newCount;updUnread(newCount)})});
-        onValue(ref(db,"tablesC/"+tk+"/processing_orders"),function(s){if(!s.exists()){remove(ref(db,"msgA/"+tk));remove(ref(db,"msgB/"+tk))}});
+        function renderMsgs(sA,sB){
+            if(!chatOn) return;
+            var box=document.getElementById("chatMsgs"); box.innerHTML=""; var msgs=[];
+            if(sA.exists()){ var vA=sA.val(); for(var k in vA){ var m=vA[k]; m.src="client"; msgs.push(m); } }
+            if(sB.exists()){ var vB=sB.val(); for(var k2 in vB){ var m2=vB[k2]; m2.src="cashier"; msgs.push(m2); } }
+            msgs.sort(function(a,b){ return new Date(a.timestamp)-new Date(b.timestamp); });
+            if(!msgs.length){ box.innerHTML='<p style="color:var(--text-muted);text-align:center;padding:20px;font-size:13px;">ابدأ المحادثة مع الكاشير.</p>'; return; }
+            for(var j=0;j<msgs.length;j++){
+                var msg=msgs[j]; var t=new Date(msg.timestamp).toLocaleTimeString("ar-IQ",{hour:"2-digit",minute:"2-digit"});
+                box.innerHTML+='<div class="cm '+(msg.src==="client"?"cm-cl":"cm-ca")+'">'+msg.text+'<div class="cm-t">'+t+'</div></div>';
+            }
+            box.scrollTop=box.scrollHeight;
+        }
+        onValue(ref(db,"msgA/"+tk), function(sA){
+            onValue(ref(db,"msgB/"+tk), function(sB){
+                renderMsgs(sA,sB);
+                var newCount=sB.exists()?Object.keys(sB.val()).length:0;
+                if(newCount>prevMsgCount&&prevMsgCount>0) msgSnd();
+                if(!chatOn) prevMsgCount=newCount;
+                updUnread(newCount);
+            });
+        });
+        onValue(ref(db,"tablesC/"+tk+"/processing_orders"), function(s){ if(!s.exists()){ remove(ref(db,"msgA/"+tk)); remove(ref(db,"msgB/"+tk)); } });
         updUnread(0);
     }
 
-    function updUnread(count){if(count===undefined){onValue(ref(db,"msgB/table_"+TBL),function(s){var d=s.val();var c=0;if(d)c=Object.keys(d).length;showUnread(c);prevMsgCount=c});return}showUnread(count);prevMsgCount=count}
-    function showUnread(c){var dot=document.getElementById("msgDot");if(c>0){dot.style.display="flex";dot.textContent=c>9?"9+":String(c)}else{dot.style.display="none"}unreadN=c}
-    function openCh(){chatOn=true;unreadN=0;document.getElementById("msgDot").style.display="none";document.getElementById("chatModal").style.display="flex";prevMsgCount=0}
-    function closeCh(){chatOn=false;document.getElementById("chatModal").style.display="none"}
-    function sendCh(){var inp=document.getElementById("chatInput");var t=inp.value.trim();if(!t)return;set(push(ref(db,"msgA/table_"+TBL)),{text:t,timestamp:new Date().toISOString()});inp.value=""}
+    function updUnread(count){
+        if(count===undefined){
+            onValue(ref(db,"msgB/table_"+TBL),function(s){ var d=s.val(); var c=0; if(d) c=Object.keys(d).length; showUnread(c); prevMsgCount=c; });
+            return;
+        }
+        showUnread(count); prevMsgCount=count;
+    }
 
-    document.addEventListener("click",function(){if(aC.state==="suspended")aC.resume()},{once:true});
-    bindEvents();loadRestName();
+    function showUnread(c){
+        var dot=document.getElementById("msgDot");
+        if(c>0){ dot.style.display="flex"; dot.textContent=c>9?"9+":String(c); }
+        else{ dot.style.display="none"; }
+        unreadN=c;
+    }
+
+    function openCh(){ chatOn=true; unreadN=0; document.getElementById("msgDot").style.display="none"; document.getElementById("chatModal").style.display="flex"; prevMsgCount=0; }
+    function closeCh(){ chatOn=false; document.getElementById("chatModal").style.display="none"; }
+    function sendCh(){
+        var inp=document.getElementById("chatInput"); var t=inp.value.trim();
+        if(!t) return;
+        set(push(ref(db,"msgA/table_"+TBL)),{text:t,timestamp:new Date().toISOString()});
+        inp.value="";
+    }
+
+    /* ===== تشغيل ===== */
+    document.addEventListener("click", function(){ if(aC.state==="suspended") aC.resume(); }, {once:true});
+    bindEvents();
+    loadRestName();
 </script>
 </body>
 </html>

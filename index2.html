@@ -4,121 +4,158 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>المنيو الرقمي ونظام الطلبات</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
+        * { box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; margin: 0; padding: 0; padding-bottom: 80px; text-align: center; color: #333; }
-        
-        /* شاشة الجدار الحمايتي الجغرافي المطور */
-        #blockScreen { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #ffffff; z-index: 9999; flex-direction: column; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
-        .welcome-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); max-width: 400px; width: 100%; }
-        #welcomeIcon { font-size: 50px; margin-bottom: 15px; }
-        h1 { color: #333; font-size: 22px; margin-bottom: 15px; }
-        p { color: #6c757d; font-size: 15px; line-height: 1.6; margin-bottom: 25px; }
-        
-        /* تصميم مؤشرات المسافة والدقة الفورية */
-        .distance-display { font-size: 16px; font-weight: bold; color: #0056b3; background-color: #e7f3ff; padding: 12px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #b8daff; display: none; }
-        .distance-blocked { color: #dc3545; background-color: #fff5f5; border: 1px solid #ffe3e3; }
-        .distance-success { color: #28a745; background-color: #d4edda; border: 1px solid #c3e6cb; }
 
-        .start-btn { background-color: #ffc107; color: #212529; border: none; padding: 14px 28px; font-size: 18px; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; transition: all 0.3s ease; box-shadow: 0 3px 10px rgba(255, 193, 7, 0.3); }
-        .start-btn:disabled { background-color: #cccccc; color: #666666; cursor: not-allowed; box-shadow: none; }
-        
-        /* المنيو الرئيسي */
+        /* ===== شاشة الجدار الجغرافي ===== */
+        #blockScreen { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(160deg, #0f172a 0%, #1e293b 100%); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
+        .welcome-card { background: #1e293b; padding: 35px 30px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.4); max-width: 420px; width: 100%; border: 1px solid #334155; }
+        .welcome-icon-wrap { width: 80px; height: 80px; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 38px; transition: all 0.5s; }
+        .icon-waiting { background: linear-gradient(135deg, #334155, #1e293b); }
+        .icon-loading { background: linear-gradient(135deg, #2563eb, #1d4ed8); animation: iconPulse 1.5s infinite; }
+        .icon-success { background: linear-gradient(135deg, #059669, #047857); }
+        .icon-error { background: linear-gradient(135deg, #dc2626, #b91c1c); }
+        @keyframes iconPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+        #statusTitle { color: #f8fafc; font-size: 22px; margin-bottom: 12px; }
+        #statusMessage { color: #94a3b8; font-size: 14px; line-height: 1.7; margin-bottom: 20px; }
+        .distance-display { font-size: 14px; font-weight: 700; color: #fbbf24; background: rgba(245,158,11,0.08); padding: 14px; border-radius: 10px; margin-bottom: 18px; border: 1px solid rgba(245,158,11,0.2); display: none; line-height: 1.8; }
+        .distance-display.out-of-range { color: #f87171; background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.2); }
+        .distance-display.in-range { color: #34d399; background: rgba(52,211,153,0.08); border-color: rgba(52,211,153,0.2); }
+        .version-badge { display: inline-flex; align-items: center; gap: 6px; background: #0f172a; color: #94a3b8; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; margin-bottom: 18px; border: 1px solid #1e293b; }
+        .version-badge i { color: #f59e0b; }
+        .start-btn { background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; border: none; padding: 15px 28px; font-size: 17px; font-weight: 800; border-radius: 12px; cursor: pointer; width: 100%; transition: all 0.3s; box-shadow: 0 4px 15px rgba(245,158,11,0.25); font-family: inherit; }
+        .start-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(245,158,11,0.35); }
+        .start-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+        .live-status { font-size: 12px; color: #475569; margin-top: 14px; }
+        .radius-info { font-size: 11px; color: #64748b; margin-top: 8px; background: #0f172a; padding: 8px 12px; border-radius: 6px; border: 1px solid #1e293b; display: none; }
+        .radius-info i { color: #3b82f6; margin-left: 4px; }
+
+        /* ===== المنيو الرئيسي ===== */
         #menuContent { display: none; padding: 15px; max-width: 600px; margin: 0 auto; }
-        .header { background-color: #ffc107; padding: 20px; color: #333; border-radius: 0 0 20px 20px; margin-bottom: 25px; }
-        .table-badge { background-color: #333; color: #fff; padding: 5px 15px; border-radius: 20px; font-size: 16px; font-weight: bold; display: inline-block; margin-top: 10px; }
-        
-        /* تصميم الأقسام والمنتجات */
-        .category-section { margin-bottom: 30px; text-align: right; }
-        .category-title-box { display: flex; align-items: center; gap: 10px; background: #e2e8f0; padding: 8px 15px; border-radius: 8px; margin-bottom: 15px; }
-        .category-title-box h3 { margin: 0; font-size: 18px; color: #2c3e50; }
-        .item-card { display: flex; background: white; padding: 12px; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); align-items: center; justify-content: space-between; border: 1px solid #edf2f7; }
-        .item-info-side { display: flex; align-items: center; gap: 12px; text-align: right; }
-        .item-text h4 { margin: 0 0 4px 0; font-size: 16px; }
-        .item-text p { margin: 0; font-size: 12px; color: #718096; line-height: 1.4; }
-        .item-text .price { font-weight: bold; color: #e53e3e; font-size: 14px; margin-top: 4px; display: block; }
-        .btn-order-item { background-color: #2f855a; color: white; border: none; padding: 8px 12px; font-size: 13px; border-radius: 6px; cursor: pointer; font-weight: bold; white-space: nowrap; }
-        
-        /* شريط الفاتورة العائم بالأسفل */
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #333; color: white; padding: 12px 20px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; z-index: 1000; box-shadow: 0 -3px 10px rgba(0,0,0,0.2); }
-        .invoice-btn { background: #ffc107; color: #212529; border: none; padding: 10px 20px; font-weight: bold; border-radius: 20px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 15px; }
-        
-        /* نافذة الفاتورة المنبثقة Modal */
-        #invoiceModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: flex-end; }
-        .modal-content { background: white; width: 100%; max-width: 500px; border-radius: 20px 20px 0 0; padding: 20px; box-sizing: border-box; max-height: 85vh; overflow-y: auto; text-align: right; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #edf2f7; padding-bottom: 10px; margin-bottom: 15px; }
-        .modal-header h3 { margin: 0; }
-        .close-btn { font-size: 24px; cursor: pointer; background: none; border: none; color: #a0aec0; }
-        
-        /* عناصر الفاتورة والتحرير */
-        .invoice-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #edf2f7; }
-        .qty-controls { display: flex; align-items: center; gap: 8px; }
-        .qty-btn { background: #cbd5e0; border: none; width: 28px; height: 28px; border-radius: 50%; font-weight: bold; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
-        .btn-send-order { background-color: #ffc107; color: #212529; width: 100%; padding: 14px; font-size: 16px; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; margin-top: 15px; box-shadow: 0 3px 6px rgba(0,0,0,0.1); }
-        
-        /* قسم الفواتير المرسلة للقراءة فقط */
-        .sent-orders-box { background: #edf2f7; padding: 12px; border-radius: 10px; margin-top: 20px; border: 1px dashed #cbd5e0; }
-        .sent-item { display: flex; justify-content: space-between; color: #4a5568; font-size: 14px; padding: 4px 0; }
-        
-        .thumb-64 { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; }
-        .live-status { font-size: 13px; color: #0056b3; margin-top: 15px; font-weight: bold; }
+        .header { background: linear-gradient(135deg, #f59e0b, #d97706); padding: 22px 20px; color: #0f172a; border-radius: 0 0 20px 20px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(245,158,11,0.2); }
+        .header h2 { margin: 0 0 6px; font-size: 22px; }
+        .header p { margin: 0; font-size: 14px; opacity: 0.8; }
+        .table-badge { background-color: #0f172a; color: #fbbf24; padding: 6px 16px; border-radius: 20px; font-size: 15px; font-weight: 700; display: inline-block; margin-top: 10px; }
+        .geo-verified-badge { display: inline-flex; align-items: center; gap: 5px; background: rgba(15,23,42,0.2); color: #0f172a; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; margin-top: 8px; margin-right: 8px; }
 
-        .pulse-dot { display: inline-block; width: 8px; height: 8px; background-color: #28a745; border-radius: 50%; margin-left: 5px; animation: pulse-anim 1.2s infinite; }
-        @keyframes pulse-anim {
-            0% { transform: scale(0.8); opacity: 0.4; }
-            50% { transform: scale(1.3); opacity: 1; }
-            100% { transform: scale(0.8); opacity: 0.4; }
+        /* ===== الأقسام والمنتجات ===== */
+        .category-section { margin-bottom: 30px; text-align: right; }
+        .category-title-box { display: flex; align-items: center; gap: 10px; background: linear-gradient(135deg, #e2e8f0, #edf2f7); padding: 10px 16px; border-radius: 10px; margin-bottom: 15px; border-right: 4px solid #f59e0b; }
+        .category-title-box h3 { margin: 0; font-size: 17px; color: #1e293b; }
+        .item-card { display: flex; background: white; padding: 14px; border-radius: 14px; margin-bottom: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); align-items: center; justify-content: space-between; border: 1px solid #edf2f7; transition: all 0.2s; }
+        .item-card:hover { box-shadow: 0 4px 15px rgba(0,0,0,0.08); transform: translateY(-1px); }
+        .item-info-side { display: flex; align-items: center; gap: 12px; text-align: right; flex: 1; min-width: 0; }
+        .item-text { min-width: 0; }
+        .item-text h4 { margin: 0 0 4px; font-size: 15px; color: #1e293b; }
+        .item-text p { margin: 0; font-size: 12px; color: #94a3b8; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .item-text .price { font-weight: 800; color: #dc2626; font-size: 14px; margin-top: 5px; display: block; }
+        .btn-order-item { background: linear-gradient(135deg, #059669, #047857); color: white; border: none; padding: 10px 16px; font-size: 13px; border-radius: 8px; cursor: pointer; font-weight: 700; white-space: nowrap; font-family: inherit; transition: all 0.2s; box-shadow: 0 2px 8px rgba(5,150,105,0.2); }
+        .btn-order-item:hover { transform: scale(1.04); box-shadow: 0 4px 12px rgba(5,150,105,0.3); }
+        .btn-order-item:active { transform: scale(0.97); }
+
+        /* ===== شريط الفاتورة العائم ===== */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: linear-gradient(135deg, #1e293b, #0f172a); color: white; padding: 14px 20px; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; z-index: 1000; box-shadow: 0 -4px 20px rgba(0,0,0,0.3); border-top: 1px solid #334155; }
+        .invoice-btn { background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; border: none; padding: 11px 22px; font-weight: 800; border-radius: 25px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; font-family: inherit; transition: all 0.2s; }
+        .invoice-btn:hover { transform: scale(1.04); }
+
+        /* ===== نافذة الفاتورة ===== */
+        #invoiceModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: flex-end; backdrop-filter: blur(4px); }
+        .modal-content { background: #ffffff; width: 100%; max-width: 500px; border-radius: 24px 24px 0 0; padding: 24px; box-sizing: border-box; max-height: 85vh; overflow-y: auto; text-align: right; animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .modal-content::-webkit-scrollbar { width: 4px; }
+        .modal-content::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 18px; }
+        .modal-header h3 { margin: 0; font-size: 18px; color: #1e293b; }
+        .close-btn { font-size: 26px; cursor: pointer; background: none; border: none; color: #94a3b8; padding: 0; line-height: 1; transition: color 0.2s; }
+        .close-btn:hover { color: #ef4444; }
+
+        .invoice-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
+        .qty-controls { display: flex; align-items: center; gap: 10px; }
+        .qty-btn { background: #f1f5f9; border: 1px solid #e2e8f0; color: #475569; width: 32px; height: 32px; border-radius: 50%; font-weight: 800; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; font-family: inherit; }
+        .qty-btn:hover { background: #e2e8f0; }
+        .qty-btn.minus:hover { background: #fee2e2; color: #dc2626; border-color: #fecaca; }
+        .qty-btn.plus:hover { background: #dcfce7; color: #16a34a; border-color: #bbf7d0; }
+        .btn-send-order { background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; width: 100%; padding: 16px; font-size: 16px; font-weight: 800; border: none; border-radius: 12px; cursor: pointer; margin-top: 18px; box-shadow: 0 4px 12px rgba(245,158,11,0.25); font-family: inherit; transition: all 0.2s; }
+        .btn-send-order:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(245,158,11,0.35); }
+        .btn-send-order:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        .sent-orders-box { background: #f8fafc; padding: 14px; border-radius: 12px; margin-top: 22px; border: 1px dashed #cbd5e1; }
+        .sent-item { display: flex; justify-content: space-between; color: #64748b; font-size: 14px; padding: 5px 0; }
+
+        .thumb-64 { width: 64px; height: 64px; object-fit: cover; border-radius: 10px; border: 1px solid #e2e8f0; }
+
+        /* ===== Toast ===== */
+        .toast-container { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); z-index: 99999; display: flex; flex-direction: column; gap: 8px; }
+        .toast { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 12px 22px; color: #f1f5f9; font-size: 14px; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,0.4); display: flex; align-items: center; gap: 8px; animation: toastIn 0.4s ease, toastOut 0.4s ease 2.6s forwards; white-space: nowrap; }
+        .toast.success { border-color: #059669; } .toast.success i { color: #34d399; }
+        .toast.error { border-color: #dc2626; } .toast.error i { color: #f87171; }
+        .toast.info { border-color: #2563eb; } .toast.info i { color: #60a5fa; }
+        @keyframes toastIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes toastOut { from { opacity: 1; } to { opacity: 0; transform: translateY(-20px); } }
+
+        @media (max-width: 480px) {
+            .item-card { flex-direction: column; align-items: stretch; gap: 10px; }
+            .btn-order-item { width: 100%; text-align: center; padding: 12px; }
         }
     </style>
 </head>
 <body>
 
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ===== شاشة الجدار الجغرافي ===== -->
 <div id="blockScreen">
     <div class="welcome-card">
-        <div id="welcomeIcon">🍔</div>
+        <div id="welcomeIcon" class="welcome-icon-wrap icon-waiting">🍔</div>
         <h1 id="statusTitle">أهلاً بك في مطعمنا</h1>
-        <p id="statusMessage">لتصفح المنيو وإرسال طلباتك من داخل الصالة مباشرة، يرجى تفعيل فحص الموقع الذكي للاتصال التلقائي بأقرب نقطة بث للـ GPS والحصول على أفضل دقة.</p>
-        
+        <p id="statusMessage">جاري التحقق من إصدار جهازك وربطه بالنطاق الجغرافي المخصص...</p>
+        <div id="versionBadge" class="version-badge" style="display:none;"><i class="fas fa-microchip"></i> <span id="versionBadgeText"></span></div>
         <div id="distanceBox" class="distance-display"></div>
-        <button type="button" id="startTrackingBtn" class="start-btn">بدء الفحص التلقائي الذكي للموقع</button>
+        <div id="radiusInfo" class="radius-info"><i class="fas fa-circle-radiation"></i> <span id="radiusText"></span></div>
+        <button type="button" id="startTrackingBtn" class="start-btn" style="display:none;">
+            <i class="fas fa-location-crosshairs"></i>&nbsp; تفعيل تحديد الموقع والتحقق
+        </button>
         <div id="accuracyIndicator" class="live-status"></div>
     </div>
 </div>
 
+<!-- ===== المنيو ===== -->
 <div id="menuContent">
     <div class="header">
         <h2>🍽️ منيو المطعم الرقمي</h2>
-        <p>تصفح وجباتك المفضلة واطلب من الصالة</p>
-        <div class="table-badge" id="tableDisplay">جاري قراءة رقم الطاولة...</div>
+        <p>تصفح وجباتك المفضلة واطلب من طاولتك مباشرة</p>
+        <div style="margin-top:10px;">
+            <span class="table-badge" id="tableDisplay">جاري قراءة رقم الطاولة...</span>
+            <span class="geo-verified-badge"><i class="fas fa-shield-halved"></i> الموقع مُتحقق</span>
+        </div>
     </div>
-    <div id="menuCategoriesContainer">🔄 جاري تحميل قائمة الأطعمة الفاخرة...</div>
+    <div id="menuCategoriesContainer">🔄 جاري تحميل قائمة الأطعمة...</div>
 </div>
 
+<!-- ===== شريط الفاتورة ===== -->
 <div class="bottom-nav" id="bottomNav" style="display: none;">
-    <div>
-        <span id="bottomTotal">إجمالي الفاتورة الحالية: 0 دينار</span>
-    </div>
+    <div><span id="bottomTotal" style="font-size:14px; font-weight:600;">إجمالي الفاتورة: 0 دينار</span></div>
     <button class="invoice-btn" onclick="openInvoiceModal()">
-        <span>📄 عرض الفاتورة</span>
-        <span id="badgeCount" style="background: red; color: white; border-radius: 50%; padding: 2px 7px; font-size: 12px;">0</span>
+        <span>📄 الفاتورة</span>
+        <span id="badgeCount" style="background:#dc2626; color:white; border-radius:50%; padding:2px 8px; font-size:11px; font-weight:800;">0</span>
     </button>
 </div>
 
+<!-- ===== نافذة الفاتورة ===== -->
 <div id="invoiceModal" onclick="closeInvoiceModalOutside(event)">
     <div class="modal-content">
         <div class="modal-header">
             <h3>📄 مراجعة فاتورة الطاولة</h3>
             <button class="close-btn" onclick="closeInvoiceModal()">&times;</button>
         </div>
-        
-        <h4>🛒 طلبات قيد التحرير (يمكنك تعديلها):</h4>
+        <h4 style="color:#059669; margin-bottom:10px; font-size:15px;"><i class="fas fa-pen-to-square" style="margin-left:5px;"></i> طلبات قيد التحرير:</h4>
         <div id="currentInvoiceItems">لا توجد طلبات معلقة حالياً.</div>
-        
-        <div id="invoiceTotalSum" style="font-weight: bold; font-size: 18px; margin-top: 15px; border-top: 2px solid #edf2f7; padding-top: 10px;">الإجمالي: 0 دينار</div>
-        
-        <button class="btn-send-order" id="sendOrderToBBtn" onclick="sendOrderToKitchen()">🚀 إرسال الطلبات إلى المطبخ</button>
-        
+        <div id="invoiceTotalSum" style="font-weight:800; font-size:18px; margin-top:15px; border-top:2px solid #f1f5f9; padding-top:12px; color:#1e293b;">الإجمالي: 0 دينار</div>
+        <button class="btn-send-order" id="sendOrderToBBtn" onclick="sendOrderToKitchen()" disabled><i class="fas fa-paper-plane" style="margin-left:6px;"></i> إرسال الطلبات إلى المطبخ</button>
         <div class="sent-orders-box">
-            <h4 style="margin: 0 0 10px 0; color: #2b6cb0;">✔ طلبات أُرسلت للمطبخ (للمطالعة فقط):</h4>
+            <h4 style="margin:0 0 10px; color:#2563eb; font-size:14px;"><i class="fas fa-check-double" style="margin-left:5px;"></i> طلبات أُرسلت للمطبخ:</h4>
             <div id="sentInvoiceItems">لا توجد طلبات مرسلة مسبقاً.</div>
         </div>
     </div>
@@ -126,9 +163,8 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getDatabase, ref, set, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    import { getDatabase, ref, set, push, onValue, remove, update, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-    // إعدادات Firebase الخاصة بالمشروع
     const firebaseConfig = {
         apiKey: "AIzaSyCEEqEALOCaQo5oSoR8A_Jh9eSpHS8Sz5o",
         authDomain: "game1-bb93e.firebaseapp.com",
@@ -142,16 +178,14 @@
     const app = initializeApp(firebaseConfig);
     const database = getDatabase(app);
 
-    // إحداثيات موقع المطعم الثابتة ونطاق الحماية (100 متر)
-    const RESTAURANT_LAT = 35.3192062; 
-    const RESTAURANT_LNG = 43.7640670;
-    const ALLOWED_RADIUS = 100;
-
+    /* ===== متغيرات الحالة ===== */
     let tableNumber = "1";
     let watchId = null;
-    let localCurrentOrders = {}; 
-    let realTimeDataInitialized = false; // لمنع تكرار مستمعي Firebase عند التحديث الحي المتكرر
+    let localCurrentOrders = {};
+    let matchedZone = null; // النطاق الجغرافي المطابق للإصدار
+    let menuInitialized = false;
 
+    /* ===== عناصر DOM ===== */
     const blockScreen = document.getElementById('blockScreen');
     const menuContent = document.getElementById('menuContent');
     const startTrackingBtn = document.getElementById('startTrackingBtn');
@@ -159,93 +193,243 @@
     const tableDisplay = document.getElementById('tableDisplay');
     const menuCategoriesContainer = document.getElementById('menuCategoriesContainer');
     const bottomNav = document.getElementById('bottomNav');
+    const welcomeIcon = document.getElementById('welcomeIcon');
+    const statusTitle = document.getElementById('statusTitle');
+    const statusMessage = document.getElementById('statusMessage');
+    const versionBadge = document.getElementById('versionBadge');
+    const versionBadgeText = document.getElementById('versionBadgeText');
+    const radiusInfo = document.getElementById('radiusInfo');
+    const radiusText = document.getElementById('radiusText');
     const accuracyIndicator = document.getElementById('accuracyIndicator');
 
-    function getTableNumberFromUrl() {
-        const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get('table') || "1";
+    /* ===== أدوات مساعدة ===== */
+    function showToast(message, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        const icons = { success: 'fa-circle-check', error: 'fa-circle-xmark', info: 'fa-circle-info' };
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i> ${message}`;
+        container.appendChild(toast);
+        setTimeout(() => { if (toast.parentNode) toast.remove(); }, 3200);
     }
 
-    // تفعيل استقبال البث والتحديث التلقائي اللحظي والبحث عن أعلى دقة
-    startTrackingBtn.addEventListener('click', () => {
-        tableNumber = getTableNumberFromUrl();
-        tableDisplay.innerText = `📋 أنت تجلس على الطاولة رقم: [ ${tableNumber} ]`;
+    function setBlockState(icon, iconClass, title, message) {
+        welcomeIcon.innerHTML = icon;
+        welcomeIcon.className = `welcome-icon-wrap ${iconClass}`;
+        statusTitle.textContent = title;
+        statusMessage.textContent = message;
+    }
 
-        if (navigator.geolocation) {
-            startTrackingBtn.disabled = true;
-            startTrackingBtn.innerText = "🔄 فحص الـ GPS الحي نشط حالياً...";
-            document.getElementById('statusTitle').innerText = "جاري تتبع موقعك بدقة فائقة...";
-            document.getElementById('statusMessage').innerText = "النظام الآن متصل بمستشعرات الـ GPS في جهازك ويقترب تلقائياً من أعلى جودة بث لتأكيد تواجدك داخل صالة المطعم.";
-            document.getElementById('welcomeIcon').innerHTML = "⏳";
+    function getParamsFromUrl() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return {
+            table: urlParams.get('table') || '1',
+            version: urlParams.get('version') || ''
+        };
+    }
 
-            const options = { 
-                enableHighAccuracy: true, // إجبار الجهاز على سحب أدق إحداثيات متوفرة من الأقمار الصناعية
-                timeout: 15000,           // تحديث حي مستمر كل 15 ثانية كحد أقصى لكل قراءة
-                maximumAge: 0             // عدم الاعتماد مطلقاً على الكاش القديم للموقع
-            };
-            
-            // استخدام watchPosition ليقوم جدار الحماية الجغرافي بإعادة الحساب بشكل تلقائي ومستمر
-            watchId = navigator.geolocation.watchPosition(checkLocation, handleLocationError, options);
-        } else {
-            alert("المتصفح لا يدعم تحديد الموقع الجغرافي.");
+    function haversineDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371000;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) ** 2;
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    /* ===== الخطوة 1: التحقق من الإصدار وربطه بالنطاق الجغرافي ===== */
+    async function initGeofence() {
+        const params = getParamsFromUrl();
+        tableNumber = params.table;
+        tableDisplay.innerText = `📋 طاولة رقم: ${tableNumber}`;
+
+        // إذا لم يُمرر رقم إصدار
+        if (!params.version) {
+            setBlockState(
+                '<i class="fas fa-link-slash"></i>', 'icon-error',
+                'رقم الإصدار غير موجود',
+                'لم يتم العثور على رقم إصدار الجهاز في رابط الصفحة. تأكد من أن الرابط يحتوي على المعامل version= مثل: ?table=5&version=1.1.1'
+            );
+            return;
         }
+
+        // عرض شارة الإصدار
+        versionBadge.style.display = 'inline-flex';
+        versionBadgeText.textContent = `الإصدار: v${params.version}`;
+
+        // جلب جدول cobes من Firebase
+        setBlockState(
+            '<i class="fas fa-spinner fa-spin"></i>', 'icon-loading',
+            'جاري التحقق من الإصدار...',
+            'نبحث عن النطاق الجغرافي المخصص لإصدار جهازك في قاعدة البيانات.'
+        );
+
+        try {
+            const snap = await get(ref(database, 'cobes'));
+            const allCobes = snap.val();
+
+            if (!allCobes) {
+                setBlockState(
+                    '<i class="fas fa-database"></i>', 'icon-error',
+                    'لا توجد نطاقات مسجلة',
+                    'لم يتم تسجيل أي نطاق جغرافي في النظام بعد. يرجى إضافة النطاقات من لوحة إدارة النسخ.'
+                );
+                return;
+            }
+
+            // البحث عن الإصدار المطابق
+            let found = null;
+            for (let id in allCobes) {
+                if (allCobes[id].version_number === params.version) {
+                    found = allCobes[id];
+                    break;
+                }
+            }
+
+            if (!found) {
+                setBlockState(
+                    '<i class="fas fa-ban"></i>', 'icon-error',
+                    'إصدار غير معروف',
+                    `الإصدار "v${params.version}" غير مسجل في النظام. تأكد من الرقم أو تواصل مع الإدارة لتسجيل جهازك.`
+                );
+                return;
+            }
+
+            // تم العثور على النطاق - تجهيز البيانات
+            matchedZone = found.geo_zone;
+            if (!matchedZone || !matchedZone.center_latitude || !matchedZone.center_longitude) {
+                setBlockState(
+                    '<i class="fas fa-map-pin"></i>', 'icon-error',
+                    'بيانات الموقع ناقصة',
+                    'تم العثور على الإصدار لكن لا توجد إحداثيات جغرافية مسجلة له. يرجى تحديث النطاق من لوحة الإدارة.'
+                );
+                return;
+            }
+
+            // عرض معلومات النطاق وإظهار زر التتبع
+            const radius = matchedZone.radius_meters || 100;
+            radiusInfo.style.display = 'block';
+            radiusText.textContent = `نطاق التغطية المطلوب: ${radius} متر من مركز الموقع المسجل`;
+
+            setBlockState(
+                '<i class="fas fa-location-dot"></i>', 'icon-waiting',
+                'جاهز للتحقق من الموقع',
+                `تم ربط إصدارك "v${params.version}" بنطاق جغرافي بنجاح. اضغط الزر أدناه لتفعيل التتبع والتحقق من وجودك داخل النطاق.`
+            );
+            startTrackingBtn.style.display = 'block';
+
+        } catch (err) {
+            console.error(err);
+            setBlockState(
+                '<i class="fas fa-wifi"></i>', 'icon-error',
+                'خطأ في الاتصال',
+                'تعذر الاتصال بقاعدة البيانات. تحقق من اتصالك بالإنترنت وحاول مرة أخرى.'
+            );
+        }
+    }
+
+    /* ===== الخطوة 2: تتبع الموقع والتحقق اللحظي ===== */
+    startTrackingBtn.addEventListener('click', () => {
+        if (!navigator.geolocation) {
+            showToast('المتصفح لا يدعم تحديد الموقع الجغرافي', 'error');
+            return;
+        }
+
+        startTrackingBtn.style.display = 'none';
+        setBlockState(
+            '<i class="fas fa-satellite-dish"></i>', 'icon-loading',
+            'جاري تتبع موقعك لحظياً...',
+            'تم تفعيل نظام الحماية المباشر. سيُفتح المنيو تلقائياً عند دخولك النطاق المسموح.'
+        );
+
+        watchId = navigator.geolocation.watchPosition(checkLocation, handleLocationError, {
+            enableHighAccuracy: true,
+            timeout: 15000,
+            maximumAge: 0
+        });
     });
 
-    // دالة المعالجة وتحديث جدار الحماية بناءً على تحديث الإشارة المتواصل
     function checkLocation(position) {
         const userLat = position.coords.latitude;
         const userLng = position.coords.longitude;
         const accuracy = position.coords.accuracy;
-        const distance = haversineDistance(userLat, userLng, RESTAURANT_LAT, RESTAURANT_LNG);
+        const zoneLat = matchedZone.center_latitude;
+        const zoneLng = matchedZone.center_longitude;
+        const radius = matchedZone.radius_meters || 100;
+        const distance = haversineDistance(userLat, userLng, zoneLat, zoneLng);
 
-        distanceBox.style.display = "block";
-        
-        // عرض مستوى الدقة المباشر للمستخدم
-        accuracyIndicator.innerHTML = `<span class="pulse-dot"></span> دقة الإشارة الحالية: +/- ${accuracy.toFixed(1)} متر (تتحدث تلقائياً)`;
+        // عرض المسافة والدقة
+        distanceBox.style.display = 'block';
+        accuracyIndicator.textContent = `دقة الإشارة: +/- ${accuracy.toFixed(1)} متر`;
 
-        // التحقق الجغرافي الذكي
-        if (distance <= ALLOWED_RADIUS) {
-            // التبديل إلى المظهر الناجح وتحديث المسافة داخل النطاق
-            distanceBox.className = "distance-display distance-success";
-            distanceBox.innerHTML = `📍 تم تأكيد موقعك بنجاح! أنت داخل صالة المطعم بمسافة <b>(${distance.toFixed(0)} متر)</b>.`;
-            
-            // إخفاء جدار الحماية وعرض المنيو
+        if (distance <= radius) {
+            // === داخل النطاق ===
+            distanceBox.className = 'distance-display in-range';
+            distanceBox.innerHTML = `
+                <i class="fas fa-circle-check" style="margin-left:5px;"></i>
+                <b>موقعك مُوثق - أنت داخل النطاق المسموح</b><br>
+                المسافة من المركز: <b>${distance.toFixed(1)} متر</b> (الحد الأقصى: ${radius} متر)
+            `;
             blockScreen.style.display = 'none';
             menuContent.style.display = 'block';
-            bottomNav.style.display = 'flex'; 
-            
-            // تهيئة وتحميل بيانات Firebase لمرة واحدة فور الدخول الناجح في النطاق الجغرافي
-            if (!realTimeDataInitialized) {
+            bottomNav.style.display = 'flex';
+
+            if (!menuInitialized) {
+                menuInitialized = true;
                 initMenuAndOrdersRealtime();
-                realTimeDataInitialized = true;
             }
         } else {
-            // التبديل إلى المظهر المحجوب إذا ابتعد عن النطاق المسموح
-            distanceBox.className = "distance-display distance-blocked";
-            distanceBox.innerHTML = `📍 عذراً، أنت على بعد <b>(${distance.toFixed(0)} متر)</b> من الموقع.<br><small style="font-weight:normal;">يجب أن تكون متواجداً داخل الصالة لفتح المنيو والطلب.</small>`;
-            
+            // === خارج النطاق ===
+            distanceBox.className = 'distance-display out-of-range';
+            distanceBox.innerHTML = `
+                <i class="fas fa-triangle-exclamation" style="margin-left:5px;"></i>
+                <b>أنت خارج النطاق الجغرافي المسموح</b><br>
+                المسافة الحالية: <b>${distance.toFixed(0)} متر</b> — الحد المطلوب: <b>${radius} متر</b><br>
+                <small style="font-weight:normal;">اقترب أكثر من موقع المطعم لتفعيل المنيو.</small>
+            `;
             menuContent.style.display = 'none';
             bottomNav.style.display = 'none';
             blockScreen.style.display = 'flex';
+
+            setBlockState(
+                '<i class="fas fa-location-crosshairs"></i>', 'icon-error',
+                'أنت خارج النطاق المسموح',
+                `الموقع الحالي يبعد ${distance.toFixed(0)} متر عن النطاق المطلوب (${radius} متر). اقترب من المطعم وسيُفتح المنيو تلقائياً.`
+            );
         }
     }
 
-    // ربط واستماع البيانات الحية للمنيو والطلبات من قاعدة البيانات
+    function handleLocationError(error) {
+        menuContent.style.display = 'none';
+        bottomNav.style.display = 'none';
+        blockScreen.style.display = 'flex';
+
+        const msgs = {
+            [error.PERMISSION_DENIED]: 'يرجى السماح بالوصول إلى الموقع في إعدادات المتصفح لتفعيل خدمة الطلبات.',
+            [error.POSITION_UNAVAILABLE]: 'لا يمكن تحديد موقعك حالياً. تأكد من تفعيل الـ GPS وحاول مرة أخرى.',
+            [error.TIMEOUT]: 'انتهت مهلة تحديد الموقع. حاول في مكان مكشوف أو أعد تحميل الصفحة.'
+        };
+
+        setBlockState(
+            '<i class="fas fa-location-crosshairs"></i>', 'icon-error',
+            'تعذر تحديد الموقع',
+            msgs[error.code] || 'حدث خطأ غير معروف في تحديد الموقع.'
+        );
+    }
+
+    /* ===== الخطوة 3: تحميل المنيو والطلبات الحية ===== */
     function initMenuAndOrdersRealtime() {
-        // 1. جلب بيانات الأقسام والمنتجات من جدول orders المعني بالمنيو
+        // 1. المنيو
         onValue(ref(database, 'orders'), (snapshot) => {
             const data = snapshot.val();
-            menuCategoriesContainer.innerHTML = "";
+            menuCategoriesContainer.innerHTML = '';
             if (!data) {
-                menuCategoriesContainer.innerHTML = "<p>المنيو فارغ حالياً، يرجى إضافة عناصر من لوحة التحكم.</p>";
+                menuCategoriesContainer.innerHTML = '<p style="color:#94a3b8; padding:30px;">المنيو فارغ حالياً.</p>';
                 return;
             }
-
             for (let catId in data) {
                 const category = data[catId];
                 const catSection = document.createElement('div');
                 catSection.className = 'category-section';
-                
                 let itemsHtml = '';
                 if (category.items) {
                     for (let itemId in category.items) {
@@ -253,184 +437,127 @@
                         itemsHtml += `
                             <div class="item-card">
                                 <div class="item-info-side">
-                                    <img src="${item.image}" class="thumb-64" alt="${item.name}">
+                                    <img src="${item.image}" class="thumb-64" alt="${item.name}" onerror="this.src='https://placehold.co/64x64/f1f5f9/94a3b8?text=🍔'">
                                     <div class="item-text">
                                         <h4>${item.name}</h4>
                                         <p>${item.details}</p>
                                         <span class="price">${item.price} دينار</span>
                                     </div>
                                 </div>
-                                <button class="btn-order-item" onclick="addItemToTableA('${catId}', '${itemId}', '${item.name}', ${item.price}, '${item.image}')">طلب هذا المنتج</button>
-                            </div>
-                        `;
+                                <button class="btn-order-item" onclick="addItemToTableA('${catId}', '${itemId}', '${item.name.replace(/'/g, "\\'")}', ${item.price})">
+                                    <i class="fas fa-plus" style="margin-left:4px;"></i> طلب
+                                </button>
+                            </div>`;
                     }
                 }
-
                 catSection.innerHTML = `
                     <div class="category-title-box">
-                        <img src="${category.image}" style="width:32px; height:32px; object-fit:cover; border-radius:4px;">
+                        <img src="${category.image || ''}" style="width:32px; height:32px; object-fit:cover; border-radius:6px;" onerror="this.style.display='none'">
                         <h3>${category.name}</h3>
                     </div>
-                    ${itemsHtml || '<p style="color:#a0aec0; padding-right:15px;">لا توجد وجبات في هذا القسم حالياً.</p>'}
-                `;
+                    ${itemsHtml || '<p style="color:#94a3b8; padding-right:15px; font-size:13px;">لا توجد وجبات في هذا القسم.</p>'}`;
                 menuCategoriesContainer.appendChild(catSection);
             }
         });
 
-        // 2. الاستماع التلقائي للطلبات الجارية وغير المرسلة في جدول tablesA لغرض التحرير
+        // 2. الطلبات قيد التحرير (tablesA)
         onValue(ref(database, `tablesA/table_${tableNumber}/current_orders`), (snapshot) => {
-            const currentInvoiceItems = document.getElementById('currentInvoiceItems');
+            const container = document.getElementById('currentInvoiceItems');
             const data = snapshot.val();
             localCurrentOrders = data || {};
-            
-            let totalSum = 0;
-            let itemsCount = 0;
-            
+            let totalSum = 0, itemsCount = 0;
+
             if (!data) {
-                currentInvoiceItems.innerHTML = "لا توجد طلبات معلقة حالياً.";
-                document.getElementById('badgeCount').innerText = "0";
-                document.getElementById('bottomTotal').innerText = "إجمالي الفاتورة الحالية: 0 دينار";
-                document.getElementById('invoiceTotalSum').innerText = "الإجمالي: 0 دينار";
+                container.innerHTML = '<p style="color:#94a3b8; font-size:13px; text-align:center; padding:10px;">لا توجد طلبات معلقة.</p>';
+                document.getElementById('badgeCount').innerText = '0';
+                document.getElementById('bottomTotal').innerText = 'إجمالي الفاتورة: 0 دينار';
+                document.getElementById('invoiceTotalSum').innerText = 'الإجمالي: 0 دينار';
                 document.getElementById('sendOrderToBBtn').disabled = true;
                 return;
             }
 
             document.getElementById('sendOrderToBBtn').disabled = false;
-            currentInvoiceItems.innerHTML = "";
-            
+            container.innerHTML = '';
             for (let key in data) {
                 const item = data[key];
                 const rowTotal = item.price * item.quantity;
                 totalSum += rowTotal;
                 itemsCount += item.quantity;
-
                 const row = document.createElement('div');
                 row.className = 'invoice-item';
                 row.innerHTML = `
                     <div>
-                        <strong>${item.name}</strong><br>
-                        <small style="color:#e53e3e;">${rowTotal} دينار</small>
+                        <strong style="font-size:14px;">${item.name}</strong><br>
+                        <small style="color:#dc2626; font-weight:700;">${rowTotal} دينار</small>
                     </div>
                     <div class="qty-controls">
-                        <button class="qty-btn" onclick="updateQty('${key}', -1)">-</button>
-                        <span>${item.quantity}</span>
-                        <button class="qty-btn" onclick="updateQty('${key}', 1)">+</button>
-                    </div>
-                `;
-                currentInvoiceItems.appendChild(row);
+                        <button class="qty-btn minus" onclick="updateQty('${key}', -1)">−</button>
+                        <span style="font-weight:800; min-width:24px; text-align:center;">${item.quantity}</span>
+                        <button class="qty-btn plus" onclick="updateQty('${key}', 1)">+</button>
+                    </div>`;
+                container.appendChild(row);
             }
-
             document.getElementById('badgeCount').innerText = itemsCount;
-            document.getElementById('bottomTotal').innerText = `إجمالي الفاتورة الحالية: ${totalSum} دينار`;
-            document.getElementById('invoiceTotalSum').innerText = `الإجمالي الحالي: ${totalSum} دينار`;
+            document.getElementById('bottomTotal').innerText = `إجمالي الفاتورة: ${totalSum} دينار`;
+            document.getElementById('invoiceTotalSum').innerText = `الإجمالي: ${totalSum} دينار`;
         });
 
-        // 3. الاستماع للطلبات التي اعتمدت وأرسلت للمطبخ من جدول tablesB (للقراءة فقط)
+        // 3. الطلبات المرسلة (tablesB) - للقراءة فقط
         onValue(ref(database, `tablesB/table_${tableNumber}/sent_orders`), (snapshot) => {
-            const sentInvoiceItems = document.getElementById('sentInvoiceItems');
+            const container = document.getElementById('sentInvoiceItems');
             const data = snapshot.val();
-            
             if (!data) {
-                sentInvoiceItems.innerHTML = "لا توجد طلبات مرسلة مسبقاً.";
+                container.innerHTML = '<p style="color:#94a3b8; font-size:13px;">لا توجد طلبات مرسلة.</p>';
                 return;
             }
-
-            sentInvoiceItems.innerHTML = "";
+            container.innerHTML = '';
             for (let key in data) {
                 const item = data[key];
                 const row = document.createElement('div');
                 row.className = 'sent-item';
-                row.innerHTML = `
-                    <span>• ${item.name} (الكمية: ${item.quantity})</span>
-                    <span style="color:#718096;">[أُرسل للمطبخ]</span>
-                `;
-                sentInvoiceItems.appendChild(row);
+                row.innerHTML = `<span>• ${item.name} (x${item.quantity})</span><span style="color:#94a3b8; font-size:12px;">أُرسل</span>`;
+                container.appendChild(row);
             }
         });
     }
 
-    // إضافة منتج لجدول التحضير الحالي (tablesA)
-    window.addItemToTableA = (catId, itemId, name, price, image) => {
+    /* ===== وظائف الطلبات ===== */
+    window.addItemToTableA = (catId, itemId, name, price) => {
         const itemKey = `${catId}_${itemId}`;
         const itemRef = ref(database, `tablesA/table_${tableNumber}/current_orders/${itemKey}`);
-        
         if (localCurrentOrders[itemKey]) {
-            const currentQty = localCurrentOrders[itemKey].quantity;
-            update(itemRef, { quantity: currentQty + 1 });
+            update(itemRef, { quantity: localCurrentOrders[itemKey].quantity + 1 });
         } else {
-            set(itemRef, {
-                name: name,
-                price: price,
-                quantity: 1,
-                image: image
-            });
+            set(itemRef, { name, price, quantity: 1 });
         }
     };
 
-    // التحكم في العداد وزيادة/نقصان الكمية والتنظيف الفوري عند الصفر
     window.updateQty = (key, change) => {
         const itemRef = ref(database, `tablesA/table_${tableNumber}/current_orders/${key}`);
-        const currentQty = localCurrentOrders[key].quantity;
-        const newQty = currentQty + change;
-
-        if (newQty <= 0) {
-            remove(itemRef);
-        } else {
-            update(itemRef, { quantity: newQty });
-        }
+        const newQty = localCurrentOrders[key].quantity + change;
+        if (newQty <= 0) { remove(itemRef); } else { update(itemRef, { quantity: newQty }); }
     };
 
-    // ترحيل الطلبات بشكل آمن وتام إلى جدول tablesB (المطبخ / الكاشير) وتصفير سلة المراجعة
     window.sendOrderToKitchen = () => {
         if (Object.keys(localCurrentOrders).length === 0) return;
-
-        const sentOrdersRef = ref(database, `tablesB/table_${tableNumber}/sent_orders`);
-        
+        const sentRef = ref(database, `tablesB/table_${tableNumber}/sent_orders`);
         for (let key in localCurrentOrders) {
             const item = localCurrentOrders[key];
-            const newOrderPushRef = push(sentOrdersRef);
-            set(newOrderPushRef, {
-                name: item.name,
-                price: item.price,
-                quantity: item.quantity,
-                sent_at: new Date().toISOString()
-            });
+            set(push(sentRef), { name: item.name, price: item.price, quantity: item.quantity, sent_at: new Date().toISOString() });
         }
-
         remove(ref(database, `tablesA/table_${tableNumber}/current_orders`)).then(() => {
-            alert("🚀 تم إرسال طلباتك بنجاح إلى المطبخ! فواتيرك السابقة معروضة بالأسفل للمطالعة.");
+            showToast('تم إرسال طلباتك إلى المطبخ بنجاح', 'success');
             closeInvoiceModal();
         });
     };
 
-    // التحكم بالنوافذ المنبثقة لملخص الفاتورة
+    /* ===== نوافذ الفاتورة ===== */
     window.openInvoiceModal = () => document.getElementById('invoiceModal').style.display = 'flex';
     window.closeInvoiceModal = () => document.getElementById('invoiceModal').style.display = 'none';
-    window.closeInvoiceModalOutside = (e) => {
-        if (e.target.id === "invoiceModal") closeInvoiceModal();
-    };
+    window.closeInvoiceModalOutside = (e) => { if (e.target.id === 'invoiceModal') closeInvoiceModal(); };
 
-    // دالة حساب مسافة النطاق الجغرافي بدقة متناهية
-    function haversineDistance(lat1, lon1, lat2, lon2) {
-        const R = 6371000; 
-        const dLat = (lat2 - lat1) * Math.PI / 180;
-        const dLon = (lon2 - lon1) * Math.PI / 180;
-        const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
-        return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
-    }
-
-    function handleLocationError(error) {
-        let msg = "حدث خطأ أثناء فحص وتأكيد الموقع الجغرافي الحركي.";
-        if(error.code === error.PERMISSION_DENIED) {
-            msg = "يرجى السماح بصلاحية الوصول إلى الـ GPS من إعدادات المتصفح لفتح المنيو.";
-        }
-        alert(msg);
-        startTrackingBtn.disabled = false;
-        startTrackingBtn.innerText = "محاولة بدء الفحص مرة أخرى";
-        menuContent.style.display = 'none';
-        bottomNav.style.display = 'none';
-        blockScreen.style.display = 'flex';
-    }
+    /* ===== تشغيل ===== */
+    initGeofence();
 </script>
 </body>
 </html>

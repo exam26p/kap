@@ -152,6 +152,7 @@ function updateHeader() {
 
 /* === تأثير الاقتباسات الجديد بدلاً من العداد === */
 /* === تأثير الاقتباسات الجديد بدلاً من العداد === */
+/* === تأثير الاقتباسات الجديد بدلاً من العداد === */
 function initSplashQuote() {
     var quoteEl = document.getElementById("splashQuote");
     var splashBtn = document.getElementById("splashBtn");
@@ -167,31 +168,49 @@ function initSplashQuote() {
     quoteEl.classList.add("visible"); // إظهار العنصر للكتابة بداخله
     
     var charIndex = 0;
-    // جعل سرعة الكتابة أبطأ قليلاً لتكون أكثر أناقة (كلما زاد الرقم كان أبطأ)
-    var typingSpeed = 65; 
     
-    var typingInterval = setInterval(function() {
+    // دالة الكتابة المتغيرة السرعة (تبدو كشخص حقيقي يكتب)
+    function typeCharacter() {
         if (charIndex < quoteText.length) {
             // إضافة الحرف مع مؤشر الكتابة الوامض
             quoteEl.innerHTML = quoteText.substring(0, charIndex + 1) + '<span class="splash-cursor"></span>';
             charIndex++;
+            
+            // حساب السرعة المتغيرة للحرف التالي
+            var nextDelay = 65; // السرعة الافتراضية
+            var currentChar = quoteText[charIndex - 1];
+            
+            // توقف بسيط عند المسافات وعلامات الترقيم (يحاكي توقف الإنسان)
+            if (currentChar === ' ') {
+                nextDelay = 100 + Math.random() * 50;
+            } else if (currentChar === ',' || currentChar === '،' || currentChar === '.') {
+                nextDelay = 200 + Math.random() * 100;
+            } else {
+                // تفاوت عشوائي طفيف بين الحروف العادية (يحاكي سرعة يد الإنسان)
+                nextDelay = 45 + Math.random() * 55; 
+            }
+            
+            setTimeout(typeCharacter, nextDelay);
+            
         } else {
-            clearInterval(typingInterval);
-            // إزالة المؤشر الوامض بعد انتهاء الكتابة
+            // انتهاء الكتابة - إزالة المؤشر الوامض
             quoteEl.innerHTML = quoteText;
             
-            // الانتظار لثانية واحدة فقط بعد انتهاء الكتابة ليرتاح نظر المستخدم، ثم التلاشي وإظهار الزر
+            // الانتظار ثانية واحدة بعد انتهاء الكتابة، ثم التلاشي وإظهار الزر
             setTimeout(function() {
                 quoteEl.classList.remove("visible"); // تتلاشى المقولة بنعومة
                 
                 // إظهار زر "مشاهدة المينيو" فور بدء تلاشي المقولة
                 setTimeout(function() {
                     splashBtn.classList.add("show");
-                }, 400); // 0.4 ثانية بعد بدء تلاشي النص يظهر الزر
+                }, 400);
                 
-            }, 1000); // المدة التي يبقى فيها النص ثابتاً بعد انتهاء الكتابة (ثانية واحدة فقط)
+            }, 1000);
         }
-    }, typingSpeed);
+    }
+    
+    // بدء الكتابة بعد ثانية من فتح الصفحة ليعمل تأثير الظهور (Fade In) أولاً
+    setTimeout(typeCharacter, 800);
 }
 
 /* === التحميل المسبق في الخلفية فور فتح الصفحة === */

@@ -18,9 +18,10 @@ let menuPreloaded = false;
 let cachedMenuData = null; 
 
 /* --- متغيرات المحادثة المحسنة --- */
-let msgACache = {}; // تخزين رسائل العميل مؤقتاً
-let msgBCache = {}; // تخزين رسائل الكاشير مؤقتاً
-let currentCashierMsgCount = 0; // العدد الفعلي الحالي لرسائل الكاشير
+let msgACache = {}; 
+let msgBCache = {}; 
+let currentCashierMsgCount = 0; 
+let cachedReadCount = 0; // تخزين مؤقت لعداد القراءة لتحديث الشارة فوراً
 
 /* تحديث حالة التطبيق */
 function updateAppState() {
@@ -433,7 +434,8 @@ function renderMenu(data) {
 
 function addIt(cId, iId, name, price) {
     var k = cId + "_" + iId;
-    var r = ref(db, "table_" + TBL + "/current_orders/" + k);
+    // تحديث المسار ليتطابق مع قاعدة البيانات الجديدة (tablesC)
+    var r = ref(db, "tablesC/table_" + TBL + "/processing_orders/" + k);
     if (orders[k]) {
         update(r, { quantity: orders[k].quantity + 1 });
     } else {
@@ -444,7 +446,9 @@ function addIt(cId, iId, name, price) {
 /* === الاستماع للطلبات === */
 function listenOrd() {
     var tk = "table_" + TBL;
-    onValue(ref(db, tk + "/current_orders"), function(snap) {
+    
+    // تحديث المسار ليتطابق مع قاعدة البيانات الجديدة (tablesC)
+    onValue(ref(db, "tablesC/" + tk + "/processing_orders"), function(snap) {
         var d = snap.val();
         orders = d || {};
         state.ordersData = orders;
@@ -475,7 +479,8 @@ function listenOrd() {
             qb.addEventListener("click", function() {
                 var k = this.getAttribute("data-key");
                 var dd = parseInt(this.getAttribute("data-d"));
-                var r = ref(db, "table_" + TBL + "/current_orders/" + k);
+                // تحديث المسار ليتطابق مع قاعدة البيانات الجديدة (tablesC)
+                var r = ref(db, "tablesC/table_" + TBL + "/processing_orders/" + k);
                 var n = orders[k].quantity + dd;
                 if (n <= 0) {
                     remove(r);
@@ -539,7 +544,8 @@ function sendOrd() {
             sent_distance: Math.round(dist)
         });
     }
-    remove(ref(db, "table_" + TBL + "/current_orders")).then(function() {
+    // تحديث المسار ليتطابق مع قاعدة البيانات الجديدة (tablesC)
+    remove(ref(db, "tablesC/table_" + TBL + "/processing_orders")).then(function() {
         toast("تم إرسال طلباتك بنجاح", "success");
         closeInv();
     }).catch(function() {
@@ -551,34 +557,34 @@ function closeInv() {
     document.getElementById("invoiceModal").style.display = "none";
 }
 
-/* === نظام المحادثة الجديد (مع read_counters) === */
+/* === نظام المحادثة المحسن بالكامل === */
 function listenCh() {
     var tk = "table_" + TBL;
 
-    // الاستماع لرسائل العميل (msgA)
+    // 1. الاستماع لرسائل العميل (msgA)
     onValue(ref(db, "msgA/" + tk), function(snap) {
         msgACache = snap.val() || {};
         renderChat();
     });
 
-    // الاستماع لرسائل الكاشير (msgB)
+    // 2. الاستماع لرسائل الكاشير (msgB)
     onValue(ref(db, "msgB/" + tk), function(snap) {
         var prevCount = currentCashierMsgCount;
         msgBCache = snap.val() || {};
         currentCashierMsgCount = Object.keys(msgBCache).length;
 
-        // إذا زاد عدد رسائل الكاشير وكانت المحادثة مغلقة، شغّل صوت التنبيه
+        // تشغيل صوت فقط إذا وصلت رسالة جديدة والعداد زاد والمحادثة مغلقة
         if (currentCashierMsgCount > prevCount && !chatOn && prevCount >= 0) {
             msgSnd();
         }
 
-        updateBadge();
-        renderChat();
+        updateBadge(); 
+        renderChat();  
     });
 
-    // الاستماع لعداد القراءة (read_counters)
+    // 3. الاستماع لعداد القراءة (read_counters)
     onValue(ref(db, "read_counters/" + tk), function(snap) {
-        // هذا المستمع يضمن تحديث الشارة إذا قام جهاز آخر بفتح المحادثة
+        cachedReadCount = snap.val() || 0;
         updateBadge();
     });
 }
@@ -621,22 +627,9 @@ function renderChat() {
 }
 
 function updateBadge() {
-    if (chatOn) {
-        unreadN = 0;
-    } else {
-        // حساب الرسائل غير المقروءة بناءً على read_counters
-        var readCount = 0;
-        // سنقوم بجلبها بشكل متزامن باستخدام get، لكن الأفضل تخزينها مؤقتاً
-        // لتجنب التأخير، سنستخدم قيمة مخزنة مؤقتاً أو نقوم بقراءة اللحظية
-        // الأفضل استخدام دالة مساعدة
-        get(ref(db, "read_counters/table_" + TBL)).then(function(snap) {
-            readCount = snap.val() || 0;
-            unreadN = Math.max(0, currentCashierMsgCount - readCount);
-            showUnread(unreadN);
-        });
-        return; // نخرج لأن get غير متزامن
-    }
-    showUnread(unreadN);
+    // الرسائل غير المقروءة = العدد الكلي لرسائل الكاشير - العدد الذي تم قراءته آخر مرة
+    var unreadCount = chatOn ? 0 : Math.max(0, currentCashierMsgCount - cachedReadCount);
+    showUnread(unreadCount);
 }
 
 function showUnread(c) {
@@ -647,16 +640,18 @@ function showUnread(c) {
     } else {
         dot.style.display = "none";
     }
+    unreadN = c;
 }
 
 function openCh() {
     chatOn = true;
-    document.getElementById("msgDot").style.display = "none";
-    document.getElementById("chatModal").style.display = "flex";
-    
-    // تحديث عداد القراءة في قاعدة البيانات ليعكس أن المستخدم قرأ الرسائل
+    // عند فتح المحادثة، نعتبر جميع الرسائل الحالية "مقروءة" ونحدث قاعدة البيانات
+    cachedReadCount = currentCashierMsgCount;
     set(ref(db, "read_counters/table_" + TBL), currentCashierMsgCount);
-    renderChat();
+    
+    updateBadge(); // إخفاء النقطة الحمراء فوراً
+    document.getElementById("chatModal").style.display = "flex";
+    renderChat(); // رسم الرسائل
 }
 
 function closeCh() {

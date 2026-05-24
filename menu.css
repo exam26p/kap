@@ -23,8 +23,29 @@ body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;opa
 .splash-title{color:#F5EFE6;font-family:'Playfair Display',serif;font-size:30px;font-weight:700;margin-bottom:6px;position:relative;z-index:2;letter-spacing:1px}
 .splash-sub{color:rgba(212,228,209,0.7);font-size:13px;margin-bottom:40px;position:relative;z-index:2;font-weight:300}
 .splash-progress{position:relative;z-index:2;margin-bottom:35px;min-height:60px;display:flex;align-items:center;justify-content:center}
-.splash-quote{color:rgba(232,213,168,0.9);font-size:15px;font-weight:500;text-align:center;line-height:1.8;padding:0 30px;max-width:350px;opacity:0;transition:opacity .8s ease}
+.splash-quote{
+    color:var(--gold-light); /* لون ذهبي صلب وواضح بدلاً من الشفاف */
+    font-size:16px; /* حجم خط أكبر قليلاً ليكون أكثر وضوحاً */
+    font-weight:500;
+    text-align:center;
+    line-height:2; /* مسافة مريحة بين السطور */
+    padding:0 24px; /* هوامش جانبية لمنع خروج النص عن الشاشة */
+    max-width:320px; /* عرض أقصى لضمان التفاف النص */
+    word-break:keep-all; /* يمنع تقطيع الكلمات العربية بشكل خاطئ */
+    opacity:0;
+    transition:opacity .8s ease;
+}
 .splash-quote.visible{opacity:1}
+.splash-cursor{
+    display:inline-block;
+    width:2px;
+    height:18px;
+    background-color:var(--gold-light);
+    margin-right:4px;
+    vertical-align:middle;
+    animation:blink 1s infinite
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
 .splash-cursor{display:inline-block;width:2px;height:18px;background-color:var(--gold-light);margin-right:4px;vertical-align:middle;animation:blink 1s infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
 .progress-pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--gold-light);font-size:16px;font-weight:600;font-family:'Playfair Display',serif}

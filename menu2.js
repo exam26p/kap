@@ -11,7 +11,6 @@ let TBL = "", VER = "", zone = null, watchID = null, restName = "", restLogo = "
 let orders = {}, menuOk = false, chatOn = false, unreadN = 0;
 let curLat = null, curLon = null, curDist = null, isInZone = false;
 const menuLookup = {};
-const CIRC = 2 * Math.PI * 42;
 
 /* --- متغيرات التحميل المسبق --- */
 let menuPreloaded = false; 
@@ -23,6 +22,19 @@ let msgBCache = {};
 let currentCashierMsgCount = 0; 
 let cachedReadCount = 0; 
 
+/* === مقترحات وحكم شاشة التحميل === */
+const splashQuotes = [
+    "كل وجبة وراءها قصة، وصُنعت بحب لتسعد يومك.",
+    "اللقمة الطيبة تجمع القلوب.. أهلاً بك في عالمنا.",
+    "نطبخ بشغف، لنقدم لك تجربة لا تُنسى.",
+    "الجمال ليس فقط في المذاق، بل في التفاصيل التي نُسعدك بها.",
+    "لا توجد حب صادق، كحب الطعام الطيّب.",
+    "المذاق الرائع هو رحلة تبدأ من النظرة الأولى.",
+    "السعادة تبدأ من طبق دافئ وجلسة مريحة.",
+    "نعامل أوقاتك بدقة، ونقدم خدماتنا بنعومة الحرير.",
+    "لأنك تستحق الأفضل.. اخترنا لك أجود المكونات."
+];
+
 /* تحديث حالة التطبيق */
 function updateAppState() {
     state.activeTable = TBL;
@@ -33,9 +45,24 @@ function updateAppState() {
     state.isGeoVerified = isInZone;
 }
 
-/* الصوت */
+/* الصوت - نظام الذكاء لتجاوز حظر المتصفح */
 var aC = new (window.AudioContext || window.webkitAudioContext)();
 var lClk = 0;
+var audioResumed = false; // هل قام المستخدم بالضغط لتفعيل الصوت؟
+var pendingMsgSounds = 0; // عدد أصوات الرسائل المعلقة قبل التفعيل
+
+// تفعيل الصوت عند أول ضغطة من المستخدم على الصفحة
+document.addEventListener("click", function() {
+    if (!audioResumed) {
+        audioResumed = true;
+        if (aC.state === "suspended") aC.resume();
+        // تشغيل الأصوات المعلقة التي وردت قبل ضغط المستخدم
+        for (var i = 0; i < pendingMsgSounds; i++) {
+            msgSnd();
+        }
+        pendingMsgSounds = 0;
+    }
+}, { once: true }); // once: true يعني أن هذا المستمع يعمل مرة واحدة فقط
 
 function cSnd() {
     var n = Date.now();
@@ -62,6 +89,12 @@ function addSnd(el) {
 
 function msgSnd() {
     try {
+        // إذا لم يضغط المستخدم بعد، نضع الصوت في قائمة الانتظار ولا نشغله
+        if (!audioResumed) {
+            pendingMsgSounds++;
+            return;
+        }
+        
         if (aC.state === "suspended") aC.resume();
         var now = aC.currentTime;
         [0, 0.15, 0.3].forEach(function(d, i) {
@@ -78,7 +111,6 @@ function msgSnd() {
         });
     } catch (e) {}
 }
-
 /* تحميل إعدادات التطبيق */
 async function loadAppSettings() {
     try {
@@ -118,19 +150,49 @@ function updateHeader() {
     }
 }
 
-var progBar = document.getElementById("progBar");
-var progPct = document.getElementById("progPct");
-var progVal = 0;
-var progInterval = setInterval(function() {
-    progVal += Math.random() * 8 + 2;
-    if (progVal > 100) progVal = 100;
-    progBar.style.strokeDashoffset = CIRC - (progVal / 100) * CIRC;
-    progPct.textContent = Math.round(progVal) + "%";
-    if (progVal >= 100) {
-        clearInterval(progInterval);
-        document.getElementById("splashBtn").classList.add("show");
-    }
-}, 200);
+/* === تأثير الاقتباسات الجديد بدلاً من العداد === */
+/* === تأثير الاقتباسات الجديد بدلاً من العداد === */
+function initSplashQuote() {
+    var quoteEl = document.getElementById("splashQuote");
+    var splashBtn = document.getElementById("splashBtn");
+    if (!quoteEl || !splashBtn) return;
+    
+    // تغيير نص الزر
+    splashBtn.innerHTML = '<i class="fas fa-utensils" style="margin-left:8px;font-size:13px"></i> مشاهدة المينيو';
+    
+    // اختيار مقولة عشوائية
+    var randomIndex = Math.floor(Math.random() * splashQuotes.length);
+    var quoteText = splashQuotes[randomIndex];
+    
+    quoteEl.classList.add("visible"); // إظهار العنصر للكتابة بداخله
+    
+    var charIndex = 0;
+    // جعل سرعة الكتابة أبطأ قليلاً لتكون أكثر أناقة (كلما زاد الرقم كان أبطأ)
+    var typingSpeed = 65; 
+    
+    var typingInterval = setInterval(function() {
+        if (charIndex < quoteText.length) {
+            // إضافة الحرف مع مؤشر الكتابة الوامض
+            quoteEl.innerHTML = quoteText.substring(0, charIndex + 1) + '<span class="splash-cursor"></span>';
+            charIndex++;
+        } else {
+            clearInterval(typingInterval);
+            // إزالة المؤشر الوامض بعد انتهاء الكتابة
+            quoteEl.innerHTML = quoteText;
+            
+            // الانتظار لثانية واحدة فقط بعد انتهاء الكتابة ليرتاح نظر المستخدم، ثم التلاشي وإظهار الزر
+            setTimeout(function() {
+                quoteEl.classList.remove("visible"); // تتلاشى المقولة بنعومة
+                
+                // إظهار زر "مشاهدة المينيو" فور بدء تلاشي المقولة
+                setTimeout(function() {
+                    splashBtn.classList.add("show");
+                }, 400); // 0.4 ثانية بعد بدء تلاشي النص يظهر الزر
+                
+            }, 1000); // المدة التي يبقى فيها النص ثابتاً بعد انتهاء الكتابة (ثانية واحدة فقط)
+        }
+    }, typingSpeed);
+}
 
 /* === التحميل المسبق في الخلفية فور فتح الصفحة === */
 function preloadInBackground() {
@@ -434,7 +496,6 @@ function renderMenu(data) {
 
 function addIt(cId, iId, name, price) {
     var k = cId + "_" + iId;
-    // 1. إضافة الطلب إلى tablesA (جدول الفاتورة/السلة الخاص بالزبون)
     var r = ref(db, "tablesA/table_" + TBL + "/current_orders/" + k);
     if (orders[k]) {
         update(r, { quantity: orders[k].quantity + 1 });
@@ -447,7 +508,6 @@ function addIt(cId, iId, name, price) {
 function listenOrd() {
     var tk = "table_" + TBL;
     
-    // الاستماع إلى tablesA (الفاتورة/الطلبات المعلقة للزبون)
     onValue(ref(db, "tablesA/" + tk + "/current_orders"), function(snap) {
         var d = snap.val();
         orders = d || {};
@@ -479,7 +539,6 @@ function listenOrd() {
             qb.addEventListener("click", function() {
                 var k = this.getAttribute("data-key");
                 var dd = parseInt(this.getAttribute("data-d"));
-                // تعديل الكمية في tablesA
                 var r = ref(db, "tablesA/table_" + TBL + "/current_orders/" + k);
                 var n = orders[k].quantity + dd;
                 if (n <= 0) {
@@ -494,7 +553,6 @@ function listenOrd() {
         document.getElementById("invTotal").textContent = "الإجمالي: " + fmt(total) + " دينار";
     });
     
-    // الاستماع إلى tablesB (الطلبات المرسلة للكاشير)
     onValue(ref(db, "tablesB/" + tk + "/sent_orders"), function(snap) {
         var d = snap.val();
         var c = document.getElementById("sentItems");
@@ -534,7 +592,6 @@ function sendOrd() {
         return;
     }
     
-    // 1. إرسال الطلبات إلى tablesB (الطلبات الواردة للكاشير)
     var sr = ref(db, "tablesB/table_" + TBL + "/sent_orders");
     for (var k in orders) {
         var it = orders[k];
@@ -548,7 +605,6 @@ function sendOrd() {
         });
     }
     
-    // 2. حذف الطلبات من tablesA (سلة الزبون) بعد إرسالها للكاشير
     remove(ref(db, "tablesA/table_" + TBL + "/current_orders")).then(function() {
         toast("تم إرسال طلباتك بنجاح", "success");
         closeInv();
@@ -688,3 +744,6 @@ document.addEventListener("click", function() {
 bindEvents();
 loadAppSettings();
 preloadInBackground();
+
+// 🚀 تشغيل تأثير الاقتباسات بدلاً من العداد الدائري
+initSplashQuote();

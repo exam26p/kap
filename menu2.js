@@ -10,13 +10,17 @@ document.addEventListener('gesturestart', e => e.preventDefault());
 let TBL = "", VER = "", zone = null, watchID = null, restName = "", restLogo = "";
 let orders = {}, menuOk = false, chatOn = false, unreadN = 0;
 let curLat = null, curLon = null, curDist = null, isInZone = false;
-let prevMsgCount = 0;
 const menuLookup = {};
 const CIRC = 2 * Math.PI * 42;
 
-/* --- متغيرات جديدة للتحميل المسبق (سرعة البرق) --- */
-let menuPreloaded = false; // هل تم جلب بيانات المنيو من الفايربيس؟
-let cachedMenuData = null; // تخزين بيانات المنيو مؤقتاً
+/* --- متغيرات التحميل المسبق --- */
+let menuPreloaded = false; 
+let cachedMenuData = null; 
+
+/* --- متغيرات المحادثة المحسنة --- */
+let msgACache = {}; // تخزين رسائل العميل مؤقتاً
+let msgBCache = {}; // تخزين رسائل الكاشير مؤقتاً
+let currentCashierMsgCount = 0; // العدد الفعلي الحالي لرسائل الكاشير
 
 /* تحديث حالة التطبيق */
 function updateAppState() {
@@ -127,7 +131,7 @@ var progInterval = setInterval(function() {
     }
 }, 200);
 
-/* === التحميل المسبق في الخلفية فور فتح الصفحة (سرعة البرق) === */
+/* === التحميل المسبق في الخلفية فور فتح الصفحة === */
 function preloadInBackground() {
     var u = new URLSearchParams(location.search);
     TBL = u.get("table") || "1";
@@ -135,19 +139,16 @@ function preloadInBackground() {
     document.getElementById("tblB").textContent = "طاولة " + TBL;
     updateAppState();
     
-    // 1. تحميل المنيو مسبقاً (الاستماع للتغييرات وتخزينها)
     if (VER) {
         onValue(ref(db, "orders"), function(snap) {
             cachedMenuData = snap.val();
             menuPreloaded = true;
-            // إذا كان المستخدم داخل النطاق والمنيو ظاهر، قم بالتحديث الفوري
             if (isInZone && menuOk) {
                 renderMenu(cachedMenuData);
             }
         });
     }
 
-    // 2. تحميل الطلبات والمحادثة مسبقاً
     if (TBL) {
         listenOrd();
         listenCh();
@@ -279,8 +280,6 @@ function onP(pos) {
             document.getElementById("menuContent").style.display = "block";
             document.getElementById("bottomBar").style.display = "flex";
             document.getElementById("distBar").style.display = "block";
-            
-            // عرض المنيو فوراً بالبيانات المحملة مسبقاً
             if (!menuOk) initMenu();
         }
     } else if (curDist <= rad * 2) {
@@ -345,22 +344,17 @@ function initMenu() {
     menuOk = true;
     state.isMenuLoaded = true;
     updateAppState();
-    
-    // إذا كانت البيانات محملة مسبقاً، اعرضها فوراً (سرعة البرق)
     if (menuPreloaded && cachedMenuData !== null) {
         renderMenu(cachedMenuData);
     } else {
-        // في حال لم تكتمل الخلفية بعد، اظهر رسالة تحميل خفيفة
         document.getElementById("menuCats").innerHTML = '<p style="color:var(--text-muted);padding:30px;text-align:center;font-size:13px;">جاري تحضير المنيو...</p>';
     }
 }
 
-/* فصل رسم المنيو عن جلب البيانات لضمان السرعة */
 function renderMenu(data) {
     var c = document.getElementById("menuCats");
     c.innerHTML = "";
     for (var key in menuLookup) delete menuLookup[key];
-    
     if (!data) {
         c.innerHTML = '<p style="color:var(--text-muted);padding:30px;text-align:center;font-size:13px;">المنيو فارغ حالياً.</p>';
         return;
@@ -450,8 +444,6 @@ function addIt(cId, iId, name, price) {
 /* === الاستماع للطلبات === */
 function listenOrd() {
     var tk = "table_" + TBL;
-    
-    // استمع إلى current_orders (الطلبات المعلقة)
     onValue(ref(db, tk + "/current_orders"), function(snap) {
         var d = snap.val();
         orders = d || {};
@@ -497,7 +489,6 @@ function listenOrd() {
         document.getElementById("invTotal").textContent = "الإجمالي: " + fmt(total) + " دينار";
     });
     
-    // استمع إلى sent_orders (الطلبات المرسلة)
     onValue(ref(db, "tablesB/" + tk + "/sent_orders"), function(snap) {
         var d = snap.val();
         var c = document.getElementById("sentItems");
@@ -560,86 +551,92 @@ function closeInv() {
     document.getElementById("invoiceModal").style.display = "none";
 }
 
-/* === محادثة الكاشير (تم الإصلاح) === */
+/* === نظام المحادثة الجديد (مع read_counters) === */
 function listenCh() {
     var tk = "table_" + TBL;
 
-    // دالة عرض الرسائل
-    function renderMsgs(sA, sB) {
-        var box = document.getElementById("chatMsgs");
-        box.innerHTML = "";
-        var msgs = [];
-        
-        if (sA && sA.exists()) {
-            var vA = sA.val();
-            for (var k in vA) {
-                var m = vA[k];
-                m.src = "client";
-                msgs.push(m);
-            }
-        }
-        if (sB && sB.exists()) {
-            var vB = sB.val();
-            for (var k2 in vB) {
-                var m2 = vB[k2];
-                m2.src = "cashier";
-                msgs.push(m2);
-            }
-        }
-        
-        msgs.sort(function(a, b) {
-            return new Date(a.timestamp) - new Date(b.timestamp);
-        });
-        
-        if (!msgs.length) {
-            box.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px;font-size:13px;">ابدأ المحادثة مع الكاشير.</p>';
-            return;
-        }
-        
-        for (var j = 0; j < msgs.length; j++) {
-            var msg = msgs[j];
-            var t = new Date(msg.timestamp).toLocaleTimeString("ar-IQ", {
-                hour: "2-digit",
-                minute: "2-digit"
-            });
-            box.innerHTML += '<div class="cm ' + (msg.src === "client" ? "cm-cl" : "cm-ca") + '">' + msg.text + '<div class="cm-t">' + t + '</div></div>';
-        }
-        box.scrollTop = box.scrollHeight;
-    }
-
-    // إصلاح تداخل المستمعات
-    onValue(ref(db, "msgA/" + tk), function(sA) {
-        get(ref(db, "msgB/" + tk)).then(function(sB) {
-            renderMsgs(sA, sB);
-        });
+    // الاستماع لرسائل العميل (msgA)
+    onValue(ref(db, "msgA/" + tk), function(snap) {
+        msgACache = snap.val() || {};
+        renderChat();
     });
 
-    onValue(ref(db, "msgB/" + tk), function(sB) {
-        get(ref(db, "msgA/" + tk)).then(function(sA) {
-            renderMsgs(sA, sB);
-            
-            // تحديث عداد الرسائل غير المقروءة وصوت التنبيه
-            var newCount = sB.exists() ? Object.keys(sB.val()).length : 0;
-            if (newCount > prevMsgCount && prevMsgCount > 0 && !chatOn) msgSnd();
-            if (!chatOn) {
-                showUnread(newCount);
-                prevMsgCount = newCount;
-            }
-        });
+    // الاستماع لرسائل الكاشير (msgB)
+    onValue(ref(db, "msgB/" + tk), function(snap) {
+        var prevCount = currentCashierMsgCount;
+        msgBCache = snap.val() || {};
+        currentCashierMsgCount = Object.keys(msgBCache).length;
+
+        // إذا زاد عدد رسائل الكاشير وكانت المحادثة مغلقة، شغّل صوت التنبيه
+        if (currentCashierMsgCount > prevCount && !chatOn && prevCount >= 0) {
+            msgSnd();
+        }
+
+        updateBadge();
+        renderChat();
+    });
+
+    // الاستماع لعداد القراءة (read_counters)
+    onValue(ref(db, "read_counters/" + tk), function(snap) {
+        // هذا المستمع يضمن تحديث الشارة إذا قام جهاز آخر بفتح المحادثة
+        updateBadge();
     });
 }
 
-function updUnread() {
-    // تم إصلاح الخطأ هنا: تم إزالة "table_" الزائد التي كانت تسبب مسار خاطئ
-    var tk = "table_" + TBL; 
-    onValue(ref(db, "msgB/" + tk), function(s) {
-        if (!chatOn) {
-            var d = s.val();
-            var c = d ? Object.keys(d).length : 0;
-            showUnread(c);
-            prevMsgCount = c;
-        }
+function renderChat() {
+    if (!chatOn) return; 
+    var box = document.getElementById("chatMsgs");
+    box.innerHTML = "";
+    var msgs = [];
+
+    for (var k in msgACache) {
+        var m = msgACache[k];
+        m.src = "client";
+        msgs.push(m);
+    }
+    for (var k2 in msgBCache) {
+        var m2 = msgBCache[k2];
+        m2.src = "cashier";
+        msgs.push(m2);
+    }
+
+    msgs.sort(function(a, b) {
+        return new Date(a.timestamp) - new Date(b.timestamp);
     });
+
+    if (!msgs.length) {
+        box.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px;font-size:13px;">ابدأ المحادثة مع الكاشير.</p>';
+        return;
+    }
+
+    for (var j = 0; j < msgs.length; j++) {
+        var msg = msgs[j];
+        var t = new Date(msg.timestamp).toLocaleTimeString("ar-IQ", {
+            hour: "2-digit",
+            minute: "2-digit"
+        });
+        box.innerHTML += '<div class="cm ' + (msg.src === "client" ? "cm-cl" : "cm-ca") + '">' + msg.text + '<div class="cm-t">' + t + '</div></div>';
+    }
+    box.scrollTop = box.scrollHeight;
+}
+
+function updateBadge() {
+    if (chatOn) {
+        unreadN = 0;
+    } else {
+        // حساب الرسائل غير المقروءة بناءً على read_counters
+        var readCount = 0;
+        // سنقوم بجلبها بشكل متزامن باستخدام get، لكن الأفضل تخزينها مؤقتاً
+        // لتجنب التأخير، سنستخدم قيمة مخزنة مؤقتاً أو نقوم بقراءة اللحظية
+        // الأفضل استخدام دالة مساعدة
+        get(ref(db, "read_counters/table_" + TBL)).then(function(snap) {
+            readCount = snap.val() || 0;
+            unreadN = Math.max(0, currentCashierMsgCount - readCount);
+            showUnread(unreadN);
+        });
+        return; // نخرج لأن get غير متزامن
+    }
+    showUnread(unreadN);
 }
 
 function showUnread(c) {
@@ -650,22 +647,16 @@ function showUnread(c) {
     } else {
         dot.style.display = "none";
     }
-    unreadN = c;
 }
 
 function openCh() {
     chatOn = true;
-    unreadN = 0;
     document.getElementById("msgDot").style.display = "none";
     document.getElementById("chatModal").style.display = "flex";
-    prevMsgCount = 0;
     
-    // إعادة تصفير العداد عند فتح المحادثة
-    var tk = "table_" + TBL;
-    get(ref(db, "msgB/" + tk)).then(function(s) {
-        var d = s.val();
-        prevMsgCount = d ? Object.keys(d).length : 0;
-    });
+    // تحديث عداد القراءة في قاعدة البيانات ليعكس أن المستخدم قرأ الرسائل
+    set(ref(db, "read_counters/table_" + TBL), currentCashierMsgCount);
+    renderChat();
 }
 
 function closeCh() {
@@ -701,9 +692,6 @@ document.addEventListener("click", function() {
     if (aC.state === "suspended") aC.resume();
 }, { once: true });
 
-// تشغيل الأحداث الأساسية
 bindEvents();
 loadAppSettings();
-
-// 🚀 التحميل المسبق في الخلفية فور فتح الصفحة (سرعة البرق)
 preloadInBackground();

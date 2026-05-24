@@ -100,41 +100,40 @@
         .cat-acc.open .cat-arr{transform:rotate(180deg);color:var(--gold-dark);background:var(--gold-light);border-color:var(--gold-light);box-shadow:0 2px 10px rgba(201,169,110,0.25)}
         .cat-hd-fallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:44px;z-index:0;opacity:.2}
         .cat-bd{max-height:0;overflow:hidden;transition:max-height .4s ease}
+        .cat-acc.open .cat-bd{max-height:8000px}
 
-        /* === التصميم الجديد المضغوط للبطاقة (Compact) === */
-        .item-card{padding:10px 12px;border-bottom:1px solid var(--border-soft);transition:background .2s;display:flex;align-items:center;gap:10px}
+        /* === بطاقة الصنف المعدلة (أكبر وأوضح) === */
+        .item-card{padding:16px;border-bottom:1px solid var(--border-soft);transition:background .2s}
         .item-card:last-child{border-bottom:none}
         .item-card:active{background:rgba(212,228,209,0.06)}
+        .item-top{display:flex;align-items:center;gap:14px}
         
-        /* الصورة الجانبية */
-        .iw{position:relative;width:60px;height:60px;border-radius:10px;overflow:hidden;flex-shrink:0;border:1px solid var(--border);box-shadow:0 2px 6px var(--shadow);background:var(--bg-warm)}
-        .iw img{width:100%;height:100%;object-fit:cover;contain:strict;image-rendering:auto;-webkit-font-smoothing:antialiased}
+        /* تكبير الصورة والخطوط */
+        .iw{position:relative;width:90px;height:90px;border-radius:16px;overflow:hidden;flex-shrink:0;border:1.5px solid var(--border-soft);box-shadow:0 3px 10px var(--shadow);background:var(--bg-warm)}
+        .iw img{width:100%;height:100%;object-fit:cover;display:block;image-rendering:auto;-webkit-font-smoothing:antialiased}
         
-        /* منطقة المحتوى */
-        .item-info{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:2px}
-        .item-info h4{margin:0;font-size:13px;color:var(--text-dark);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3}
+        .item-info{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:4px}
+        .item-info h4{margin:0;font-size:16px;color:var(--text-dark);font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.4}
         
-        /* الصف السفلي: السعر + الأزرار */
-        .item-price-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:2px}
-        .item-price{font-weight:800;color:var(--red);font-size:14px;font-family:'Playfair Display',serif;line-height:1}
+        .item-price-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:4px}
+        .item-price{font-weight:800;color:var(--red);font-size:18px;font-family:'Playfair Display',serif;line-height:1.3;white-space:nowrap}
         
-        /* أزرار التحكم */
-        .item-actions{display:flex;align-items:center;gap:4px;flex-shrink:0}
-        
-        /* زر التفاصيل الصغير */
-        .det-btn{background:var(--bg);border:1px solid var(--border);color:var(--text-muted);width:28px;height:28px;border-radius:8px;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+        .item-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+
+        /* زر التفاصيل */
+        .det-btn{background:none;border:1.5px solid var(--border);color:var(--text-muted);width:40px;height:40px;border-radius:12px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
         .det-btn:active{transform:scale(.9);background:var(--bg-warm)}
         .det-btn.active{color:var(--olive);border-color:var(--olive-soft);background:var(--olive-pale)}
 
-        /* نص التفاصيل */
-        .item-det-wrap{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s ease;width:100%;padding:0}
+        /* نص التفاصيل المنزلق */
+        .item-det-wrap{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s ease}
         .item-det-wrap.open{grid-template-rows:1fr}
         .item-det-inner{overflow:hidden}
-        .item-det-text{padding:6px 0 6px 72px;font-size:11px;color:var(--text-body);line-height:1.5;border-top:1px dashed var(--border-soft);margin-top:4px}
+        .item-det-text{padding:10px 0 4px 104px;font-size:13px;color:var(--text-body);line-height:1.7;border-top:1px dashed var(--border-soft);margin-top:10px}
 
         /* زر الطلب */
-        .ba{background:linear-gradient(135deg,var(--green-btn),var(--green-btn-dark));color:#fff;border:none;padding:5px 10px;font-size:11px;border-radius:8px;cursor:pointer;font-weight:700;white-space:nowrap;font-family:'Noto Kufi Arabic',sans-serif;transition:all .15s;flex-shrink:0;box-shadow:0 2px 6px rgba(74,124,89,0.2);display:flex;align-items:center;gap:4px;height:28px}
-        .ba:active{transform:scale(.94);box-shadow:0 1px 3px rgba(74,124,89,0.3)}
+        .ba{background:linear-gradient(135deg,var(--green-btn),var(--green-btn-dark));color:#fff;border:none;padding:10px 18px;font-size:14px;border-radius:12px;cursor:pointer;font-weight:700;white-space:nowrap;font-family:'Noto Kufi Arabic',sans-serif;transition:all .15s;flex-shrink:0;box-shadow:0 3px 10px rgba(74,124,89,0.2);display:flex;align-items:center;gap:6px}
+        .ba:active{transform:scale(.94);box-shadow:0 1px 4px rgba(74,124,89,0.3)}
 
         .bottom-bar{position:fixed;bottom:0;left:0;width:100%;background:rgba(255,252,247,0.92);backdrop-filter:blur(20px) saturate(1.5);color:var(--text-dark);padding:10px 16px;box-sizing:border-box;display:none;justify-content:space-between;align-items:center;z-index:1000;box-shadow:0 -2px 20px var(--shadow);border-top:1px solid var(--border-soft)}
         .bt{font-size:13px;font-weight:600;color:var(--text-body)}.bt span{color:var(--olive);font-weight:700;font-family:'Playfair Display',serif}
@@ -199,11 +198,15 @@
         .kick-msg{color:rgba(212,228,209,0.5);font-size:13px;line-height:1.8;max-width:340px}
 
         @media(max-width:380px){
-            .iw{width:50px;height:50px;border-radius:8px}
-            .item-info h4{font-size:12px}
-            .item-price{font-size:13px}
-            .ba{padding:4px 8px;font-size:10px;height:26px}
-            .det-btn{width:26px;height:26px}
+            /* تصغير حجم البطاقة للشاشات الصغيرة جداً لضمان عدم كسر التصميم */
+            .iw{width:80px;height:80px;border-radius:14px}
+            .item-info h4{font-size:15px}
+            .item-price{font-size:16px}
+            .ba{padding:8px 12px;font-size:13px}
+            .det-btn{width:36px;height:36px;font-size:14px}
+            .item-det-text{padding-right:0;padding-left:0}
+            .main-header .hi h2{font-size:14px}
+            .main-header .hi h2 img{width:24px;height:24px}
         }
         @media print{body *{visibility:hidden}#menuContent,#menuContent *{visibility:visible}#menuContent{position:static;max-width:100%}.bottom-bar,#splashScreen,#blockScreen,.msg-fab,#chatModal,#invoiceModal,#distBar,#kickScreen{display:none !important}}
     </style>
@@ -304,25 +307,19 @@
         projectId:"game1-bb93e"
     }));
 
-    // === إعدادات مهمة: مسار البيانات ===
-    // تأكد من أن هذا الاسم يطابق اسم الجذر (Root) للمنيو في قاعدة البيانات الخاصة بك.
-    // الشائع: "menu" أو "orders".
-    const DATA_PATH = "menu"; 
-
     /* منع التحديد والضغط المستمر */
     document.addEventListener('contextmenu', e => e.preventDefault());
     document.addEventListener('gesturestart', e => e.preventDefault());
 
     let TBL="",VER="",zone=null,watchID=null,restName="",restLogo="";
-    let orders={},menuLoaded=false,chatOn=false,unreadN=0;
+    let orders={},menuOk=false,chatOn=false,unreadN=0;
     let curLat=null,curLon=null,curDist=null,isInZone=false;
     let prevMsgCount=0;
+    // تخزين البيانات في المتغيرات لاستخدامها الفوري
+    let cachedMenuData = null; 
+
     const menuLookup={};
     const CIRC=2*Math.PI*42;
-    
-    // متغير لتخزين القائمة مؤقتاً (للسرعة)
-    let preloadedMenuHTML = "";
-    let isMenuPreloaded = false;
 
     function fmt(n){return new Intl.NumberFormat("ar-IQ").format(n)}
 
@@ -340,7 +337,7 @@
         return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
     }
 
-    /* الصوت */
+    /* الصوت: فقط على الأزرار والأيقونات */
     var aC=new(window.AudioContext||window.webkitAudioContext)();
     var lClk=0;
     function cSnd(){
@@ -365,7 +362,7 @@
             o.start(now+d);o.stop(now+d+0.12)})}catch(e){}
     }
 
-    /* تحميل الإعدادات */
+    /* تحميل إعدادات التطبيق */
     async function loadAppSettings(){
         try{
             var snap=await get(ref(db,"app_settings"));
@@ -396,14 +393,26 @@
         }
     }
 
-    /* شريط التحميل السريع */
     var progBar=document.getElementById("progBar");var progPct=document.getElementById("progPct");var progVal=0;
     var progInterval=setInterval(function(){
-        progVal+=Math.random()*12+5;if(progVal>100)progVal=100;
+        progVal+=Math.random()*8+2;if(progVal>100)progVal=100;
         progBar.style.strokeDashoffset=CIRC-(progVal/100)*CIRC;
         progPct.textContent=Math.round(progVal)+"%";
         if(progVal>=100){clearInterval(progInterval);document.getElementById("splashBtn").classList.add("show")}
-    },150); 
+    },200);
+
+    /* === تحميل البيانات في الخلفية (Preloading) === */
+    async function preloadMenuData() {
+        try {
+            const snap = await get(ref(db, "orders"));
+            if (snap.exists()) {
+                cachedMenuData = snap.val();
+                console.log("Menu data preloaded successfully.");
+            }
+        } catch (error) {
+            console.error("Error preloading menu:", error);
+        }
+    }
 
     function bindEvents(){
         var splashBtn=document.getElementById("splashBtn");addSnd(splashBtn);
@@ -431,9 +440,7 @@
             document.getElementById("splashScreen").style.display="none";
             document.getElementById("blockScreen").style.display="flex";
             updateHeader();
-            // === بدء تحميل المينيو فوراً في الخلفية ===
-            preloadMenu();
-            initGeo();
+            setTimeout(function(){initGeo()},100);
         },600);
     }
 
@@ -464,9 +471,7 @@
         var rad=zone.radius_meters||100;
         updateDistBar(curDist,rad);
         if(curDist<=rad){
-            if(!isInZone){isInZone=true;document.getElementById("blockScreen").style.display="none";document.getElementById("kickScreen").style.display="none";document.getElementById("menuContent").style.display="block";document.getElementById("bottomBar").style.display="flex";document.getElementById("distBar").style.display="block";
-                if(isMenuPreloaded){showPreloadedMenu();} else {initMenu();}
-            }
+            if(!isInZone){isInZone=true;document.getElementById("blockScreen").style.display="none";document.getElementById("kickScreen").style.display="none";document.getElementById("menuContent").style.display="block";document.getElementById("bottomBar").style.display="flex";document.getElementById("distBar").style.display="block";if(!menuOk)initMenu()}
         }else if(curDist<=rad*2){
             if(isInZone){isInZone=false;document.getElementById("menuContent").style.display="none";document.getElementById("bottomBar").style.display="none";document.getElementById("distBar").style.display="none";document.getElementById("blockScreen").style.display="flex";sGeo("err","\ud83d\udeab","خارج النطاق","اقترب أكثر من المطعم.")}
             var dEl=document.getElementById("geoDist");dEl.style.display="block";dEl.className="geo-dist out";dEl.innerHTML='<i class="fas fa-triangle-exclamation" style="margin-left:5px;"></i><b>خارج النطاق المسموح</b>';
@@ -488,53 +493,32 @@
         val.textContent=Math.round(proximity)+"%";val.style.color=color;
     }
 
-    /* === التحميل المسبق للقائمة (تم التعديل للمسار الصحيح) === */
-    function preloadMenu(){
-        if(menuLoaded) return;
-        console.log("Trying to load menu from path:", DATA_PATH); // للمساعدة في التحقق
+    /* === تحميل المنيو (مع دعم البيانات المخزنة للسرعة) === */
+    function initMenu(){
+        menuOk=true;
         
-        // إزالة {onlyOnce: true} لضمان التحديث المستمر إذا لزم الأمر
-        onValue(ref(db, DATA_PATH), function(snap){
-            var data=snap.val();
-            console.log("Menu Data Received:", data); // اطبع البيانات في الكونسول
+        // استخدام دالة عرض البيانات لتجنب تكرار الكود
+        const renderMenu = (data) => {
+            var c=document.getElementById("menuCats");c.innerHTML="";
+            for(var key in menuLookup){delete menuLookup[key]}
+            if(!data){c.innerHTML='<p style="color:var(--text-muted);padding:30px;text-align:center;font-size:13px;">المنيو فارغ حالياً.</p>';return}
+            var catIndex=0;
+            for(var catId in data){
+                catIndex++;
+                var cat=data[catId];var items=cat.items||{};var cnt=Object.keys(items).length;var itemHTML="";
+                for(var itemId in items){
+                    var it=items[itemId];
+                    menuLookup[catId+"_"+itemId]={name:it.name,price:it.price};
+                    var detId="det_"+catId+"_"+itemId;
+                    var details=it.details||"";
+                    var hasDetails=details&&details.trim().length>0;
+                    var imgSrc=it.image||"";
 
-            var tempDiv = document.createElement('div');
-            if(!data){
-                console.warn("No data found at " + DATA_PATH);
-                tempDiv.innerHTML='<p style="color:var(--text-muted);padding:30px;text-align:center;font-size:13px;">المنيو فارغ حالياً أو المسار غير صحيح.</p>';
-            } else {
-                var catIndex=0;
-                for(var catId in data){
-                    catIndex++;
-                    var cat=data[catId];
-                    
-                    // التحقق من وجود_items أو التعامل مع التصنيف مباشرة إذا لزم الأمر
-                    var items = (cat.items && typeof cat.items === 'object') ? cat.items : {};
-                    
-                    // إذا كان التصنيف لا يحتوي على items ربما الهيكل مختلف، نحاول استخراج المفاتيح كعناصر
-                    if(Object.keys(items).length === 0 && Object.keys(cat).length > 2) {
-                        // حذف الحقول المعتادة (name, image) والباقي يعتبر عناصر
-                        items = {...cat};
-                        delete items.name;
-                        delete items.image;
-                        delete items.items;
-                    }
-
-                    var cnt=Object.keys(items).length;var itemHTML="";
-                    for(var itemId in items){
-                        var it=items[itemId];
-                        // تجاهل الحقول غير العنصرية إذا تم الخلط في الهيكل
-                        if(typeof it !== 'object' || !it.name) continue;
-
-                        menuLookup[catId+"_"+itemId]={name:it.name,price:it.price};
-                        var detId="det_"+catId+"_"+itemId;
-                        var details=it.details||"";
-                        var hasDetails=details&&details.trim().length>0;
-                        var imgSrc=it.image||"";
-
-                        itemHTML+='<div class="item-card">'+
+                    /* بناء HTML الصنف: صورة | اسم+سعر | أزرار */
+                    itemHTML+='<div class="item-card">'+
+                        '<div class="item-top">'+
                             '<div class="iw">'+
-                                (imgSrc?'<img src="'+imgSrc+'" alt="" loading="lazy" onerror="this.style.display=\'none\'">':'')+
+                                (imgSrc?'<img src="'+imgSrc+'" alt="" loading="'+(catIndex<=1?'eager':'lazy')+'" onerror="this.style.display=\'none\'">':'')+
                             '</div>'+
                             '<div class="item-info">'+
                                 '<h4>'+it.name+'</h4>'+
@@ -546,65 +530,61 @@
                                     '</div>'+
                                 '</div>'+
                             '</div>'+
-                            (hasDetails?'<div class="item-det-wrap" id="'+detId+'"><div class="item-det-inner"><div class="item-det-text">'+details+'</div></div></div>':'')+
-                        '</div>';
-                    }
-                    if(cnt === 0) continue; // تخطي التصنيفات الفارغة
-
-                    var catImg=cat.image||"";
-                    var hasImg=catImg&&catImg.length>10;
-                    var imgPart=hasImg?'<img src="'+catImg+'" alt="" loading="eager" style="opacity:0;transition:opacity .4s" onload="this.style.opacity=1">':'<div class="cat-hd-fallback">\ud83c\udf7d</div>';
-                    var accHTML='<div class="cat-acc">'+
-                        '<div class="cat-hd">'+imgPart+'<div class="cat-hd-content"><div class="cat-hi"><h3>'+cat.name+'</h3><span class="cc">'+cnt+' صنف</span></div><i class="fas fa-chevron-down cat-arr"></i></div></div>'+
-                        '<div class="cat-bd">'+itemHTML+'</div>'+
+                        '</div>'+
+                        (hasDetails?'<div class="item-det-wrap" id="'+detId+'"><div class="item-det-inner"><div class="item-det-text">'+details+'</div></div></div>':'')+
                     '</div>';
-                    tempDiv.innerHTML += accHTML;
                 }
-                if(tempDiv.innerHTML === "") {
-                     tempDiv.innerHTML='<p style="color:var(--text-muted);padding:30px;text-align:center;font-size:13px;">لا توجد عناصر صالحة للعرض.</p>';
-                }
+                var catImg=cat.image||"";
+                var hasImg=catImg&&catImg.length>10;
+                var acc=document.createElement("div");acc.className="cat-acc";
+                var imgPart=hasImg?'<img src="'+catImg+'" alt="" loading="eager" style="opacity:0;transition:opacity .4s" onload="this.style.opacity=1">':'<div class="cat-hd-fallback">\ud83c\udf7d</div>';
+                acc.innerHTML='<div class="cat-hd">'+imgPart+'<div class="cat-hd-content"><div class="cat-hi"><h3>'+cat.name+'</h3><span class="cc">'+cnt+' صنف</span></div><i class="fas fa-chevron-down cat-arr"></i></div></div><div class="cat-bd">'+itemHTML+'</div>';
+                c.appendChild(acc);
             }
-            preloadedMenuHTML = tempDiv.innerHTML;
-            isMenuPreloaded = true;
-            
-            if(isInZone) showPreloadedMenu();
-        });
-    }
 
-    function showPreloadedMenu(){
-        var c=document.getElementById("menuCats");
-        c.innerHTML = preloadedMenuHTML;
-        menuLoaded = true;
-        
-        c.querySelectorAll(".ba").forEach(function(btn){
-            addSnd(btn);
-            btn.addEventListener("click",function(){
-                var cId=this.getAttribute("data-c"),iId=this.getAttribute("data-i");
-                var item=menuLookup[cId+"_"+iId];
-                if(item)addIt(cId,iId,item.name,item.price);
+            /* ربط الأحداث بعد الإنشاء */
+            c.querySelectorAll(".ba").forEach(function(btn){
+                addSnd(btn);
+                btn.addEventListener("click",function(){
+                    var cId=this.getAttribute("data-c"),iId=this.getAttribute("data-i");
+                    var item=menuLookup[cId+"_"+iId];
+                    if(item)addIt(cId,iId,item.name,item.price);
+                });
             });
-        });
-        c.querySelectorAll(".det-btn").forEach(function(btn){
-            addSnd(btn);
-            btn.addEventListener("click",function(){
-                var target=document.getElementById(this.getAttribute("data-target"));
-                if(target){
-                    var isOpen=target.classList.toggle("open");
-                    this.classList.toggle("active",isOpen);
-                }
+            c.querySelectorAll(".det-btn").forEach(function(btn){
+                addSnd(btn);
+                btn.addEventListener("click",function(){
+                    var target=document.getElementById(this.getAttribute("data-target"));
+                    if(target){
+                        var isOpen=target.classList.toggle("open");
+                        this.classList.toggle("active",isOpen);
+                    }
+                });
             });
-        });
-        c.querySelectorAll(".cat-hd").forEach(function(hd){
-            addSnd(hd);
-            hd.addEventListener("click",function(){
-                var wasOpen=hd.parentElement.classList.contains("open");
-                document.querySelectorAll(".cat-acc.open").forEach(function(a){a.classList.remove("open")});
-                if(!wasOpen)hd.parentElement.classList.add("open");
+            c.querySelectorAll(".cat-hd").forEach(function(hd){
+                addSnd(hd);
+                hd.addEventListener("click",function(){
+                    var wasOpen=hd.parentElement.classList.contains("open");
+                    document.querySelectorAll(".cat-acc.open").forEach(function(a){a.classList.remove("open")});
+                    if(!wasOpen)hd.parentElement.classList.add("open");
+                });
             });
-        });
-    }
+        };
 
-    function initMenu(){if(isMenuPreloaded){showPreloadedMenu();return;}}
+        // استخدام البيانات المخزنة أولاً للسرعة الفائقة، ثم الاستماع للتحديثات
+        if (cachedMenuData) {
+            renderMenu(cachedMenuData);
+        }
+
+        onValue(ref(db,"orders"),function(snap){
+            var data=snap.val();
+            // تحديث الذاكرة المؤقتة لضمان أحدث البيانات
+            cachedMenuData = data;
+            if(!menuOk) return; // إذا لم يتم العرض بعد، فلنعرضه الآن
+            renderMenu(data);
+        });
+        listenOrd();listenCh();
+    }
 
     function addIt(cId,iId,name,price){
         var k=cId+"_"+iId;var r=ref(db,"table_"+TBL+"/current_orders/"+k);
@@ -629,7 +609,7 @@
             for(var k in d){
                 var it=d[k];var sub=it.price*it.quantity;total+=sub;count+=it.quantity;
                 var row=document.createElement("div");row.className="inv-i";
-                row.innerHTML='<div style="min-width:0;flex:1"><div class="inv-n">'+it.name+'</div><div class="inv-s">'+fmt(it.price)+' د.ع \u00d7 '+it.quantity+'</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><span class="inv-t">'+fmt(sub)+'</span><div class="qc"><button class="qb qmin" data-key="'+k+'" data-d="-1">\u2212</button><span class="qv">'+it.quantity+'</span><button class="qb qplu" data-key="'+k+'" data-d="1">+</button></div></div>';
+                row.innerHTML='<div style="min-width:0;flex:1"><div class="inv-n">'+it.name+'</div><div class="inv-s">'+fmt(it.price)+' د.ع \u00d7 '+it.quantity+'</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><span class="inv-t">'+fmt(sub)+'</span><div class="qc"><button class="qb qmin" data-key="'+k+'" data-d="-1">\u2212</button><span class="qv">'+it.quantity+'</span><button class="qb qplu" data-key="'+k+'" data-d="1">+</button></div></div></div>';
                 ic.appendChild(row);
             }
             ic.querySelectorAll(".qb").forEach(function(qb){
@@ -708,10 +688,11 @@
     function sendCh(){var inp=document.getElementById("chatInput");var t=inp.value.trim();if(!t)return;set(push(ref(db,"msgA/table_"+TBL)),{text:t,timestamp:new Date().toISOString()});inp.value=""}
 
     document.addEventListener("click",function(){if(aC.state==="suspended")aC.resume()},{once:true});
+    
+    // بدء التحميل المسبق للبيانات أثناء عرض شاشة الترحيب
+    preloadMenuData();
     bindEvents();
     loadAppSettings();
-    listenOrd();
-    listenCh();
 </script>
 </body>
 </html>

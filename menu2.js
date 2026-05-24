@@ -14,7 +14,7 @@ let prevMsgCount = 0;
 const menuLookup = {};
 const CIRC = 2 * Math.PI * 42;
 
-/* --- متغيرات جديدة للتحميل المسبق --- */
+/* --- متغيرات جديدة للتحميل المسبق (سرعة البرق) --- */
 let menuPreloaded = false; // هل تم جلب بيانات المنيو من الفايربيس؟
 let cachedMenuData = null; // تخزين بيانات المنيو مؤقتاً
 
@@ -127,11 +127,13 @@ var progInterval = setInterval(function() {
     }
 }, 200);
 
-/* === التحميل المسبق في الخلفية فور فتح الصفحة === */
+/* === التحميل المسبق في الخلفية فور فتح الصفحة (سرعة البرق) === */
 function preloadInBackground() {
     var u = new URLSearchParams(location.search);
     TBL = u.get("table") || "1";
     VER = u.get("version") || "";
+    document.getElementById("tblB").textContent = "طاولة " + TBL;
+    updateAppState();
     
     // 1. تحميل المنيو مسبقاً (الاستماع للتغييرات وتخزينها)
     if (VER) {
@@ -145,7 +147,7 @@ function preloadInBackground() {
         });
     }
 
-    // 2. تحميل الطلبات الحالية مسبقاً
+    // 2. تحميل الطلبات والمحادثة مسبقاً
     if (TBL) {
         listenOrd();
         listenCh();
@@ -202,9 +204,6 @@ function dismissSplash() {
 }
 
 async function initGeo() {
-    document.getElementById("tblB").textContent = "طاولة " + TBL;
-    updateAppState();
-    
     if (!VER) {
         toast("إصدار غير صالح", "error");
         sGeo("err", "⚠️", "إصدار غير صالح", "لم يتم العثور على ربط للصفحة.");
@@ -561,16 +560,17 @@ function closeInv() {
     document.getElementById("invoiceModal").style.display = "none";
 }
 
-/* === محادثة الكاشير === */
+/* === محادثة الكاشير (تم الإصلاح) === */
 function listenCh() {
     var tk = "table_" + TBL;
 
+    // دالة عرض الرسائل
     function renderMsgs(sA, sB) {
-        if (!chatOn) return;
         var box = document.getElementById("chatMsgs");
         box.innerHTML = "";
         var msgs = [];
-        if (sA.exists()) {
+        
+        if (sA && sA.exists()) {
             var vA = sA.val();
             for (var k in vA) {
                 var m = vA[k];
@@ -578,7 +578,7 @@ function listenCh() {
                 msgs.push(m);
             }
         }
-        if (sB.exists()) {
+        if (sB && sB.exists()) {
             var vB = sB.val();
             for (var k2 in vB) {
                 var m2 = vB[k2];
@@ -586,13 +586,16 @@ function listenCh() {
                 msgs.push(m2);
             }
         }
+        
         msgs.sort(function(a, b) {
             return new Date(a.timestamp) - new Date(b.timestamp);
         });
+        
         if (!msgs.length) {
             box.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px;font-size:13px;">ابدأ المحادثة مع الكاشير.</p>';
             return;
         }
+        
         for (var j = 0; j < msgs.length; j++) {
             var msg = msgs[j];
             var t = new Date(msg.timestamp).toLocaleTimeString("ar-IQ", {
@@ -604,31 +607,39 @@ function listenCh() {
         box.scrollTop = box.scrollHeight;
     }
 
+    // إصلاح تداخل المستمعات
     onValue(ref(db, "msgA/" + tk), function(sA) {
-        onValue(ref(db, "msgB/" + tk), function(sB) {
+        get(ref(db, "msgB/" + tk)).then(function(sB) {
             renderMsgs(sA, sB);
-            var newCount = sB.exists() ? Object.keys(sB.val()).length : 0;
-            if (newCount > prevMsgCount && prevMsgCount > 0) msgSnd();
-            if (!chatOn) prevMsgCount = newCount;
-            updUnread(newCount);
         });
     });
-    updUnread(0);
+
+    onValue(ref(db, "msgB/" + tk), function(sB) {
+        get(ref(db, "msgA/" + tk)).then(function(sA) {
+            renderMsgs(sA, sB);
+            
+            // تحديث عداد الرسائل غير المقروءة وصوت التنبيه
+            var newCount = sB.exists() ? Object.keys(sB.val()).length : 0;
+            if (newCount > prevMsgCount && prevMsgCount > 0 && !chatOn) msgSnd();
+            if (!chatOn) {
+                showUnread(newCount);
+                prevMsgCount = newCount;
+            }
+        });
+    });
 }
 
-function updUnread(count) {
-    if (count === undefined) {
-        onValue(ref(db, "msgB/table_" + TBL), function(s) {
+function updUnread() {
+    // تم إصلاح الخطأ هنا: تم إزالة "table_" الزائد التي كانت تسبب مسار خاطئ
+    var tk = "table_" + TBL; 
+    onValue(ref(db, "msgB/" + tk), function(s) {
+        if (!chatOn) {
             var d = s.val();
-            var c = 0;
-            if (d) c = Object.keys(d).length;
+            var c = d ? Object.keys(d).length : 0;
             showUnread(c);
             prevMsgCount = c;
-        });
-        return;
-    }
-    showUnread(count);
-    prevMsgCount = count;
+        }
+    });
 }
 
 function showUnread(c) {
@@ -648,6 +659,13 @@ function openCh() {
     document.getElementById("msgDot").style.display = "none";
     document.getElementById("chatModal").style.display = "flex";
     prevMsgCount = 0;
+    
+    // إعادة تصفير العداد عند فتح المحادثة
+    var tk = "table_" + TBL;
+    get(ref(db, "msgB/" + tk)).then(function(s) {
+        var d = s.val();
+        prevMsgCount = d ? Object.keys(d).length : 0;
+    });
 }
 
 function closeCh() {

@@ -240,88 +240,185 @@ function refreshDetail(tn){document.getElementById('dpTitle').innerHTML='<i clas
    نظام الطباعة - Canvas ثم إرسال للطابعة أو طباعة المتصفح
    =================================================================== */
 function buildReceiptCanvas(cfg){
-    const PW=302,ML=6.4; /* 80mm ≈ 302px عند 96dpi */
-    const hasLogo=!!(settings.restaurantLogo&&settings.restaurantLogo.length>20);
-    const hasQR=!!(settings.invoiceQrUrl&&settings.invoiceQrUrl.trim())&&cfg.final;
-    const ti=cfg.items?cfg.items.length:0;
-    const qrPx=133; /* 35mm */
-    const logoPx=114; /* 30mm */
-    let y=ML*3;
-    if(hasLogo)y+=logoPx+ML*2;
-    y+=ML*4.5; /* اسم */
-    y+=ML*3.5; /* ترحيب */
-    y+=ML*2; /* فاصل */
-    y+=ML*3.5; /* عنوان */
-    y+=ML*3; /* معلومات */
-    y+=ML*2; /* فاصل */
-    y+=ML*3; /* رأس الجدول */
-    y+=ML*2.5; /* فاصل رأس */
-    y+=ti*(ML*5.5); /* صفوف */
-    if(cfg.final)y+=ML*2+ML*5; /* فاصل + مجموع */
-    y+=ML*3; /* فاصل سفلي */
-    if(hasQR)y+=ML*2+qrPx+ML*2;
-    y+=ML*2;
-    const cv=document.createElement('canvas');cv.width=PW;cv.height=Math.max(y,ML*20);
-    const cx=cv.getContext('2d');
-    cx.fillStyle='#fff';cx.fillRect(0,0,PW,cv.height);
-    y=ML*3;
-    /* شعار */
-    if(hasLogo){try{const img=new Image();img.src=settings.restaurantLogo;cx.drawImage(img,(PW-logoPx)/2,y,logoPx,logoPx);y+=logoPx+ML*2}catch(e){}}
-    /* اسم */
-    cx.textBaseline='middle';cx.textAlign='center';
-    cx.font='bold 19px "Segoe UI",Tahoma,sans-serif';cx.fillStyle='#000';
-    cx.fillText(settings.restaurantName||'المطعم',PW/2,y);y+=ML*4.5;
-    /* ترحيب */
-    cx.font='12px "Segoe UI",Tahoma,sans-serif';cx.fillStyle='#555';
-    cx.fillText(cfg.welcome||'شكراً لزيارتكم',PW/2,y);y+=ML*3.5;
-    /* فاصل متقطع */
-    drawDash(cx,ML*3,PW-ML*3,y);y+=ML*2;
-    /* عنوان */
-    cx.font='bold 16px "Segoe UI",Tahoma,sans-serif';cx.fillStyle='#000';
-    cx.fillText(cfg.title,PW/2,y);y+=ML*3.5;
-    /* معلومات */
-    cx.font='12px "Segoe UI",Tahoma,sans-serif';cx.fillStyle='#333';
-    cx.fillText('طاولة: ['+cfg.tableNum+']  '+cfg.dt+'  '+cfg.cashier,PW/2,y);y+=ML*3;
-    drawDash(cx,ML*3,PW-ML*3,y);y+=ML*2;
-    /* رأس الجدول */
-    cx.font='bold 13px "Segoe UI",Tahoma,sans-serif';cx.fillStyle='#000';
-    cx.textAlign='right';cx.fillText('المادة',PW-ML*3,y);
-    cx.textAlign='center';cx.fillText('العدد',PW/2,y);
-    if(cfg.final){cx.textAlign='left';cx.fillText('السعر',ML*3,y)}
-    y+=ML*3;drawDash(cx,ML*3,PW-ML*3,y,1);y+=ML*2.5;
-    /* صفوف */
-    cx.font='12px "Segoe UI",Tahoma,sans-serif';
-    cfg.items.forEach(i=>{
-        cx.textAlign='right';cx.fillStyle='#000';
-        /* لف النص الطويل */
-        let nm=i.name,maxW=(cfg.final?PW*0.5:PW*0.7);
-        if(cx.measureText(nm).width>maxW){while(cx.measureText(nm+'…').width>maxW&&nm.length>1)nm=nm.slice(0,-1);nm+='…'}
-        cx.fillText(nm,PW-ML*3,y);
-        cx.textAlign='center';cx.fillStyle='#333';cx.fillText('x'+i.qty,PW/2,y);
-        if(cfg.final){cx.textAlign='left';cx.fillStyle='#000';cx.fillText(fmt(i.price*i.qty),ML*3,y)}
-        y+=ML*2.5;
-        cx.strokeStyle='#ddd';cx.lineWidth=0.5;cx.setLineDash([2,2]);
-        cx.beginPath();cx.moveTo(ML*5,PW===PW?ML*5:ML*5);cx.lineTo(PW-ML*5,y);cx.stroke();cx.setLineDash([]);
-        y+=ML*3;
-    });
-    if(cfg.final){
-        cx.strokeStyle='#000';cx.lineWidth=1.5;cx.setLineDash([]);
-        cx.beginPath();cx.moveTo(ML*3,y);cx.lineTo(PW-ML*3,y);cx.stroke();y+=ML*4;
-        cx.font='bold 18px "Segoe UI",Tahoma,sans-serif';cx.fillStyle='#000';
-        cx.textAlign='right';cx.fillText('المجموع:',PW-ML*3,y);
-        cx.textAlign='left';cx.fillText(fmt(cfg.total)+' دينار',ML*3,y);y+=ML*5;
+    // رفع الأبعاد برمجياً لتعطي دقة عالية جداً عند التمدد (High DPI)
+    const PW = 550;   
+    const ML = 11;    
+    
+    const hasLogo = !!(settings.restaurantLogo && settings.restaurantLogo.length > 20);
+    const hasQR = !!(settings.invoiceQrUrl && settings.invoiceQrUrl.trim()) && cfg.final;
+    const ti = cfg.items ? cfg.items.length : 0;
+    const qrPx = 180;   
+    const logoPx = 160; 
+    
+    let y = ML * 3;
+    if(hasLogo) y += logoPx + ML * 2;
+    y += ML * 5.5; 
+    y += ML * 4.5; 
+    y += ML * 2;   
+    y += ML * 4.5; 
+    y += ML * 4;   
+    y += ML * 2;   
+    y += ML * 4;   
+    y += ML * 2.5; 
+    y += ti * (ML * 6.5); 
+    if(cfg.final) y += ML * 3 + ML * 6; 
+    y += ML * 4;   
+    if(hasQR) y += ML * 2 + qrPx + ML * 2;
+    y += ML * 3;
+    
+    const cv = document.createElement('canvas');
+    cv.width = PW;
+    cv.height = Math.max(y, ML * 20);
+    const cx = cv.getContext('2d');
+    
+    cx.fillStyle = '#fff';
+    cx.fillRect(0, 0, PW, cv.height);
+    
+    y = ML * 3;
+    
+    if(hasLogo){
+        try{
+            const img = new Image();
+            img.src = settings.restaurantLogo;
+            cx.drawImage(img, (PW - logoPx) / 2, y, logoPx, logoPx);
+            y += logoPx + ML * 2;
+        }catch(e){}
     }
-    cx.strokeStyle='#000';cx.lineWidth=1;cx.setLineDash([]);
-    cx.beginPath();cx.moveTo(ML*3,y);cx.lineTo(PW-ML*3,y);cx.stroke();y+=ML*3;
-    /* QR */
+    
+    cx.textBaseline = 'middle';
+    cx.textAlign = 'center';
+    cx.fillStyle = '#000';
+    
+    cx.font = 'bold 32px "Segoe UI", Tahoma, sans-serif';
+    cx.fillText(settings.restaurantName || 'المطعم', PW / 2, y);
+    y += ML * 5.5;
+    
+    cx.font = '18px "Segoe UI", Tahoma, sans-serif';
+    cx.fillStyle = '#444';
+    cx.fillText(cfg.welcome || 'شكراً لزيارتكم', PW / 2, y);
+    y += ML * 4.5;
+    
+    drawDash(cx, ML * 3, PW - ML * 3, y);
+    y += ML * 2;
+    
+    cx.font = 'bold 26px "Segoe UI", Tahoma, sans-serif';
+    cx.fillStyle = '#000';
+    cx.fillText(cfg.title, PW / 2, y);
+    y += ML * 4.5;
+    
+    cx.font = '18px "Segoe UI", Tahoma, sans-serif';
+    cx.fillStyle = '#222';
+    cx.fillText('طاولة: [' + cfg.tableNum + ']   ' + cfg.dt + '   ' + cfg.cashier, PW / 2, y);
+    y += ML * 4;
+    
+    drawDash(cx, ML * 3, PW - ML * 3, y);
+    y += ML * 2;
+    
+    cx.font = 'bold 22px "Segoe UI", Tahoma, sans-serif';
+    cx.fillStyle = '#000';
+    cx.textAlign = 'right'; 
+    cx.fillText('المادة', PW - ML * 3, y);
+    
+    cx.textAlign = 'center'; 
+    cx.fillText('العدد', PW / 2 + 15, y); 
+    
+    if(cfg.final){
+        cx.textAlign = 'left'; 
+        cx.fillText('السعر', ML * 3, y);
+    }
+    y += ML * 4;
+    drawDash(cx, ML * 3, PW - ML * 3, y, 1);
+    y += ML * 2.5;
+    
+    cx.font = '20px "Segoe UI", Tahoma, sans-serif';
+    cfg.items.forEach(i => {
+        cx.textAlign = 'right'; 
+        cx.fillStyle = '#000';
+        
+        let nm = i.name;
+        let maxW = (cfg.final ? PW * 0.55 : PW * 0.75);
+        if(cx.measureText(nm).width > maxW){
+            while(cx.measureText(nm + '…').width > maxW && nm.length > 1){
+                nm = nm.slice(0, -1);
+            }
+            nm += '…';
+        }
+        cx.fillText(nm, PW - ML * 3, y);
+        
+        cx.textAlign = 'center'; 
+        cx.fillStyle = '#222'; 
+        cx.fillText('x' + i.qty, PW / 2 + 15, y);
+        
+        if(cfg.final){
+            cx.textAlign = 'left'; 
+            cx.fillStyle = '#000'; 
+            cx.fillText(fmt(i.price * i.qty), ML * 3, y);
+        }
+        
+        y += ML * 3.5;
+        
+        cx.strokeStyle = '#eee'; 
+        cx.lineWidth = 0.5; 
+        cx.setLineDash([3, 3]);
+        cx.beginPath(); 
+        cx.moveTo(ML * 3, y); 
+        cx.lineTo(PW - ML * 3, y); 
+        cx.stroke(); 
+        cx.setLineDash([]);
+        
+        y += ML * 3;
+    });
+    
+    if(cfg.final){
+        cx.strokeStyle = '#000'; 
+        cx.lineWidth = 2; 
+        cx.setLineDash([]);
+        cx.beginPath(); 
+        cx.moveTo(ML * 3, y); 
+        cx.lineTo(PW - ML * 3, y); 
+        cx.stroke(); 
+        
+        y += ML * 5;
+        cx.font = 'bold 30px "Segoe UI", Tahoma, sans-serif'; 
+        cx.fillStyle = '#000';
+        cx.textAlign = 'right'; 
+        cx.fillText('المجموع:', PW - ML * 3, y);
+        
+        cx.textAlign = 'left'; 
+        cx.fillText(fmt(cfg.total) + ' دينار', ML * 3, y); 
+        y += ML * 6;
+    }
+    
+    cx.strokeStyle = '#000'; 
+    cx.lineWidth = 1; 
+    cx.setLineDash([]);
+    cx.beginPath(); 
+    cx.moveTo(ML * 3, y); 
+    cx.lineTo(PW - ML * 3, y); 
+    cx.stroke(); 
+    y += ML * 4;
+    
     if(hasQR){
         try{
-            const qrDiv=document.createElement('div');
-            new QRCode(qrDiv,{text:settings.invoiceQrUrl,width:qrPx,height:qrPx,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.M});
-            const qrC=qrDiv.querySelector('canvas');
-            if(qrC){cx.drawImage(qrC,(PW-qrPx)/2,y,qrPx,qrPx);y+=qrPx+ML*2}
-        }catch(e){y+=qrPx}
+            const qrDiv = document.createElement('div');
+            new QRCode(qrDiv, {
+                text: settings.invoiceQrUrl,
+                width: qrPx,
+                height: qrPx,
+                colorDark: '#000',
+                colorLight: '#fff',
+                correctLevel: QRCode.CorrectLevel.M
+            });
+            const qrC = qrDiv.querySelector('canvas');
+            if(qrC){
+                cx.drawImage(qrC, (PW - qrPx) / 2, y, qrPx, qrPx);
+                y += qrPx + ML * 2;
+            }
+        }catch(e){
+            y += qrPx;
+        }
     }
+    
     return cv;
 }
 function drawDash(cx,x1,x2,y,w){cx.strokeStyle='#333';cx.lineWidth=w||1;cx.setLineDash([4,3]);cx.beginPath();cx.moveTo(x1,y);cx.lineTo(x2,y);cx.stroke();cx.setLineDash([])}
@@ -336,19 +433,55 @@ function genReceipt(cfg,printerIp){
             method:'POST',headers:{'Content-Type':'application/json'},
             body:JSON.stringify({ip:printerIp,image:imgData})
         }).then(r=>{
-            if(r.ok){toast('تم الإرسال للطابعة','ts')}else{toast('فشل الإرسال - حاول طباعة المتصفح','te');fallbackPrint()}
-        }).catch(()=>{toast('الطابطة غير متصلة - جاري طباعة المتصفح','te');fallbackPrint()});
+            if(r.ok){toast('تم الإرسال للطابعة','ts')}else{toast('فشل الإرسال - حاول طباعة المتصفح','te');doBrowserPrint(cv)}
+        }).catch(()=>{toast('الطابعة غير متصلة - جاري طباعة المتصفح','te');doBrowserPrint(cv)});
     }else{
-        /* بدون طابطة = طباعة المتصفح */
+        /* بدون طابعة IP = طباعة المتصفح مباشرة بجودة كاملة */
         doBrowserPrint(cv);
     }
 }
 function fallbackPrint(){/* نستخدم آخر إطار تم بناؤه */}
 function doBrowserPrint(cv){
-    /* نضع صورة الفاتورة في إطار الطباعة ونطبع */
-    const frame=document.getElementById('thermalPrintFrame');
-    frame.innerHTML='<img src="'+cv.toDataURL('image/png')+'" style="width:72mm;display:block;margin:0 auto;">';
-    setTimeout(()=>{window.print();setTimeout(()=>{frame.innerHTML=''},500)},200);
+    // 1. تحويل الـ Canvas إلى صورة بدقتها العالية
+    const imgData = cv.toDataURL('image/png');
+    
+    // 2. فتح نافذة منبثقة مؤقتة للطباعة بدلاً من الـ Frame المقيد
+    const pWin = window.open('', '_blank', 'width=600,height=800');
+    
+    // 3. كتابة التنسيق الذي يجبر الطابعة الحرارية 80 ملم على التمدد الكامل بدون هوامش بيضاء
+    pWin.document.write(`
+        <!DOCTYPE html>
+        <html dir="rtl">
+        <head>
+            <title>طباعة الفاتورة</title>
+            <style>
+                @page {
+                    size: auto;
+                    margin: 0mm; /* إلغاء هوامش الصفحة والورقة تماماً */
+                }
+                body {
+                    margin: 0;
+                    padding: 0;
+                    background: #fff;
+                    display: flex;
+                    justify-content: center;
+                    align-items: flex-start;
+                }
+                img {
+                    width: 100%;       /* تمديد الفاتورة لتغطي عرض ورق الـ 80 ملم بالكامل */
+                    max-width: 100%;
+                    height: auto;
+                    display: block;
+                }
+            </style>
+        </head>
+        <body>
+            <img src="${imgData}" onload="setTimeout(() => { window.print(); window.close(); }, 200);" />
+        </body>
+        </html>
+    `);
+    
+    pWin.document.close();
 }
 
 window.printToKitchen=()=>{const k='table_'+activeTable,oB=dB[k]&&dB[k].sent_orders?dB[k].sent_orders:null;if(!oB||!Object.keys(oB).length){toast('لا توجد طلبات واردة','te');return}let items=[];for(let id in oB)items.push({name:oB[id].name,qty:oB[id].quantity,price:oB[id].price});genReceipt({title:'بون التجهيز',tableNum:activeTable,dt:new Date().toLocaleString('ar-IQ',{hour12:true}),items,final:false,cashier:myUser,welcome:'برجاء تجهيز الطلبات بأسرع وقت'},routing.kitchenPrinterIp);const cR=ref(db,'tablesC/'+k+'/processing_orders');for(let id in oB)set(push(cR),{name:oB[id].name,price:oB[id].price,quantity:oB[id].quantity});remove(ref(db,'tablesB/'+k));toast('تم إرسال الطلبات للمطبخ','ts')};
@@ -405,4 +538,4 @@ async function initLogin(){await Promise.all([get(ref(db,'cobes')).then(s=>{dVer
 initLogin();
 </script>
 </body>
-</html>
+</html> 

@@ -21,7 +21,7 @@ let cachedMenuData = null;
 let msgACache = {}; 
 let msgBCache = {}; 
 let currentCashierMsgCount = 0; 
-let cachedReadCount = 0; // تخزين مؤقت لعداد القراءة لتحديث الشارة فوراً
+let cachedReadCount = 0; 
 
 /* تحديث حالة التطبيق */
 function updateAppState() {
@@ -434,8 +434,8 @@ function renderMenu(data) {
 
 function addIt(cId, iId, name, price) {
     var k = cId + "_" + iId;
-    // تحديث المسار ليتطابق مع قاعدة البيانات الجديدة (tablesC)
-    var r = ref(db, "tablesC/table_" + TBL + "/processing_orders/" + k);
+    // 1. إضافة الطلب إلى tablesA (جدول الفاتورة/السلة الخاص بالزبون)
+    var r = ref(db, "tablesA/table_" + TBL + "/current_orders/" + k);
     if (orders[k]) {
         update(r, { quantity: orders[k].quantity + 1 });
     } else {
@@ -447,8 +447,8 @@ function addIt(cId, iId, name, price) {
 function listenOrd() {
     var tk = "table_" + TBL;
     
-    // تحديث المسار ليتطابق مع قاعدة البيانات الجديدة (tablesC)
-    onValue(ref(db, "tablesC/" + tk + "/processing_orders"), function(snap) {
+    // الاستماع إلى tablesA (الفاتورة/الطلبات المعلقة للزبون)
+    onValue(ref(db, "tablesA/" + tk + "/current_orders"), function(snap) {
         var d = snap.val();
         orders = d || {};
         state.ordersData = orders;
@@ -479,8 +479,8 @@ function listenOrd() {
             qb.addEventListener("click", function() {
                 var k = this.getAttribute("data-key");
                 var dd = parseInt(this.getAttribute("data-d"));
-                // تحديث المسار ليتطابق مع قاعدة البيانات الجديدة (tablesC)
-                var r = ref(db, "tablesC/table_" + TBL + "/processing_orders/" + k);
+                // تعديل الكمية في tablesA
+                var r = ref(db, "tablesA/table_" + TBL + "/current_orders/" + k);
                 var n = orders[k].quantity + dd;
                 if (n <= 0) {
                     remove(r);
@@ -494,6 +494,7 @@ function listenOrd() {
         document.getElementById("invTotal").textContent = "الإجمالي: " + fmt(total) + " دينار";
     });
     
+    // الاستماع إلى tablesB (الطلبات المرسلة للكاشير)
     onValue(ref(db, "tablesB/" + tk + "/sent_orders"), function(snap) {
         var d = snap.val();
         var c = document.getElementById("sentItems");
@@ -532,6 +533,8 @@ function sendOrd() {
         toast("أنت خارج المنطقة.", "error");
         return;
     }
+    
+    // 1. إرسال الطلبات إلى tablesB (الطلبات الواردة للكاشير)
     var sr = ref(db, "tablesB/table_" + TBL + "/sent_orders");
     for (var k in orders) {
         var it = orders[k];
@@ -544,8 +547,9 @@ function sendOrd() {
             sent_distance: Math.round(dist)
         });
     }
-    // تحديث المسار ليتطابق مع قاعدة البيانات الجديدة (tablesC)
-    remove(ref(db, "tablesC/table_" + TBL + "/processing_orders")).then(function() {
+    
+    // 2. حذف الطلبات من tablesA (سلة الزبون) بعد إرسالها للكاشير
+    remove(ref(db, "tablesA/table_" + TBL + "/current_orders")).then(function() {
         toast("تم إرسال طلباتك بنجاح", "success");
         closeInv();
     }).catch(function() {
@@ -561,19 +565,16 @@ function closeInv() {
 function listenCh() {
     var tk = "table_" + TBL;
 
-    // 1. الاستماع لرسائل العميل (msgA)
     onValue(ref(db, "msgA/" + tk), function(snap) {
         msgACache = snap.val() || {};
         renderChat();
     });
 
-    // 2. الاستماع لرسائل الكاشير (msgB)
     onValue(ref(db, "msgB/" + tk), function(snap) {
         var prevCount = currentCashierMsgCount;
         msgBCache = snap.val() || {};
         currentCashierMsgCount = Object.keys(msgBCache).length;
 
-        // تشغيل صوت فقط إذا وصلت رسالة جديدة والعداد زاد والمحادثة مغلقة
         if (currentCashierMsgCount > prevCount && !chatOn && prevCount >= 0) {
             msgSnd();
         }
@@ -582,7 +583,6 @@ function listenCh() {
         renderChat();  
     });
 
-    // 3. الاستماع لعداد القراءة (read_counters)
     onValue(ref(db, "read_counters/" + tk), function(snap) {
         cachedReadCount = snap.val() || 0;
         updateBadge();
@@ -627,7 +627,6 @@ function renderChat() {
 }
 
 function updateBadge() {
-    // الرسائل غير المقروءة = العدد الكلي لرسائل الكاشير - العدد الذي تم قراءته آخر مرة
     var unreadCount = chatOn ? 0 : Math.max(0, currentCashierMsgCount - cachedReadCount);
     showUnread(unreadCount);
 }
@@ -645,13 +644,12 @@ function showUnread(c) {
 
 function openCh() {
     chatOn = true;
-    // عند فتح المحادثة، نعتبر جميع الرسائل الحالية "مقروءة" ونحدث قاعدة البيانات
     cachedReadCount = currentCashierMsgCount;
     set(ref(db, "read_counters/table_" + TBL), currentCashierMsgCount);
     
-    updateBadge(); // إخفاء النقطة الحمراء فوراً
+    updateBadge(); 
     document.getElementById("chatModal").style.display = "flex";
-    renderChat(); // رسم الرسائل
+    renderChat(); 
 }
 
 function closeCh() {

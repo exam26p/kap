@@ -1,6 +1,6 @@
 // menu/menu.js
-import * as DB from '../db.js';
-import { fmt } from '../utils.js';
+import * as DB from 'db.js';
+import { fmt } from 'utils.js';
 
 /* منع التحديد والضغط المستمر */
 document.addEventListener('contextmenu', e => e.preventDefault());

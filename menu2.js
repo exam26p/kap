@@ -14,10 +14,9 @@ let prevMsgCount = 0;
 const menuLookup = {};
 const CIRC = 2 * Math.PI * 42;
 
-// متغير لتخزين بيانات المنيو المحملة مسبقاً
-let preloadedMenuData = null;
-let isMenuPreloaded = false;
-let splashTimeout = null;
+/* --- متغيرات جديدة للتحميل المسبق --- */
+let menuPreloaded = false; // هل تم جلب بيانات المنيو من الفايربيس؟
+let cachedMenuData = null; // تخزين بيانات المنيو مؤقتاً
 
 /* تحديث حالة التطبيق */
 function updateAppState() {
@@ -75,111 +74,6 @@ function msgSnd() {
     } catch (e) {}
 }
 
-/* ========== تحميل المنيو مسبقاً (Preloading) ========== */
-async function preloadMenu() {
-    console.log("بدء تحميل المنيو في الخلفية...");
-    return new Promise((resolve) => {
-        onValue(ref(db, "orders"), function(snap) {
-            preloadedMenuData = snap.val();
-            isMenuPreloaded = true;
-            console.log("تم تحميل المنيو مسبقاً بنجاح");
-            resolve(preloadedMenuData);
-        }, {
-            onlyOnce: true
-        });
-    });
-}
-
-/* تحميل المنيو من البيانات المخزنة (سريع جداً) */
-function renderMenuFromPreloadedData() {
-    var data = preloadedMenuData;
-    var c = document.getElementById("menuCats");
-    if (!c) return;
-    c.innerHTML = "";
-    
-    for (var key in menuLookup) delete menuLookup[key];
-    
-    if (!data) {
-        c.innerHTML = '<p style="color:var(--text-muted);padding:30px;text-align:center;font-size:13px;">المنيو فارغ حالياً.</p>';
-        return;
-    }
-    
-    var catIndex = 0;
-    for (var catId in data) {
-        catIndex++;
-        var cat = data[catId];
-        var items = cat.items || {};
-        var cnt = Object.keys(items).length;
-        var itemHTML = "";
-        
-        for (var itemId in items) {
-            var it = items[itemId];
-            menuLookup[catId + "_" + itemId] = { name: it.name, price: it.price };
-            var detId = "det_" + catId + "_" + itemId;
-            var details = it.details || "";
-            var hasDetails = details && details.trim().length > 0;
-            var imgSrc = it.image || "";
-
-            itemHTML += '<div class="item-card">' +
-                '<div class="item-img-container" onclick="window.openImage(\'' + imgSrc + '\')">' +
-                (imgSrc ? '<img src="' + imgSrc + '" alt="" loading="' + (catIndex <= 1 ? 'eager' : 'lazy') + '" onerror="this.style.opacity=0">' : '') +
-                '<div class="item-overlay">' +
-                '<div class="item-name">' + it.name + '</div>' +
-                '<div class="item-meta">' +
-                '<span class="item-price">' + fmt(it.price) + ' د.ع</span>' +
-                '</div>' +
-                '</div>' +
-                '</div>' +
-                (hasDetails ? '<div class="item-det-wrap" id="' + detId + '"><div class="item-det-inner"><div class="item-det-text">' + details + '</div></div></div>' : '') +
-                '<div class="item-actions-bar">' +
-                (hasDetails ? '<button class="det-btn" data-target="' + detId + '"><i class="fas fa-info-circle"></i> التفاصيل</button>' : '<div></div>') +
-                '<button class="ba" data-c="' + catId + '" data-i="' + itemId + '"><i class="fas fa-plus"></i> طلب</button>' +
-                '</div>' +
-                '</div>';
-        }
-        
-        var catImg = cat.image || "";
-        var hasImg = catImg && catImg.length > 10;
-        var acc = document.createElement("div");
-        acc.className = "cat-acc";
-        var imgPart = hasImg ? '<img src="' + catImg + '" alt="" loading="eager" style="opacity:0;transition:opacity .4s" onload="this.style.opacity=1">' : '<div class="cat-hd-fallback">🍽</div>';
-        acc.innerHTML = '<div class="cat-hd">' + imgPart + '<div class="cat-hd-content"><div class="cat-hi"><h3>' + cat.name + '</h3><span class="cc">' + cnt + ' صنف</span></div><i class="fas fa-chevron-down cat-arr"></i></div></div><div class="cat-bd">' + itemHTML + '</div>';
-        c.appendChild(acc);
-    }
-
-    // ربط الأحداث بعد الإنشاء
-    c.querySelectorAll(".ba").forEach(function(btn) {
-        addSnd(btn);
-        btn.addEventListener("click", function() {
-            var cId = this.getAttribute("data-c"),
-                iId = this.getAttribute("data-i");
-            var item = menuLookup[cId + "_" + iId];
-            if (item) addIt(cId, iId, item.name, item.price);
-        });
-    });
-    
-    c.querySelectorAll(".det-btn").forEach(function(btn) {
-        addSnd(btn);
-        btn.addEventListener("click", function() {
-            var target = document.getElementById(this.getAttribute("data-target"));
-            if (target) {
-                var isOpen = target.classList.toggle("open");
-                this.classList.toggle("active", isOpen);
-                this.innerHTML = isOpen ? '<i class="fas fa-chevron-up"></i> إغلاق' : '<i class="fas fa-info-circle"></i> التفاصيل';
-            }
-        });
-    });
-    
-    c.querySelectorAll(".cat-hd").forEach(function(hd) {
-        addSnd(hd);
-        hd.addEventListener("click", function() {
-            var wasOpen = hd.parentElement.classList.contains("open");
-            document.querySelectorAll(".cat-acc.open").forEach(function(a) { a.classList.remove("open"); });
-            if (!wasOpen) hd.parentElement.classList.add("open");
-        });
-    });
-}
-
 /* تحميل إعدادات التطبيق */
 async function loadAppSettings() {
     try {
@@ -202,6 +96,11 @@ async function loadAppSettings() {
             if (fav) fav.href = restLogo;
             state.settings.restaurantLogo = restLogo;
         }
+        if (data.orderSound) state.settings.orderSound = data.orderSound;
+        if (data.msgSound) state.settings.msgSound = data.msgSound;
+        if (data.printSound) state.settings.printSound = data.printSound;
+        if (data.clickSound) state.settings.clickSound = data.clickSound;
+        if (data.invoiceQrUrl) state.settings.invoiceQrUrl = data.invoiceQrUrl;
     } catch (e) {}
 }
 
@@ -214,45 +113,42 @@ function updateHeader() {
     }
 }
 
-/* ========== شاشة البداية ========== */
 var progBar = document.getElementById("progBar");
 var progPct = document.getElementById("progPct");
 var progVal = 0;
-var progInterval;
-var preloadComplete = false;
-
-function updateProgress() {
-    // زيادة نسبة التحميل تدريجياً حتى 95%
-    if (progVal < 95) {
-        progVal += Math.random() * 5 + 1;
-        if (progVal > 95) progVal = 95;
-        progBar.style.strokeDashoffset = CIRC - (progVal / 100) * CIRC;
-        progPct.textContent = Math.round(progVal) + "%";
-    }
-}
-
-function startFakeProgress() {
-    progInterval = setInterval(updateProgress, 120);
-}
-
-function stopFakeProgress() {
-    if (progInterval) clearInterval(progInterval);
-    progVal = 100;
+var progInterval = setInterval(function() {
+    progVal += Math.random() * 8 + 2;
+    if (progVal > 100) progVal = 100;
     progBar.style.strokeDashoffset = CIRC - (progVal / 100) * CIRC;
-    progPct.textContent = "100%";
-}
+    progPct.textContent = Math.round(progVal) + "%";
+    if (progVal >= 100) {
+        clearInterval(progInterval);
+        document.getElementById("splashBtn").classList.add("show");
+    }
+}, 200);
 
-// إظهار زر المتابعة عند اكتمال التحميل المسبق أو بعد 3 ثوانٍ كحد أقصى
-function showSplashButton() {
-    if (document.getElementById("splashBtn").classList.contains("show")) return;
-    stopFakeProgress();
-    document.getElementById("splashBtn").classList.add("show");
-}
+/* === التحميل المسبق في الخلفية فور فتح الصفحة === */
+function preloadInBackground() {
+    var u = new URLSearchParams(location.search);
+    TBL = u.get("table") || "1";
+    VER = u.get("version") || "";
+    
+    // 1. تحميل المنيو مسبقاً (الاستماع للتغييرات وتخزينها)
+    if (VER) {
+        onValue(ref(db, "orders"), function(snap) {
+            cachedMenuData = snap.val();
+            menuPreloaded = true;
+            // إذا كان المستخدم داخل النطاق والمنيو ظاهر، قم بالتحديث الفوري
+            if (isInZone && menuOk) {
+                renderMenu(cachedMenuData);
+            }
+        });
+    }
 
-function checkPreloadComplete() {
-    if (preloadComplete) {
-        if (splashTimeout) clearTimeout(splashTimeout);
-        showSplashButton();
+    // 2. تحميل الطلبات الحالية مسبقاً
+    if (TBL) {
+        listenOrd();
+        listenCh();
     }
 }
 
@@ -260,45 +156,35 @@ function bindEvents() {
     var splashBtn = document.getElementById("splashBtn");
     addSnd(splashBtn);
     splashBtn.addEventListener("click", dismissSplash);
-    
     var bibBtn = document.getElementById("bibBtn");
     addSnd(bibBtn);
     bibBtn.addEventListener("click", function() {
         document.getElementById("invoiceModal").style.display = "flex";
     });
-    
     var invClose = document.getElementById("invClose");
     addSnd(invClose);
     invClose.addEventListener("click", closeInv);
-    
     document.getElementById("invoiceModal").addEventListener("click", function(e) {
         if (e.target.id === "invoiceModal") closeInv();
     });
-    
     var btnSend = document.getElementById("btnSend");
     addSnd(btnSend);
     btnSend.addEventListener("click", sendOrd);
-    
     var msgFab = document.getElementById("msgFab");
     addSnd(msgFab);
     msgFab.addEventListener("click", openCh);
-    
     var chatClose = document.getElementById("chatClose");
     addSnd(chatClose);
     chatClose.addEventListener("click", closeCh);
-    
     document.getElementById("chatModal").addEventListener("click", function(e) {
         if (e.target.id === "chatModal") closeCh();
     });
-    
     var chatSendBtn = document.getElementById("chatSendBtn");
     addSnd(chatSendBtn);
     chatSendBtn.addEventListener("click", sendCh);
-    
     document.getElementById("chatInput").addEventListener("keydown", function(e) {
         if (e.key === "Enter") sendCh();
     });
-    
     document.getElementById("imgModalClose").addEventListener("click", closeImgModal);
     document.getElementById("imgModal").addEventListener("click", function(e) {
         if (e.target.id === "imgModal") closeImgModal();
@@ -311,25 +197,11 @@ function dismissSplash() {
         document.getElementById("splashScreen").style.display = "none";
         document.getElementById("blockScreen").style.display = "flex";
         updateHeader();
-        
-        // عرض المنيو المحمل مسبقاً فوراً
-        if (isMenuPreloaded && !menuOk) {
-            menuOk = true;
-            state.isMenuLoaded = true;
-            updateAppState();
-            renderMenuFromPreloadedData();
-            listenOrd();
-            listenCh();
-        }
-        
         setTimeout(function() { initGeo(); }, 100);
     }, 600);
 }
 
 async function initGeo() {
-    var u = new URLSearchParams(location.search);
-    TBL = u.get("table") || "1";
-    VER = u.get("version") || "";
     document.getElementById("tblB").textContent = "طاولة " + TBL;
     updateAppState();
     
@@ -363,7 +235,7 @@ async function initGeo() {
             return;
         }
         sGeo("wait", "✅", "تم التحقق", "جاري تتبع موقعك لحظياً.");
-        startWatchingPosition();
+        startW();
     } catch (e) {
         sGeo("err", "📡", "خطأ في الاتصال", "تعذر الاتصال حالياً.");
     }
@@ -371,51 +243,46 @@ async function initGeo() {
 
 function sGeo(ic, i, t, m) {
     var el = document.getElementById("geoIcon");
-    if (el) {
-        el.className = "geo-icon " + ic;
-        el.innerHTML = i;
-    }
-    var titleEl = document.getElementById("geoTitle");
-    var msgEl = document.getElementById("geoMsg");
-    var distEl = document.getElementById("geoDist");
-    var blockedEl = document.getElementById("geoBlocked");
-    if (titleEl) titleEl.textContent = t;
-    if (msgEl) msgEl.textContent = m;
-    if (distEl) distEl.style.display = "none";
-    if (blockedEl) blockedEl.style.display = "none";
+    el.className = "geo-icon " + ic;
+    el.innerHTML = i;
+    document.getElementById("geoTitle").textContent = t;
+    document.getElementById("geoMsg").textContent = m;
+    document.getElementById("geoDist").style.display = "none";
+    document.getElementById("geoBlocked").style.display = "none";
 }
 
-function startWatchingPosition() {
+function startW() {
     if (!navigator.geolocation) {
         document.getElementById("geoCard").style.display = "none";
         document.getElementById("geoBlocked").style.display = "block";
         return;
     }
-    watchID = navigator.geolocation.watchPosition(onPositionSuccess, onPositionError, {
+    watchID = navigator.geolocation.watchPosition(onP, onE, {
         enableHighAccuracy: true,
         timeout: 15000,
         maximumAge: 0
     });
 }
 
-function onPositionSuccess(pos) {
+function onP(pos) {
     curLat = pos.coords.latitude;
     curLon = pos.coords.longitude;
     curDist = haversine(curLat, curLon, zone.center_latitude, zone.center_longitude);
     var rad = zone.radius_meters || 100;
     updateDistBar(curDist, rad);
-    
     if (curDist <= rad) {
         if (!isInZone) {
             isInZone = true;
             state.isGeoVerified = true;
             updateAppState();
-            
             document.getElementById("blockScreen").style.display = "none";
             document.getElementById("kickScreen").style.display = "none";
             document.getElementById("menuContent").style.display = "block";
             document.getElementById("bottomBar").style.display = "flex";
             document.getElementById("distBar").style.display = "block";
+            
+            // عرض المنيو فوراً بالبيانات المحملة مسبقاً
+            if (!menuOk) initMenu();
         }
     } else if (curDist <= rad * 2) {
         if (isInZone) {
@@ -429,11 +296,9 @@ function onPositionSuccess(pos) {
             sGeo("err", "🚫", "خارج النطاق", "اقترب أكثر من المطعم.");
         }
         var dEl = document.getElementById("geoDist");
-        if (dEl) {
-            dEl.style.display = "block";
-            dEl.className = "geo-dist out";
-            dEl.innerHTML = '<i class="fas fa-triangle-exclamation" style="margin-left:5px;"></i><b>خارج النطاق المسموح</b>';
-        }
+        dEl.style.display = "block";
+        dEl.className = "geo-dist out";
+        dEl.innerHTML = '<i class="fas fa-triangle-exclamation" style="margin-left:5px;"></i><b>خارج النطاق المسموح</b>';
     } else {
         if (!document.getElementById("kickScreen").style.display || document.getElementById("kickScreen").style.display === "none") {
             isInZone = false;
@@ -448,7 +313,7 @@ function onPositionSuccess(pos) {
     }
 }
 
-function onPositionError() {
+function onE() {
     document.getElementById("geoCard").style.display = "none";
     document.getElementById("geoBlocked").style.display = "block";
 }
@@ -457,7 +322,6 @@ function updateDistBar(dist, radius) {
     var proximity = Math.max(0, Math.min(100, (1 - dist / radius) * 100));
     var fill = document.getElementById("distFill");
     var val = document.getElementById("distValue");
-    if (!fill || !val) return;
     fill.style.width = proximity + "%";
     var r, g, b;
     if (proximity >= 50) {
@@ -477,6 +341,103 @@ function updateDistBar(dist, radius) {
     val.style.color = color;
 }
 
+/* === عرض المنيو === */
+function initMenu() {
+    menuOk = true;
+    state.isMenuLoaded = true;
+    updateAppState();
+    
+    // إذا كانت البيانات محملة مسبقاً، اعرضها فوراً (سرعة البرق)
+    if (menuPreloaded && cachedMenuData !== null) {
+        renderMenu(cachedMenuData);
+    } else {
+        // في حال لم تكتمل الخلفية بعد، اظهر رسالة تحميل خفيفة
+        document.getElementById("menuCats").innerHTML = '<p style="color:var(--text-muted);padding:30px;text-align:center;font-size:13px;">جاري تحضير المنيو...</p>';
+    }
+}
+
+/* فصل رسم المنيو عن جلب البيانات لضمان السرعة */
+function renderMenu(data) {
+    var c = document.getElementById("menuCats");
+    c.innerHTML = "";
+    for (var key in menuLookup) delete menuLookup[key];
+    
+    if (!data) {
+        c.innerHTML = '<p style="color:var(--text-muted);padding:30px;text-align:center;font-size:13px;">المنيو فارغ حالياً.</p>';
+        return;
+    }
+    state.menuData = data;
+    var catIndex = 0;
+    for (var catId in data) {
+        catIndex++;
+        var cat = data[catId];
+        var items = cat.items || {};
+        var cnt = Object.keys(items).length;
+        var itemHTML = "";
+        for (var itemId in items) {
+            var it = items[itemId];
+            menuLookup[catId + "_" + itemId] = { name: it.name, price: it.price };
+            var detId = "det_" + catId + "_" + itemId;
+            var details = it.details || "";
+            var hasDetails = details && details.trim().length > 0;
+            var imgSrc = it.image || "";
+
+            itemHTML += '<div class="item-card">' +
+                '<div class="item-img-container" onclick="window.openImage(\'' + imgSrc + '\')">' +
+                (imgSrc ? '<img src="' + imgSrc + '" alt="" loading="' + (catIndex <= 1 ? 'eager' : 'lazy') + '" onerror="this.style.opacity=0">' : '') +
+                '<div class="item-overlay">' +
+                '<div class="item-name">' + it.name + '</div>' +
+                '<div class="item-meta">' +
+                '<span class="item-price">' + fmt(it.price) + ' د.ع</span>' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
+                (hasDetails ? '<div class="item-det-wrap" id="' + detId + '"><div class="item-det-inner"><div class="item-det-text">' + details + '</div></div></div>' : '') +
+                '<div class="item-actions-bar">' +
+                (hasDetails ? '<button class="det-btn" data-target="' + detId + '"><i class="fas fa-info-circle"></i> التفاصيل</button>' : '<div></div>') +
+                '<button class="ba" data-c="' + catId + '" data-i="' + itemId + '"><i class="fas fa-plus"></i> طلب</button>' +
+                '</div>' +
+                '</div>';
+        }
+        var catImg = cat.image || "";
+        var hasImg = catImg && catImg.length > 10;
+        var acc = document.createElement("div");
+        acc.className = "cat-acc";
+        var imgPart = hasImg ? '<img src="' + catImg + '" alt="" loading="eager" style="opacity:0;transition:opacity .4s" onload="this.style.opacity=1">' : '<div class="cat-hd-fallback">🍽</div>';
+        acc.innerHTML = '<div class="cat-hd">' + imgPart + '<div class="cat-hd-content"><div class="cat-hi"><h3>' + cat.name + '</h3><span class="cc">' + cnt + ' صنف</span></div><i class="fas fa-chevron-down cat-arr"></i></div></div><div class="cat-bd">' + itemHTML + '</div>';
+        c.appendChild(acc);
+    }
+
+    c.querySelectorAll(".ba").forEach(function(btn) {
+        addSnd(btn);
+        btn.addEventListener("click", function() {
+            var cId = this.getAttribute("data-c"),
+                iId = this.getAttribute("data-i");
+            var item = menuLookup[cId + "_" + iId];
+            if (item) addIt(cId, iId, item.name, item.price);
+        });
+    });
+    c.querySelectorAll(".det-btn").forEach(function(btn) {
+        addSnd(btn);
+        btn.addEventListener("click", function() {
+            var target = document.getElementById(this.getAttribute("data-target"));
+            if (target) {
+                var isOpen = target.classList.toggle("open");
+                this.classList.toggle("active", isOpen);
+                this.innerHTML = isOpen ? '<i class="fas fa-chevron-up"></i> إغلاق' : '<i class="fas fa-info-circle"></i> التفاصيل';
+            }
+        });
+    });
+    c.querySelectorAll(".cat-hd").forEach(function(hd) {
+        addSnd(hd);
+        hd.addEventListener("click", function() {
+            var wasOpen = hd.parentElement.classList.contains("open");
+            document.querySelectorAll(".cat-acc.open").forEach(function(a) { a.classList.remove("open"); });
+            if (!wasOpen) hd.parentElement.classList.add("open");
+        });
+    });
+}
+
 function addIt(cId, iId, name, price) {
     var k = cId + "_" + iId;
     var r = ref(db, "table_" + TBL + "/current_orders/" + k);
@@ -491,13 +452,13 @@ function addIt(cId, iId, name, price) {
 function listenOrd() {
     var tk = "table_" + TBL;
     
+    // استمع إلى current_orders (الطلبات المعلقة)
     onValue(ref(db, tk + "/current_orders"), function(snap) {
         var d = snap.val();
         orders = d || {};
         state.ordersData = orders;
         var total = 0, count = 0;
         var ic = document.getElementById("invItems");
-        if (!ic) return;
         if (!d) {
             ic.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px;font-size:13px;">لا توجد طلبات معلقة.</p>';
             document.getElementById("btnSend").disabled = true;
@@ -515,7 +476,7 @@ function listenOrd() {
             count += it.quantity;
             var row = document.createElement("div");
             row.className = "inv-i";
-            row.innerHTML = '<div style="min-width:0;flex:1"><div class="inv-n">' + it.name + '</div><div class="inv-s">' + fmt(it.price) + ' د.ع \u00d7 ' + it.quantity + '</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><span class="inv-t">' + fmt(sub) + '</span><div class="qc"><button class="qb qmin" data-key="' + k + '" data-d="-1">\u2212</button><span class="qv">' + it.quantity + '</span><button class="qb qplu" data-key="' + k + '" data-d="1">+</button></div></div>';
+            row.innerHTML = '<div style="min-width:0;flex:1"><div class="inv-n">' + it.name + '</div><div class="inv-s">' + fmt(it.price) + ' د.ع × ' + it.quantity + '</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><span class="inv-t">' + fmt(sub) + '</span><div class="qc"><button class="qb qmin" data-key="' + k + '" data-d="-1">−</button><span class="qv">' + it.quantity + '</span><button class="qb qplu" data-key="' + k + '" data-d="1">+</button></div></div>';
             ic.appendChild(row);
         }
         ic.querySelectorAll(".qb").forEach(function(qb) {
@@ -537,10 +498,10 @@ function listenOrd() {
         document.getElementById("invTotal").textContent = "الإجمالي: " + fmt(total) + " دينار";
     });
     
+    // استمع إلى sent_orders (الطلبات المرسلة)
     onValue(ref(db, "tablesB/" + tk + "/sent_orders"), function(snap) {
         var d = snap.val();
         var c = document.getElementById("sentItems");
-        if (!c) return;
         if (!d) {
             c.innerHTML = '<p style="color:var(--text-muted);font-size:12px;">لا توجد طلبات مرسلة.</p>';
             return;
@@ -548,7 +509,7 @@ function listenOrd() {
         c.innerHTML = "";
         for (var k in d) {
             var it = d[k];
-            c.innerHTML += '<div class="si"><span>\u2022 ' + it.name + ' (\u00d7' + it.quantity + ')</span><span style="color:var(--text-muted);font-size:11px;">' + fmt(it.price * it.quantity) + ' د.ع</span></div>';
+            c.innerHTML += '<div class="si"><span>• ' + it.name + ' (×' + it.quantity + ')</span><span style="color:var(--text-muted);font-size:11px;">' + fmt(it.price * it.quantity) + ' د.ع</span></div>';
         }
     });
 }
@@ -607,7 +568,6 @@ function listenCh() {
     function renderMsgs(sA, sB) {
         if (!chatOn) return;
         var box = document.getElementById("chatMsgs");
-        if (!box) return;
         box.innerHTML = "";
         var msgs = [];
         if (sA.exists()) {
@@ -673,7 +633,6 @@ function updUnread(count) {
 
 function showUnread(c) {
     var dot = document.getElementById("msgDot");
-    if (!dot) return;
     if (c > 0) {
         dot.style.display = "flex";
         dot.textContent = c > 9 ? "9+" : String(c);
@@ -686,10 +645,8 @@ function showUnread(c) {
 function openCh() {
     chatOn = true;
     unreadN = 0;
-    var dot = document.getElementById("msgDot");
-    if (dot) dot.style.display = "none";
-    var modal = document.getElementById("chatModal");
-    if (modal) modal.style.display = "flex";
+    document.getElementById("msgDot").style.display = "none";
+    document.getElementById("chatModal").style.display = "flex";
     prevMsgCount = 0;
 }
 
@@ -700,7 +657,6 @@ function closeCh() {
 
 function sendCh() {
     var inp = document.getElementById("chatInput");
-    if (!inp) return;
     var t = inp.value.trim();
     if (!t) return;
     set(push(ref(db, "msgA/table_" + TBL)), {
@@ -715,38 +671,21 @@ window.openImage = function(src) {
     if (!src) return;
     var modal = document.getElementById("imgModal");
     var img = document.getElementById("imgModalImg");
-    if (modal && img) {
-        img.src = src;
-        modal.style.display = "flex";
-    }
+    img.src = src;
+    modal.style.display = "flex";
 };
 
 window.closeImgModal = function() {
-    var modal = document.getElementById("imgModal");
-    if (modal) modal.style.display = "none";
+    document.getElementById("imgModal").style.display = "none";
 };
-
-// بدء التحميل المسبق للمنيو
-const preloadPromise = preloadMenu();
-preloadPromise.then(() => {
-    preloadComplete = true;
-    checkPreloadComplete();
-});
-
-// مهلة قصوى 3 ثوانٍ لظهور الزر
-splashTimeout = setTimeout(function() {
-    if (!preloadComplete) {
-        console.log("انتهت المهلة الزمنية - إظهار الزر");
-        preloadComplete = true;
-        showSplashButton();
-    }
-}, 3000);
 
 document.addEventListener("click", function() {
     if (aC.state === "suspended") aC.resume();
 }, { once: true });
 
-// بدء تشغيل التطبيق
-startFakeProgress();
+// تشغيل الأحداث الأساسية
 bindEvents();
 loadAppSettings();
+
+// 🚀 التحميل المسبق في الخلفية فور فتح الصفحة (سرعة البرق)
+preloadInBackground();

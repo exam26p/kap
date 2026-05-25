@@ -9,7 +9,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Noto+Kufi+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     
-    <!-- خطوة 1: إجبار الشاشة الخضراء على أن تكون شفافة فوراً قبل أي عنصر آخر -->
     <style>
         body { background: transparent !important; }
         body::before, body::after { content: none !important; }
@@ -22,12 +21,9 @@
         }
     </style>
 
-    <!-- خطوة 2: تحميل ملف CSS الخاص بك -->
     <link rel="stylesheet" href="menu.css">
 
-    <!-- خطوة 3: تنسيقات الفيديو والأيقونة -->
     <style>
-        /* تنسيقات خلفية الفيديو */
         #bgVideo {
             position: fixed;
             top: 0;
@@ -38,7 +34,6 @@
             z-index: -2;
         }
 
-        /* تنسيق أيقونة الصوت */
         .mute-icon {
             position: fixed;
             bottom: 30px;
@@ -81,13 +76,11 @@
 </head>
 <body>
 
-<!-- فيديو الخلفية -->
 <video id="bgVideo" autoplay muted loop playsinline preload="auto">
     <source src="https://raw.githubusercontent.com/exam26p/kap/main/assets/background_video.mp4" type="video/mp4">
 </video>
 
-<!-- أيقونة تفعيل الصوت -->
-<div id="muteToggle" class="mute-icon" title="اضغط في أي مكان لتفعيل الصوت">
+<div id="muteToggle" class="mute-icon" title="اضغط لتفعيل الصوت">
     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
         <path d="M5.889 16H2a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1h3.889l5.294-4.332a.5.5 0 0 1 .817.387v15.89a.5.5 0 0 1-.817.387L5.89 16z"/>
         <path d="M20.414 12l2.293-2.293a1 1 0 0 0-1.414-1.414L19 10.586l-2.293-2.293a1 1 0 0 0-1.414 1.414L17.586 12l-2.293 2.293a1 1 0 1 0 1.414 1.414L19 13.414l2.293 2.293a1 1 0 0 0 1.414-1.414L20.414 12z"/>
@@ -103,8 +96,8 @@
     <div class="splash-title" id="splashTitle">أهلاً وسهلاً</div>
     <div class="splash-sub">نستمتع بتقديم أفضل الخدمات لكم</div>
     <div class="splash-progress">
-    <div id="splashQuote" class="splash-quote"></div>
-</div>
+        <div id="splashQuote" class="splash-quote"></div>
+    </div>
     <button class="splash-btn" id="splashBtn">متابعة</button>
 </div>
 
@@ -150,7 +143,6 @@
     <div id="menuCats"></div>
 </div>
 
-<!-- مودال تكبير الصورة -->
 <div id="imgModal">
     <img id="imgModalImg" src="" alt="Full Size">
     <button id="imgModalClose">إغلاق</button>
@@ -180,33 +172,35 @@
 </div>
 
 <script>
-    // منع توقف الفيديو عند الضغط عليه وتفعيل الصوت الذكي
     document.addEventListener("DOMContentLoaded", function() {
         const bgVideo = document.getElementById('bgVideo');
         const muteToggle = document.getElementById('muteToggle');
+        const splashBtn = document.getElementById('splashBtn'); // جلب زر شاشة التحميل
 
-        // منع النقر على الفيديو من إيقاف تشغيله
-        bgVideo.addEventListener('click', function(e) {
-            e.preventDefault();
-        });
-        
-        bgVideo.addEventListener('touchstart', function(e) {
-            e.preventDefault();
-        }, { passive: false });
+        // منع إيقاف الفيديو عند الضغط عليه
+        bgVideo.addEventListener('click', function(e) { e.preventDefault(); });
+        bgVideo.addEventListener('touchstart', function(e) { e.preventDefault(); }, { passive: false });
 
-        // دالة تفعيل الصوت
+        // دالة تفعيل الصوت للهواتف
         function enableSound() {
             if (bgVideo.muted) {
                 bgVideo.muted = false;
+                bgVideo.play().catch(()=>{}); // أمر تشغيل إجباري يتقبله الهاتف بعد التفاعل
                 muteToggle.classList.add('unmuted');
             }
         }
 
-        // تفعيل الصوت عند اللمس أو النقر في أي مكان بالصفحة
-        document.addEventListener('click', enableSound);
-        document.addEventListener('touchstart', enableSound);
+        // الحل السحري: ربط فتح الصوت بالضغط على زر "مشاهدة المينيو" 
+        // لأنه أول تفاعل حقيقي يقوم به المستخدم على الهاتف
+        splashBtn.addEventListener('click', enableSound);
+        splashBtn.addEventListener('touchend', enableSound);
 
-        // مراقبة حالة الصوت
+        // تفعيل الصوت أيضاً عند الضغط على أيقونة الصوت أو أي مكان آخر بعد إزالة شاشة التحميل
+        muteToggle.addEventListener('click', enableSound);
+        muteToggle.addEventListener('touchend', enableSound);
+        document.addEventListener('click', enableSound);
+
+        // مراقبة تغير حالة الصوت لإظهار/إخفاء الأيقونة
         bgVideo.addEventListener('volumechange', function() {
             if (bgVideo.muted) {
                 muteToggle.classList.remove('unmuted');

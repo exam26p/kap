@@ -8,9 +8,91 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Noto+Kufi+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <!-- خطوة 1: إجبار الشاشة الخضراء على أن تكون شفافة فوراً قبل أي عنصر آخر -->
+    <style>
+        body { background: transparent !important; }
+        body::before, body::after { content: none !important; }
+        #splashScreen, #blockScreen, #kickScreen { 
+            background: transparent !important; 
+        }
+        .splash-title, .splash-sub, .splash-quote { 
+            text-shadow: 0 3px 8px rgba(0,0,0,0.9) !important; 
+            color: #fff !important;
+        }
+    </style>
+
+    <!-- خطوة 2: تحميل ملف CSS الخاص بك -->
     <link rel="stylesheet" href="menu.css">
+
+    <!-- خطوة 3: تنسيقات الفيديو والأيقونة -->
+    <style>
+        /* تنسيقات خلفية الفيديو */
+        #bgVideo {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -2;
+        }
+
+        /* تنسيق أيقونة الصوت */
+        .mute-icon {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 56px;
+            height: 56px;
+            background: rgba(61, 90, 62, 0.2);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 99999;
+            border: 1px solid rgba(201, 169, 110, 0.4);
+            transition: all 0.3s ease;
+            animation: pulse 2s infinite;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+        .mute-icon:hover {
+            background: rgba(61, 90, 62, 0.4);
+            transform: translateX(-50%) scale(1.1);
+        }
+        .mute-icon svg {
+            width: 28px;
+            height: 28px;
+            fill: var(--olive);
+        }
+        .mute-icon.unmuted {
+            display: none;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(201, 169, 110, 0.5); }
+            70% { box-shadow: 0 0 0 15px rgba(201, 169, 110, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(201, 169, 110, 0); }
+        }
+    </style>
 </head>
 <body>
+
+<!-- فيديو الخلفية -->
+<video id="bgVideo" autoplay muted loop playsinline preload="auto">
+    <source src="https://raw.githubusercontent.com/exam26p/kap/main/assets/background_video.mp4" type="video/mp4">
+</video>
+
+<!-- أيقونة تفعيل الصوت -->
+<div id="muteToggle" class="mute-icon" title="اضغط في أي مكان لتفعيل الصوت">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M5.889 16H2a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1h3.889l5.294-4.332a.5.5 0 0 1 .817.387v15.89a.5.5 0 0 1-.817.387L5.89 16z"/>
+        <path d="M20.414 12l2.293-2.293a1 1 0 0 0-1.414-1.414L19 10.586l-2.293-2.293a1 1 0 0 0-1.414 1.414L17.586 12l-2.293 2.293a1 1 0 1 0 1.414 1.414L19 13.414l2.293 2.293a1 1 0 0 0 1.414-1.414L20.414 12z"/>
+    </svg>
+</div>
 
 <div class="tw" id="tw"></div>
 
@@ -96,6 +178,44 @@
         <div class="ch-in"><input type="text" id="chatInput" placeholder="اكتب رسالتك..."><button id="chatSendBtn">إرسال</button></div>
     </div>
 </div>
+
+<script>
+    // منع توقف الفيديو عند الضغط عليه وتفعيل الصوت الذكي
+    document.addEventListener("DOMContentLoaded", function() {
+        const bgVideo = document.getElementById('bgVideo');
+        const muteToggle = document.getElementById('muteToggle');
+
+        // منع النقر على الفيديو من إيقاف تشغيله
+        bgVideo.addEventListener('click', function(e) {
+            e.preventDefault();
+        });
+        
+        bgVideo.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+        }, { passive: false });
+
+        // دالة تفعيل الصوت
+        function enableSound() {
+            if (bgVideo.muted) {
+                bgVideo.muted = false;
+                muteToggle.classList.add('unmuted');
+            }
+        }
+
+        // تفعيل الصوت عند اللمس أو النقر في أي مكان بالصفحة
+        document.addEventListener('click', enableSound);
+        document.addEventListener('touchstart', enableSound);
+
+        // مراقبة حالة الصوت
+        bgVideo.addEventListener('volumechange', function() {
+            if (bgVideo.muted) {
+                muteToggle.classList.remove('unmuted');
+            } else {
+                muteToggle.classList.add('unmuted');
+            }
+        });
+    });
+</script>
 
 <script type="module" src="menu2.js"></script>
 </body>

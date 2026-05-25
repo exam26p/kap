@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم - تحديث فيديو الخلفية</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #f0f2f5; 
+            padding: 40px 20px; 
+            margin: 0;
+        }
+        .upload-card { 
+            background: white; 
+            padding: 30px; 
+            border-radius: 12px; 
+            max-width: 550px; 
+            margin: auto; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
+        }
+        h2 { 
+            color: #1a1a1a; 
+            margin-top: 0;
+            margin-bottom: 10px; 
+            font-size: 22px;
+        }
+        p.description {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+        .input-group { 
+            margin-bottom: 20px; 
+        }
+        label { 
+            display: block; 
+            margin-bottom: 10px; 
+            font-weight: 600; 
+            color: #444; 
+        }
+        input[type="file"] { 
+            width: 100%; 
+            padding: 15px; 
+            border: 2px dashed #cbd5e1; 
+            border-radius: 8px; 
+            background: #f8fafc; 
+            cursor: pointer; 
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+        input[type="file"]:hover {
+            border-color: #3b82f6;
+        }
+        .status-message { 
+            margin-top: 20px; 
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: bold; 
+            font-size: 15px;
+            display: none; 
+        }
+        .info-box {
+            background-color: #eff6ff;
+            border-right: 4px solid #3b82f6;
+            padding: 10px;
+            font-size: 13px;
+            color: #1e40af;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="upload-card">
+    <h2>تغيير فيديو الخلفية للموقع</h2>
+    <p class="description">يمكن للمستخدم رفع فيديو من هنا ليصبح خلفية للموقع الرئيسي فوراً. يقوم النظام تلقائياً بالتخلص من الفيديو القديم لتوفير المساحة.</p>
+    
+    <div class="info-box">
+        <strong>شرط حماية الاستضافة:</strong><br>
+        • الحد الأقصى لحجم الملف: 15 ميجابايت (لا يهم مدة الفيديو الزمنية طالما الحجم مسموح به).
+    </div>
+
+    <div class="input-group">
+        <label for="videoInput">اختر ملف الفيديو بصيغة MP4:</label>
+        <input type="file" id="videoInput" accept="video/mp4">
+    </div>
+
+    <div id="uploadStatus" class="status-message"></div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import { getStorage, ref, uploadBytes } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
+
+    // بيانات مشروعك الخاصة بـ Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyCEEqEALOCaQo5oSoR8A_Jh9eSpHS8Sz5o",
+        authDomain: "game1-bb93e.firebaseapp.com",
+        databaseURL: "https://game1-bb93e-default-rtdb.firebaseio.com",
+        projectId: "game1-bb93e",
+        storageBucket: "game1-bb93e.firebasestorage.app",
+        messagingSenderId: "268851425259",
+        appId: "1:268851425259:web:0074f52657190d7347b3ae"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const storage = getStorage(app);
+
+    // تحديد الحد الأقصى للحجم فقط
+    const MAX_ALLOWED_SIZE_MB = 15;   
+
+    const videoInput = document.getElementById('videoInput');
+    const uploadStatus = document.getElementById('uploadStatus');
+
+    videoInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // حساب حجم الملف بالميجابايت
+        const fileSizeMB = file.size / (1024 * 1024);
+
+        // الفحص بناءً على الحجم فقط
+        if (fileSizeMB > MAX_ALLOWED_SIZE_MB) {
+            alert(`عذراً، حجم الفيديو كبير جداً (${fileSizeMB.toFixed(1)}MB).\nالحد الأقصى المسموح به هو ${MAX_ALLOWED_SIZE_MB}MB لحماية مساحة الاستضافة.`);
+            resetInput();
+            return;
+        }
+
+        // إذا كان الحجم سليماً، يبدأ الرفع فوراً دون فحص الوقت
+        showStatus("الحجم مطابق للشروط! جاري رفع الفيديو الآن واستبدال الملف السابق...", "#d97706", "#fffbeb");
+        uploadNewVideo(file);
+    });
+
+    function uploadNewVideo(file) {
+        const videoRef = ref(storage, 'videos/background_video.mp4');
+
+        uploadBytes(videoRef, file).then((snapshot) => {
+            showStatus("✅ تم رفع الفيديو الجديد بنجاح وحذف الفيديو السابق تلقائياً!", "#16a34a", "#f0fdf4");
+            videoInput.value = ""; 
+        }).catch((error) => {
+            console.error("Firebase Upload Error:", error);
+            showStatus("❌ فشل رفع الفيديو. تأكد من اتصال الإنترنت أو إعدادات القواعد في Firebase Storage.", "#dc2626", "#fef2f2");
+        });
+    }
+
+    function showStatus(text, textColor, bgColor) {
+        uploadStatus.style.display = "block";
+        uploadStatus.style.color = textColor;
+        uploadStatus.style.backgroundColor = bgColor;
+        uploadStatus.style.border = `1px solid ${textColor}`;
+        uploadStatus.innerText = text;
+    }
+
+    function resetInput() {
+        videoInput.value = "";
+        uploadStatus.style.display = "none";
+    }
+</script>
+</body>
+</html>

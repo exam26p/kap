@@ -68,17 +68,19 @@
             border: 1px solid rgba(201, 169, 110, 0.4);
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-            text-decoration: none;
+            padding: 0; /* إزالة الحشو للأزرار */
+            outline: none;
         }
 
-        .social-icon:hover, .mute-icon:hover {
-            background: rgba(61, 90, 62, 0.4);
-            transform: scale(1.1);
+        .social-icon:active, .mute-icon:active {
+            transform: scale(0.9); /* تأثير الضغط */
+            background: rgba(61, 90, 62, 0.6);
         }
 
         .social-icon i {
             font-size: 24px;
             color: var(--olive);
+            pointer-events: none; /* منع الأيقونة الداخلية من اعتراض الضغطة */
         }
 
         .mute-icon {
@@ -89,6 +91,7 @@
             width: 28px;
             height: 28px;
             fill: var(--olive);
+            pointer-events: none;
         }
         .mute-icon.unmuted {
             display: none;
@@ -108,10 +111,10 @@
 
 <!-- حاوية أيقونات الصوت والتواصل الاجتماعي -->
 <div class="bottom-icons-container" id="bottomIconsContainer">
-    <a href="#" id="socialFb" class="social-icon" target="_blank" rel="noopener noreferrer" title="فيسبوك"><i class="fab fa-facebook-f"></i></a>
-    <a href="#" id="socialIg" class="social-icon" target="_blank" rel="noopener noreferrer" title="انستغرام"><i class="fab fa-instagram"></i></a>
-    <a href="#" id="socialWa" class="social-icon" target="_blank" rel="noopener noreferrer" title="واتساب"><i class="fab fa-whatsapp"></i></a>
-    <a href="#" id="socialMap" class="social-icon" target="_blank" rel="noopener noreferrer" title="موقعنا"><i class="fas fa-location-dot"></i></a>
+    <button id="socialFb" class="social-icon" data-url="#" title="فيسبوك"><i class="fab fa-facebook-f"></i></button>
+    <button id="socialIg" class="social-icon" data-url="#" title="انستغرام"><i class="fab fa-instagram"></i></button>
+    <button id="socialWa" class="social-icon" data-url="#" title="واتساب"><i class="fab fa-whatsapp"></i></button>
+    <button id="socialMap" class="social-icon" data-url="#" title="موقعنا"><i class="fas fa-location-dot"></i></button>
     
     <div id="muteToggle" class="mute-icon" title="اضغط لتفعيل الصوت">
         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -222,7 +225,6 @@
             }
         }
 
-        // إصلاح مشكلة النقر المسبق: لا يفعل الصوت إلا إذا كان الزر ظاهراً
         splashBtn.addEventListener("click", function(e) {
             if (!splashBtn.classList.contains('show')) { e.preventDefault(); return; }
             enableSound();
@@ -260,20 +262,33 @@
     let currentCashierMsgCount = 0; 
     let cachedReadCount = 0; 
 
-    /* === سحب روابط التواصل الاجتماعي من الفايربيس === */
+    /* === سحب روابط التواصل الاجتماعي وربطها بالأزرار === */
     async function loadSocialLinks() {
         try {
             const snap = await get(ref(db, "data/-OtW677IyPfMvtFSza0w"));
             const data = snap.val();
             if (data) {
-                if (data.facebook) document.getElementById('socialFb').href = data.facebook;
-                if (data.instagram) document.getElementById('socialIg').href = data.instagram;
-                if (data.whatsapp) document.getElementById('socialWa').href = data.whatsapp;
-                if (data.map) document.getElementById('socialMap').href = data.map;
+                // تحديث الخاصية data-url بدلاً من href
+                if (data.facebook) document.getElementById('socialFb').setAttribute('data-url', data.facebook);
+                if (data.instagram) document.getElementById('socialIg').setAttribute('data-url', data.instagram);
+                if (data.whatsapp) document.getElementById('socialWa').setAttribute('data-url', data.whatsapp);
+                if (data.map) document.getElementById('socialMap').setAttribute('data-url', data.map);
             }
         } catch (e) {
             console.error("Error loading social links:", e);
         }
+
+        // ربط حدث الضغط لفتح الرابط في نافذة جديدة بشكل إجباري
+        document.querySelectorAll('.social-icon').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const url = this.getAttribute('data-url');
+                if (url && url !== '#') {
+                    window.open(url, '_blank', 'noopener,noreferrer');
+                } else {
+                    toast("الرابط غير متاح حالياً", "info");
+                }
+            });
+        });
     }
 
     const splashQuotes = [
@@ -363,7 +378,6 @@
         var splashBtn = document.getElementById("splashBtn");
         addSnd(splashBtn);
         splashBtn.addEventListener("click", function(e) {
-            // منع الانتقال إذا لم يكن الزر ظاهراً بعد
             if (!splashBtn.classList.contains('show')) { e.preventDefault(); return; }
             dismissSplash();
         });

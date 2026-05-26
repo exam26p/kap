@@ -44,7 +44,7 @@
             justify-content: center;
             align-items: center;
             gap: 15px;
-            z-index: 99999;
+            z-index: 1000000; /* مستوى طبقة عالي جداً لضمان عدم تغطيته */
             transition: all 0.4s ease;
         }
 
@@ -57,30 +57,34 @@
         .social-icon, .mute-icon {
             width: 56px;
             height: 56px;
-            background: rgba(61, 90, 62, 0.2);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            /* تم استبدال الـ backdrop-filter بخلفية RGBa لتجنب حجب النقر على الهواتف */
+            background: rgba(30, 50, 31, 0.85); 
+            -webkit-tap-highlight-color: transparent;
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
             cursor: pointer;
-            border: 1px solid rgba(201, 169, 110, 0.4);
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-            padding: 0; /* إزالة الحشو للأزرار */
+            border: 1px solid rgba(201, 169, 110, 0.5);
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+            padding: 0;
             outline: none;
+            position: relative;
+            z-index: 1000001;
         }
 
-        .social-icon:active, .mute-icon:active {
-            transform: scale(0.9); /* تأثير الضغط */
-            background: rgba(61, 90, 62, 0.6);
+        /* تأثير الضغط المحسّن */
+        .social-icon:active {
+            transform: scale(0.88);
+            background: rgba(61, 90, 62, 0.95);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
         }
 
         .social-icon i {
             font-size: 24px;
-            color: var(--olive);
-            pointer-events: none; /* منع الأيقونة الداخلية من اعتراض الضغطة */
+            color: #C9A96E; /* اللون الذهبي ليظهر بوضوح على الخلفية الداكنة */
+            pointer-events: none; /* مهم جداً: يمنع الأيقونة من اعتراض الضغطة */
         }
 
         .mute-icon {
@@ -90,8 +94,8 @@
         .mute-icon svg {
             width: 28px;
             height: 28px;
-            fill: var(--olive);
-            pointer-events: none;
+            fill: #C9A96E;
+            pointer-events: none; /* يمنع الـ SVG من اعتراض الضغطة */
         }
         .mute-icon.unmuted {
             display: none;
@@ -111,17 +115,18 @@
 
 <!-- حاوية أيقونات الصوت والتواصل الاجتماعي -->
 <div class="bottom-icons-container" id="bottomIconsContainer">
+    <!-- تم تحويلها لأزرار لضمان عمل النقر على الموبايل -->
     <button id="socialFb" class="social-icon" data-url="#" title="فيسبوك"><i class="fab fa-facebook-f"></i></button>
     <button id="socialIg" class="social-icon" data-url="#" title="انستغرام"><i class="fab fa-instagram"></i></button>
     <button id="socialWa" class="social-icon" data-url="#" title="واتساب"><i class="fab fa-whatsapp"></i></button>
     <button id="socialMap" class="social-icon" data-url="#" title="موقعنا"><i class="fas fa-location-dot"></i></button>
     
-    <div id="muteToggle" class="mute-icon" title="اضغط لتفعيل الصوت">
+    <button id="muteToggle" class="mute-icon" title="اضغط لتفعيل الصوت">
         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path d="M5.889 16H2a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1h3.889l5.294-4.332a.5.5 0 0 1 .817.387v15.89a.5.5 0 0 1-.817.387L5.89 16z"/>
             <path d="M20.414 12l2.293-2.293a1 1 0 0 0-1.414-1.414L19 10.586l-2.293-2.293a1 1 0 0 0-1.414 1.414L17.586 12l-2.293 2.293a1 1 0 1 0 1.414 1.414L19 13.414l2.293 2.293a1 1 0 0 0 1.414-1.414L20.414 12z"/>
         </svg>
-    </div>
+    </button>
 </div>
 
 <div class="tw" id="tw"></div>
@@ -225,14 +230,17 @@
             }
         }
 
+        // إصلاح مشكلة النقر المسبق
         splashBtn.addEventListener("click", function(e) {
             if (!splashBtn.classList.contains('show')) { e.preventDefault(); return; }
             enableSound();
         });
 
-        muteToggle.addEventListener('click', enableSound);
-        muteToggle.addEventListener('touchend', enableSound);
-        document.addEventListener('click', enableSound);
+        // استخدام touchstart للصوت لتجنب تعارض أحداث الـ click مع أزرار التواصل
+        muteToggle.addEventListener('touchstart', function(e) {
+            e.preventDefault(); // منع السلوك الافتراضي لتجنب الحجب
+            enableSound();
+        }, { passive: false });
 
         bgVideo.addEventListener('volumechange', function() {
             if (bgVideo.muted) { muteToggle.classList.remove('unmuted'); } 
@@ -262,13 +270,12 @@
     let currentCashierMsgCount = 0; 
     let cachedReadCount = 0; 
 
-    /* === سحب روابط التواصل الاجتماعي وربطها بالأزرار === */
+    /* === سحب روابط التواصل الاجتماعي وربطها بشكل محكم === */
     async function loadSocialLinks() {
         try {
             const snap = await get(ref(db, "data/-OtW677IyPfMvtFSza0w"));
             const data = snap.val();
             if (data) {
-                // تحديث الخاصية data-url بدلاً من href
                 if (data.facebook) document.getElementById('socialFb').setAttribute('data-url', data.facebook);
                 if (data.instagram) document.getElementById('socialIg').setAttribute('data-url', data.instagram);
                 if (data.whatsapp) document.getElementById('socialWa').setAttribute('data-url', data.whatsapp);
@@ -278,12 +285,14 @@
             console.error("Error loading social links:", e);
         }
 
-        // ربط حدث الضغط لفتح الرابط في نافذة جديدة بشكل إجباري
-        document.querySelectorAll('.social-icon').forEach(btn => {
-            btn.addEventListener('click', function() {
+        // ربط حدث النقر بشكل مباشر وإجباري
+        const socialButtons = document.querySelectorAll('.social-icon');
+        socialButtons.forEach(btn => {
+            btn.addEventListener('click', function(event) {
+                event.stopPropagation(); // منع انتقال الحدث لأي عنصر آخر
                 const url = this.getAttribute('data-url');
                 if (url && url !== '#') {
-                    window.open(url, '_blank', 'noopener,noreferrer');
+                    window.open(url, '_blank'); // فتح الرابط في نافذة خارجية
                 } else {
                     toast("الرابط غير متاح حالياً", "info");
                 }
@@ -312,7 +321,8 @@
     var aC = new (window.AudioContext || window.webkitAudioContext)();
     var lClk = 0, audioResumed = false, pendingMsgSounds = 0; 
 
-    document.addEventListener("click", function() {
+    // تم تغيير حدث الصوت العام إلى touchstart لمنع سرقة أحداث الـ click
+    document.addEventListener("touchstart", function() {
         if (!audioResumed) {
             audioResumed = true; if (aC.state === "suspended") aC.resume();
             for (var i = 0; i < pendingMsgSounds; i++) msgSnd();
@@ -464,8 +474,6 @@
 
     window.openImage = function(src) { if (!src) return; var modal = document.getElementById("imgModal"); var img = document.getElementById("imgModalImg"); img.src = src; modal.style.display = "flex"; };
     window.closeImgModal = function() { document.getElementById("imgModal").style.display = "none"; };
-
-    document.addEventListener("click", function() { if (aC.state === "suspended") aC.resume(); }, { once: true });
 
     bindEvents();
     loadAppSettings();

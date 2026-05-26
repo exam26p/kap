@@ -34,31 +34,6 @@
             z-index: -2;
         }
 
-        /* أيقونة اللغة في الزاوية */
-        .lang-icon {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            width: 42px;
-            height: 42px;
-            background: rgba(61, 90, 62, 0.2);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            z-index: 100000;
-            border: 1px solid rgba(201, 169, 110, 0.4);
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-            font-size: 20px;
-            color: var(--olive);
-        }
-        .lang-icon:hover { background: rgba(61, 90, 62, 0.4); transform: scale(1.1); }
-        [dir="ltr"] .lang-icon { left: auto; right: 20px; }
-
         /* حاوية أيقونات الصوت والتواصل الاجتماعي */
         .bottom-icons-container {
             position: fixed;
@@ -127,19 +102,16 @@
 </head>
 <body>
 
-<!-- أيقونة اللغة -->
-<div class="lang-icon" id="langToggleBtn" title="Change Language">🌐</div>
-
 <video id="bgVideo" autoplay muted loop playsinline preload="auto">
     <source src="https://raw.githubusercontent.com/exam26p/kap/main/assets/background_video.mp4" type="video/mp4">
 </video>
 
 <!-- حاوية أيقونات الصوت والتواصل الاجتماعي -->
 <div class="bottom-icons-container" id="bottomIconsContainer">
-    <a href="#" id="socialFb" class="social-icon" target="_blank" rel="noopener noreferrer" title="Facebook"><i class="fab fa-facebook-f"></i></a>
-    <a href="#" id="socialIg" class="social-icon" target="_blank" rel="noopener noreferrer" title="Instagram"><i class="fab fa-instagram"></i></a>
-    <a href="#" id="socialWa" class="social-icon" target="_blank" rel="noopener noreferrer" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
-    <a href="#" id="socialMap" class="social-icon" target="_blank" rel="noopener noreferrer" title="Location"><i class="fas fa-location-dot"></i></a>
+    <a href="#" id="socialFb" class="social-icon" target="_blank" rel="noopener noreferrer" title="فيسبوك"><i class="fab fa-facebook-f"></i></a>
+    <a href="#" id="socialIg" class="social-icon" target="_blank" rel="noopener noreferrer" title="انستغرام"><i class="fab fa-instagram"></i></a>
+    <a href="#" id="socialWa" class="social-icon" target="_blank" rel="noopener noreferrer" title="واتساب"><i class="fab fa-whatsapp"></i></a>
+    <a href="#" id="socialMap" class="social-icon" target="_blank" rel="noopener noreferrer" title="موقعنا"><i class="fas fa-location-dot"></i></a>
     
     <div id="muteToggle" class="mute-icon" title="اضغط لتفعيل الصوت">
         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -194,7 +166,7 @@
     <div class="main-header">
         <div class="hi">
             <h2 id="headerTitle">المنيو الرقمي</h2>
-            <p id="headerSubTitle">اختر من تشكيلة وجباتنا المميزة</p>
+            <p>اختر من تشكيلة وجباتنا المميزة</p>
         </div>
         <div class="hb">
             <span class="tbl-b" id="tblB">طاولة 1</span>
@@ -288,77 +260,6 @@
     let currentCashierMsgCount = 0; 
     let cachedReadCount = 0; 
 
-    /* === نظام الترجمة المحلي الشامل === */
-    let currentLang = sessionStorage.getItem('userLang') || 'ar';
-    const dict = {
-        "المنيو الرقمي": "Digital Menu",
-        "اختر من تشكيلة وجباتنا المميزة": "Choose from our distinguished meals",
-        "مشاهدة المينيو": "View Menu",
-        "طلب": "Order",
-        "التفاصيل": "Details",
-        "إغلاق": "Close",
-        "الفاتورة": "Invoice",
-        "الإجمالي": "Total",
-        "دينار": "IQD",
-        "د.ع": "IQD",
-        "إرسال للمطبخ": "Send to Kitchen",
-        "طلبات مرسلة": "Sent Orders",
-        "لا توجد طلبات.": "No orders yet.",
-        "لا توجد طلبات معلقة.": "No pending orders.",
-        "لا توجد طلبات مرسلة.": "No sent orders.",
-        "محادثة مع الكاشير": "Chat with Cashier",
-        "ابدأ المحادثة مع الكاشير.": "Start chatting with the cashier.",
-        "اكتب رسالتك...": "Type your message...",
-        "إرسال": "Send",
-        "صنف": "Item",
-        "جاري تحضير المنيو...": "Preparing menu...",
-        "المنيو فارغ حالياً.": "The menu is currently empty."
-    };
-
-    // دالة ترجمة النص
-    function t(arText) {
-        if (currentLang === 'ar' || !arText) return arText;
-        return dict[arText.trim()] || arText;
-    }
-
-    // دالة تطبيق الترجمة على كل النصوص في الصفحة
-    function applyTranslation() {
-        document.querySelectorAll('h2, h3, p, span, button, input, .item-name, .cc, .det-btn, .ba, .splash-btn, .splash-title, .splash-sub').forEach(el => {
-            if (el.children.length === 0 || el.tagName === 'BUTTON' || el.tagName === 'SPAN') {
-                const text = el.textContent.trim();
-                if (dict[text]) {
-                    el.textContent = dict[text];
-                }
-            }
-        });
-        document.querySelectorAll('input[type="text"]').forEach(inp => {
-            if (inp.placeholder && dict[inp.placeholder.trim()]) {
-                inp.placeholder = dict[inp.placeholder.trim()];
-            }
-        });
-    }
-
-    // تبديل اللغة
-    function toggleLanguage() {
-        if (currentLang === 'ar') {
-            currentLang = 'en';
-            document.documentElement.dir = 'ltr';
-            document.documentElement.lang = 'en';
-        } else {
-            currentLang = 'ar';
-            document.documentElement.dir = 'rtl';
-            document.documentElement.lang = 'ar';
-        }
-        sessionStorage.setItem('userLang', currentLang);
-        
-        // إعادة رسم المنيو لتحديث النصوص الثابتة والديناميكية
-        if (menuOk && cachedMenuData) renderMenu(cachedMenuData);
-        
-        // ترجمة العناصر المتبقية
-        applyTranslation();
-        updateHeader();
-    }
-
     /* === سحب روابط التواصل الاجتماعي من الفايربيس === */
     async function loadSocialLinks() {
         try {
@@ -424,15 +325,17 @@
 
     function updateHeader() {
         var h = document.getElementById("headerTitle");
-        if (restLogo && restLogo.length > 20) h.innerHTML = '<img src="' + restLogo + '" alt="" onerror="this.style.display=\'none\'"> ' + t(restName || 'المنيو الرقمي');
-        else h.textContent = t(restName || 'المنيو الرقمي');
-        document.getElementById("headerSubTitle").textContent = t("اختر من تشكيلة وجباتنا المميزة");
+        if (restLogo && restLogo.length > 20) {
+            h.innerHTML = '<img src="' + restLogo + '" alt="" onerror="this.style.display=\'none\'"> ' + restName;
+        } else {
+            h.textContent = restName || 'المنيو الرقمي';
+        }
     }
 
     function initSplashQuote() {
         var quoteEl = document.getElementById("splashQuote"); var splashBtn = document.getElementById("splashBtn");
         if (!quoteEl || !splashBtn) return;
-        splashBtn.innerHTML = '<i class="fas fa-utensils" style="margin-left:8px;font-size:13px"></i> ' + t("مشاهدة المينيو");
+        splashBtn.innerHTML = '<i class="fas fa-utensils" style="margin-left:8px;font-size:13px"></i> مشاهدة المينيو';
         var randomIndex = Math.floor(Math.random() * splashQuotes.length); var quoteText = splashQuotes[randomIndex];
         quoteEl.classList.add("visible"); var charIndex = 0;
         function typeCharacter() {
@@ -465,7 +368,6 @@
             dismissSplash();
         });
 
-        document.getElementById("langToggleBtn").addEventListener("click", toggleLanguage);
         var bibBtn = document.getElementById("bibBtn"); addSnd(bibBtn); bibBtn.addEventListener("click", function() { document.getElementById("invoiceModal").style.display = "flex"; });
         var invClose = document.getElementById("invClose"); addSnd(invClose); invClose.addEventListener("click", closeInv);
         document.getElementById("invoiceModal").addEventListener("click", function(e) { if (e.target.id === "invoiceModal") closeInv(); });
@@ -497,7 +399,7 @@
         } catch (e) { sGeo("err", "📡", "خطأ في الاتصال", "تعذر الاتصال حالياً."); }
     }
 
-    function sGeo(ic, i, t2, m) { var el = document.getElementById("geoIcon"); el.className = "geo-icon " + ic; el.innerHTML = i; document.getElementById("geoTitle").textContent = t2; document.getElementById("geoMsg").textContent = m; document.getElementById("geoDist").style.display = "none"; document.getElementById("geoBlocked").style.display = "none"; }
+    function sGeo(ic, i, t, m) { var el = document.getElementById("geoIcon"); el.className = "geo-icon " + ic; el.innerHTML = i; document.getElementById("geoTitle").textContent = t; document.getElementById("geoMsg").textContent = m; document.getElementById("geoDist").style.display = "none"; document.getElementById("geoBlocked").style.display = "none"; }
     function startW() { if (!navigator.geolocation) { document.getElementById("geoCard").style.display = "none"; document.getElementById("geoBlocked").style.display = "block"; return; } watchID = navigator.geolocation.watchPosition(onP, onE, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }); }
 
     function onP(pos) {
@@ -507,40 +409,39 @@
         else { if (!document.getElementById("kickScreen").style.display || document.getElementById("kickScreen").style.display === "none") { isInZone = false; state.isGeoVerified = false; updateAppState(); document.getElementById("menuContent").style.display = "none"; document.getElementById("bottomBar").style.display = "none"; document.getElementById("distBar").style.display = "none"; document.getElementById("blockScreen").style.display = "none"; document.getElementById("kickScreen").style.display = "flex"; } }
     }
     function onE() { document.getElementById("geoCard").style.display = "none"; document.getElementById("geoBlocked").style.display = "block"; }
-    function updateDistBar(dist, radius) { var proximity = Math.max(0, Math.min(100, (1 - dist / radius) * 100)); var fill = document.getElementById("distFill"); var val = document.getElementById("distValue"); fill.style.width = proximity + "%"; var r, g, b; if (proximity >= 50) { var t2 = (proximity - 50) / 50; r = Math.round(180 - (180 - 74) * t2); g = Math.round(60 + (124 - 60) * t2); b = Math.round(60 + (89 - 60) * t2); } else { var t3 = proximity / 50; r = Math.round(184 + (180 - 184) * t3); g = Math.round(80 - 20 * t3); b = Math.round(80 - 20 * t3); } var color = "rgb(" + r + "," + g + "," + b + ")"; fill.style.background = color; val.textContent = Math.round(proximity) + "%"; val.style.color = color; }
+    function updateDistBar(dist, radius) { var proximity = Math.max(0, Math.min(100, (1 - dist / radius) * 100)); var fill = document.getElementById("distFill"); var val = document.getElementById("distValue"); fill.style.width = proximity + "%"; var r, g, b; if (proximity >= 50) { var t = (proximity - 50) / 50; r = Math.round(180 - (180 - 74) * t); g = Math.round(60 + (124 - 60) * t); b = Math.round(60 + (89 - 60) * t); } else { var t3 = proximity / 50; r = Math.round(184 + (180 - 184) * t3); g = Math.round(80 - 20 * t3); b = Math.round(80 - 20 * t3); } var color = "rgb(" + r + "," + g + "," + b + ")"; fill.style.background = color; val.textContent = Math.round(proximity) + "%"; val.style.color = color; }
 
-    function initMenu() { menuOk = true; state.isMenuLoaded = true; updateAppState(); if (menuPreloaded && cachedMenuData !== null) renderMenu(cachedMenuData); else document.getElementById("menuCats").innerHTML = '<p style="color:var(--text-muted);padding:30px;text-align:center;font-size:13px;">' + t('جاري تحضير المنيو...') + '</p>'; }
+    function initMenu() { menuOk = true; state.isMenuLoaded = true; updateAppState(); if (menuPreloaded && cachedMenuData !== null) renderMenu(cachedMenuData); else document.getElementById("menuCats").innerHTML = '<p style="color:var(--text-muted);padding:30px;text-align:center;font-size:13px;">جاري تحضير المنيو...</p>'; }
 
     function renderMenu(data) {
         var c = document.getElementById("menuCats"); c.innerHTML = ""; for (var key in menuLookup) delete menuLookup[key];
-        if (!data) { c.innerHTML = '<p style="color:var(--text-muted);padding:30px;text-align:center;font-size:13px;">' + t('المنيو فارغ حالياً.') + '</p>'; return; }
+        if (!data) { c.innerHTML = '<p style="color:var(--text-muted);padding:30px;text-align:center;font-size:13px;">المنيو فارغ حالياً.</p>'; return; }
         state.menuData = data; var catIndex = 0;
         for (var catId in data) {
             catIndex++; var cat = data[catId]; var items = cat.items || {}; var cnt = Object.keys(items).length; var itemHTML = "";
             for (var itemId in items) {
-                var it = items[itemId]; menuLookup[catId + "_" + itemId] = { name: it.name, price: it.price, name_en: it.name_en };
+                var it = items[itemId]; menuLookup[catId + "_" + itemId] = { name: it.name, price: it.price };
                 var detId = "det_" + catId + "_" + itemId; var details = it.details || ""; var hasDetails = details && details.trim().length > 0; var imgSrc = it.image || "";
-                // استخدام الاسم العربي أو الإنجليزي بناءً على خيار المستخدم
-                var displayName = (currentLang === 'en' && it.name_en) ? it.name_en : it.name;
-                itemHTML += '<div class="item-card"><div class="item-img-container" onclick="window.openImage(\'' + imgSrc + '\')">' + (imgSrc ? '<img src="' + imgSrc + '" alt="" loading="' + (catIndex <= 1 ? 'eager' : 'lazy') + '" onerror="this.style.opacity=0">' : '') + '<div class="item-overlay"><div class="item-name">' + displayName + '</div><div class="item-meta"><span class="item-price">' + fmt(it.price) + ' ' + t('د.ع') + '</span></div></div></div>' + (hasDetails ? '<div class="item-det-wrap" id="' + detId + '"><div class="item-det-inner"><div class="item-det-text">' + details + '</div></div></div>' : '') + '<div class="item-actions-bar">' + (hasDetails ? '<button class="det-btn" data-target="' + detId + '"><i class="fas fa-info-circle"></i> ' + t('التفاصيل') + '</button>' : '<div></div>') + '<button class="ba" data-c="' + catId + '" data-i="' + itemId + '"><i class="fas fa-plus"></i> ' + t('طلب') + '</button></div></div>';
+
+                itemHTML += '<div class="item-card"><div class="item-img-container" onclick="window.openImage(\'' + imgSrc + '\')">' + (imgSrc ? '<img src="' + imgSrc + '" alt="" loading="' + (catIndex <= 1 ? 'eager' : 'lazy') + '" onerror="this.style.opacity=0">' : '') + '<div class="item-overlay"><div class="item-name">' + it.name + '</div><div class="item-meta"><span class="item-price">' + fmt(it.price) + ' د.ع</span></div></div></div>' + (hasDetails ? '<div class="item-det-wrap" id="' + detId + '"><div class="item-det-inner"><div class="item-det-text">' + details + '</div></div></div>' : '') + '<div class="item-actions-bar">' + (hasDetails ? '<button class="det-btn" data-target="' + detId + '"><i class="fas fa-info-circle"></i> التفاصيل</button>' : '<div></div>') + '<button class="ba" data-c="' + catId + '" data-i="' + itemId + '"><i class="fas fa-plus"></i> طلب</button></div></div>';
             }
             var catImg = cat.image || ""; var hasImg = catImg && catImg.length > 10; var acc = document.createElement("div"); acc.className = "cat-acc";
             var imgPart = hasImg ? '<img src="' + catImg + '" alt="" loading="eager" style="opacity:0;transition:opacity .4s" onload="this.style.opacity=1">' : '<div class="cat-hd-fallback">🍽</div>';
-            acc.innerHTML = '<div class="cat-hd">' + imgPart + '<div class="cat-hd-content"><div class="cat-hi"><h3>' + cat.name + '</h3><span class="cc">' + cnt + ' ' + t('صنف') + '</span></div><i class="fas fa-chevron-down cat-arr"></i></div></div><div class="cat-bd">' + itemHTML + '</div>';
+            acc.innerHTML = '<div class="cat-hd">' + imgPart + '<div class="cat-hd-content"><div class="cat-hi"><h3>' + cat.name + '</h3><span class="cc">' + cnt + ' صنف</span></div><i class="fas fa-chevron-down cat-arr"></i></div></div><div class="cat-bd">' + itemHTML + '</div>';
             c.appendChild(acc);
         }
         c.querySelectorAll(".ba").forEach(function(btn) { addSnd(btn); btn.addEventListener("click", function() { var cId = this.getAttribute("data-c"), iId = this.getAttribute("data-i"); var item = menuLookup[cId + "_" + iId]; if (item) addIt(cId, iId, item.name, item.price); }); });
-        c.querySelectorAll(".det-btn").forEach(function(btn) { addSnd(btn); btn.addEventListener("click", function() { var target = document.getElementById(this.getAttribute("data-target")); if (target) { var isOpen = target.classList.toggle("open"); this.classList.toggle("active", isOpen); this.innerHTML = isOpen ? '<i class="fas fa-chevron-up"></i> ' + t('إغلاق') : '<i class="fas fa-info-circle"></i> ' + t('التفاصيل'); } }); });
+        c.querySelectorAll(".det-btn").forEach(function(btn) { addSnd(btn); btn.addEventListener("click", function() { var target = document.getElementById(this.getAttribute("data-target")); if (target) { var isOpen = target.classList.toggle("open"); this.classList.toggle("active", isOpen); this.innerHTML = isOpen ? '<i class="fas fa-chevron-up"></i> إغلاق' : '<i class="fas fa-info-circle"></i> التفاصيل'; } }); });
         c.querySelectorAll(".cat-hd").forEach(function(hd) { addSnd(hd); hd.addEventListener("click", function() { var wasOpen = hd.parentElement.classList.contains("open"); document.querySelectorAll(".cat-acc.open").forEach(function(a) { a.classList.remove("open"); }); if (!wasOpen) hd.parentElement.classList.add("open"); }); });
     }
 
     function addIt(cId, iId, name, price) { var k = cId + "_" + iId; var r = ref(db, "tablesA/table_" + TBL + "/current_orders/" + k); if (orders[k]) update(r, { quantity: orders[k].quantity + 1 }); else set(r, { name: name, price: price, quantity: 1 }); }
-    function listenOrd() { var tk = "table_" + TBL; onValue(ref(db, "tablesA/" + tk + "/current_orders"), function(snap) { var d = snap.val(); orders = d || {}; state.ordersData = orders; var total = 0, count = 0; var ic = document.getElementById("invItems"); if (!d) { ic.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px;font-size:13px;">' + t('لا توجد طلبات معلقة.') + '</p>'; document.getElementById("btnSend").disabled = true; document.getElementById("barCount").textContent = "٠"; document.getElementById("barTotal").innerHTML = t('الإجمالي') + ': <span>٠ ' + t('دينار') + '</span>'; document.getElementById("invTotal").textContent = t('الإجمالي') + ": ٠ " + t('دينار'); return; } document.getElementById("btnSend").disabled = false; ic.innerHTML = ""; for (var k in d) { var it = d[k]; var sub = it.price * it.quantity; total += sub; count += it.quantity; var row = document.createElement("div"); row.className = "inv-i"; row.innerHTML = '<div style="min-width:0;flex:1"><div class="inv-n">' + it.name + '</div><div class="inv-s">' + fmt(it.price) + ' ' + t('د.ع') + ' × ' + it.quantity + '</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><span class="inv-t">' + fmt(sub) + '</span><div class="qc"><button class="qb qmin" data-key="' + k + '" data-d="-1">−</button><span class="qv">' + it.quantity + '</span><button class="qb qplu" data-key="' + k + '" data-d="1">+</button></div></div>'; ic.appendChild(row); } ic.querySelectorAll(".qb").forEach(function(qb) { addSnd(qb); qb.addEventListener("click", function() { var k = this.getAttribute("data-key"); var dd = parseInt(this.getAttribute("data-d")); var r = ref(db, "tablesA/table_" + TBL + "/current_orders/" + k); var n = orders[k].quantity + dd; if (n <= 0) remove(r); else update(r, { quantity: n }); }); }); document.getElementById("barCount").textContent = count; document.getElementById("barTotal").innerHTML = t('الإجمالي') + ': <span>' + fmt(total) + ' ' + t('دينار') + '</span>'; document.getElementById("invTotal").textContent = t('الإجمالي') + ": " + fmt(total) + " " + t('دينار'); }); onValue(ref(db, "tablesB/" + tk + "/sent_orders"), function(snap) { var d = snap.val(); var c = document.getElementById("sentItems"); if (!d) { c.innerHTML = '<p style="color:var(--text-muted);font-size:12px;">' + t('لا توجد طلبات مرسلة.') + '</p>'; return; } c.innerHTML = ""; for (var k in d) { var it = d[k]; c.innerHTML += '<div class="si"><span>• ' + it.name + ' (×' + it.quantity + ')</span><span style="color:var(--text-muted);font-size:11px;">' + fmt(it.price * it.quantity) + ' ' + t('د.ع') + '</span></div>'; } }); }
+    function listenOrd() { var tk = "table_" + TBL; onValue(ref(db, "tablesA/" + tk + "/current_orders"), function(snap) { var d = snap.val(); orders = d || {}; state.ordersData = orders; var total = 0, count = 0; var ic = document.getElementById("invItems"); if (!d) { ic.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px;font-size:13px;">لا توجد طلبات معلقة.</p>'; document.getElementById("btnSend").disabled = true; document.getElementById("barCount").textContent = "٠"; document.getElementById("barTotal").innerHTML = 'الإجمالي: <span>٠ دينار</span>'; document.getElementById("invTotal").textContent = "الإجمالي: ٠ دينار"; return; } document.getElementById("btnSend").disabled = false; ic.innerHTML = ""; for (var k in d) { var it = d[k]; var sub = it.price * it.quantity; total += sub; count += it.quantity; var row = document.createElement("div"); row.className = "inv-i"; row.innerHTML = '<div style="min-width:0;flex:1"><div class="inv-n">' + it.name + '</div><div class="inv-s">' + fmt(it.price) + ' د.ع × ' + it.quantity + '</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><span class="inv-t">' + fmt(sub) + '</span><div class="qc"><button class="qb qmin" data-key="' + k + '" data-d="-1">−</button><span class="qv">' + it.quantity + '</span><button class="qb qplu" data-key="' + k + '" data-d="1">+</button></div></div>'; ic.appendChild(row); } ic.querySelectorAll(".qb").forEach(function(qb) { addSnd(qb); qb.addEventListener("click", function() { var k = this.getAttribute("data-key"); var dd = parseInt(this.getAttribute("data-d")); var r = ref(db, "tablesA/table_" + TBL + "/current_orders/" + k); var n = orders[k].quantity + dd; if (n <= 0) remove(r); else update(r, { quantity: n }); }); }); document.getElementById("barCount").textContent = count; document.getElementById("barTotal").innerHTML = 'الإجمالي: <span>' + fmt(total) + ' دينار</span>'; document.getElementById("invTotal").textContent = "الإجمالي: " + fmt(total) + " دينار"; }); onValue(ref(db, "tablesB/" + tk + "/sent_orders"), function(snap) { var d = snap.val(); var c = document.getElementById("sentItems"); if (!d) { c.innerHTML = '<p style="color:var(--text-muted);font-size:12px;">لا توجد طلبات مرسلة.</p>'; return; } c.innerHTML = ""; for (var k in d) { var it = d[k]; c.innerHTML += '<div class="si"><span>• ' + it.name + ' (×' + it.quantity + ')</span><span style="color:var(--text-muted);font-size:11px;">' + fmt(it.price * it.quantity) + ' د.ع</span></div>'; } }); }
     function sendOrd() { if (!Object.keys(orders).length) { toast("لا توجد طلبات لإرسالها", "error"); return; } if (!navigator.onLine) { toast("لا يوجد اتصال بالإنترنت.", "error"); return; } if (curLat === null || curLon === null) { toast("جاري تحديد موقعك...", "error"); return; } if (!zone || !zone.center_latitude) { toast("بيانات النطاق غير متوفرة.", "error"); return; } var dist = haversine(curLat, curLon, zone.center_latitude, zone.center_longitude); var rad = zone.radius_meters || 100; if (dist > rad) { toast("أنت خارج المنطقة.", "error"); return; } var sr = ref(db, "tablesB/table_" + TBL + "/sent_orders"); for (var k in orders) { var it = orders[k]; set(push(sr), { name: it.name, price: it.price, quantity: it.quantity, settled_by: "customer", settled_at: new Date().toISOString(), sent_distance: Math.round(dist) }); } remove(ref(db, "tablesA/table_" + TBL + "/current_orders")).then(function() { toast("تم إرسال طلباتك بنجاح", "success"); closeInv(); }).catch(function() { toast("حدث خطأ أثناء الإرسال.", "error"); }); }
     function closeInv() { document.getElementById("invoiceModal").style.display = "none"; }
 
     function listenCh() { var tk = "table_" + TBL; onValue(ref(db, "msgA/" + tk), function(snap) { msgACache = snap.val() || {}; renderChat(); }); onValue(ref(db, "msgB/" + tk), function(snap) { var prevCount = currentCashierMsgCount; msgBCache = snap.val() || {}; currentCashierMsgCount = Object.keys(msgBCache).length; if (currentCashierMsgCount > prevCount && !chatOn && prevCount >= 0) msgSnd(); updateBadge(); renderChat(); }); onValue(ref(db, "read_counters/" + tk), function(snap) { cachedReadCount = snap.val() || 0; updateBadge(); }); }
-    function renderChat() { if (!chatOn) return; var box = document.getElementById("chatMsgs"); box.innerHTML = ""; var msgs = []; for (var k in msgACache) { var m = msgACache[k]; m.src = "client"; msgs.push(m); } for (var k2 in msgBCache) { var m2 = msgBCache[k2]; m2.src = "cashier"; msgs.push(m2); } msgs.sort(function(a, b) { return new Date(a.timestamp) - new Date(b.timestamp); }); if (!msgs.length) { box.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px;font-size:13px;">' + t('ابدأ المحادثة مع الكاشير.') + '</p>'; return; } for (var j = 0; j < msgs.length; j++) { var msg = msgs[j]; var t2 = new Date(msg.timestamp).toLocaleTimeString("ar-IQ", { hour: "2-digit", minute: "2-digit" }); box.innerHTML += '<div class="cm ' + (msg.src === "client" ? "cm-cl" : "cm-ca") + '">' + msg.text + '<div class="cm-t">' + t2 + '</div></div>'; } box.scrollTop = box.scrollHeight; }
+    function renderChat() { if (!chatOn) return; var box = document.getElementById("chatMsgs"); box.innerHTML = ""; var msgs = []; for (var k in msgACache) { var m = msgACache[k]; m.src = "client"; msgs.push(m); } for (var k2 in msgBCache) { var m2 = msgBCache[k2]; m2.src = "cashier"; msgs.push(m2); } msgs.sort(function(a, b) { return new Date(a.timestamp) - new Date(b.timestamp); }); if (!msgs.length) { box.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px;font-size:13px;">ابدأ المحادثة مع الكاشير.</p>'; return; } for (var j = 0; j < msgs.length; j++) { var msg = msgs[j]; var t2 = new Date(msg.timestamp).toLocaleTimeString("ar-IQ", { hour: "2-digit", minute: "2-digit" }); box.innerHTML += '<div class="cm ' + (msg.src === "client" ? "cm-cl" : "cm-ca") + '">' + msg.text + '<div class="cm-t">' + t2 + '</div></div>'; } box.scrollTop = box.scrollHeight; }
     function updateBadge() { var unreadCount = chatOn ? 0 : Math.max(0, currentCashierMsgCount - cachedReadCount); showUnread(unreadCount); }
     function showUnread(c) { var dot = document.getElementById("msgDot"); if (c > 0) { dot.style.display = "flex"; dot.textContent = c > 9 ? "9+" : String(c); } else { dot.style.display = "none"; } unreadN = c; }
     function openCh() { chatOn = true; cachedReadCount = currentCashierMsgCount; set(ref(db, "read_counters/table_" + TBL), currentCashierMsgCount); updateBadge(); document.getElementById("chatModal").style.display = "flex"; renderChat(); }

@@ -218,6 +218,7 @@ window.confirmLinkDelete = async function() {
 };
 
 // ===== دالة رفع الفيديو (تم استدعاء التوكن من قاعدة البيانات بدلاً من كتابته) =====
+// ===== دالة رفع الفيديو (تم تعديلها لحل مشكلة 401) =====
 async function uploadVideoToGitHub(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -247,7 +248,8 @@ async function uploadVideoToGitHub(e) {
             return;
         }
         
-        const GITHUB_TOKEN = tokenSnap.val();
+                // تنظيف الـ Token من المسافات أو علامات التنصيص الزائدة
+        let GITHUB_TOKEN = String(tokenSnap.val()).trim().replace(/^["']|["']$/g, '');
         
         // 2. تحويل الملف
         const base64Data = await toBase64(file);
@@ -260,12 +262,19 @@ async function uploadVideoToGitHub(e) {
         // 3. جلب SHA للملف الحالي لاستبداله
         const getFileRes = await fetch(apiUrl, {
             method: "GET",
-            headers: { "Authorization": `Bearer ${GITHUB_TOKEN}` }
+            headers: { 
+                "Authorization": `Bearer ${GITHUB_TOKEN}`,
+                "Accept": "application/vnd.github+json"
+            }
         });
         
         if (getFileRes.ok) {
             const fileInfo = await getFileRes.json();
             sha = fileInfo.sha;
+        } else if (getFileRes.status === 401) {
+            // إذا كان الـ Token نفسه مرفوض في خطوة الجلب
+            const errData = await getFileRes.json();
+            throw new Error('Token غير صالح أو منتهي: ' + errData.message);
         }
         
         if (progressBar) progressBar.style.width = '50%';
@@ -275,7 +284,8 @@ async function uploadVideoToGitHub(e) {
             method: "PUT",
             headers: {
                 "Authorization": `Bearer ${GITHUB_TOKEN}`,
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "Accept": "application/vnd.github+json"
             },
             body: JSON.stringify({
                 message: "تحديث فيديو الخلفية",

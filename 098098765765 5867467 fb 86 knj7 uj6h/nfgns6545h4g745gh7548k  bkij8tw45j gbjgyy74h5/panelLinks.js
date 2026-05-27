@@ -8,7 +8,7 @@ let deleteTargetId = null;
 let allLinksData = {};
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, onValue, push, update, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, onValue, push, update, remove, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyCEEqEALOCaQo5oSoR8A_Jh9eSpHS8Sz5o",
@@ -217,6 +217,7 @@ window.confirmLinkDelete = async function() {
     }
 };
 
+// ===== دالة رفع الفيديو (تم استدعاء التوكن من قاعدة البيانات بدلاً من كتابته) =====
 async function uploadVideoToGitHub(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -233,16 +234,30 @@ async function uploadVideoToGitHub(e) {
     if (progressContainer) progressContainer.style.display = 'block';
     if (progressBar) progressBar.style.width = '10%';
     
-    toast('جاري رفع الفيديو...', 'ti');
+    toast('جاري التحقق والرفع...', 'ti');
     
     try {
+        // 1. جلب الـ Token من قاعدة البيانات بشكل آمن
+        if (progressBar) progressBar.style.width = '20%';
+        const tokenSnap = await get(ref(linksDb, 'token/-Otf58SaDf-QOFSrYCfn/token'));
+        
+        if (!tokenSnap.exists()) {
+            toast('خطأ: لم يتم العثور على مفتاح الرفع (Token) في قاعدة البيانات', 'te');
+            if (progressContainer) progressContainer.style.display = 'none';
+            return;
+        }
+        
+        const GITHUB_TOKEN = tokenSnap.val();
+        
+        // 2. تحويل الملف
         const base64Data = await toBase64(file);
         const pureBase64 = base64Data.split(',')[1];
         
-        const GITHUB_TOKEN = "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";
         const apiUrl = `https://api.github.com/repos/exam26p/kap/contents/assets/background_video.mp4`;
         
         let sha = "";
+        
+        // 3. جلب SHA للملف الحالي لاستبداله
         const getFileRes = await fetch(apiUrl, {
             method: "GET",
             headers: { "Authorization": `Bearer ${GITHUB_TOKEN}` }
@@ -255,6 +270,7 @@ async function uploadVideoToGitHub(e) {
         
         if (progressBar) progressBar.style.width = '50%';
         
+        // 4. رفع الملف الجديد
         const uploadRes = await fetch(apiUrl, {
             method: "PUT",
             headers: {
@@ -271,17 +287,18 @@ async function uploadVideoToGitHub(e) {
         if (progressBar) progressBar.style.width = '100%';
         
         if (uploadRes.ok) {
-            toast('تم رفع الفيديو بنجاح', 'ts');
+            toast('تم رفع الفيديو واستبداله بنجاح!', 'ts');
             setTimeout(() => {
                 if (progressContainer) progressContainer.style.display = 'none';
                 if (progressBar) progressBar.style.width = '0%';
             }, 2000);
         } else {
-            throw new Error('فشل الرفع');
+            const errData = await uploadRes.json();
+            throw new Error(errData.message || 'فشل في رفع الملف');
         }
     } catch (error) {
         console.error(error);
-        toast('فشل رفع الفيديو', 'te');
+        toast('فشل رفع الفيديو: ' + error.message, 'te');
         if (progressContainer) progressContainer.style.display = 'none';
     }
     

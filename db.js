@@ -42,7 +42,6 @@ export function updateData(path, data) { return update(ref(db, path), data); }
 
 // ===== الجلب لمرة واحدة (Get) =====
 export function getData(path) { return get(ref(db, path)); }
-// دوال مخصصة لتسهيل القراءة في المنيو
 export function getSessions() { return get(ref(db, 'active_sessions')); }
 export function getVersions() { return get(ref(db, 'cobes')); }
 export function getUsers() { return get(ref(db, 'users')); }

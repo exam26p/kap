@@ -12,13 +12,8 @@
     <style>
         body { background: transparent !important; }
         body::before, body::after { content: none !important; }
-        #splashScreen, #blockScreen, #kickScreen { 
-            background: transparent !important; 
-        }
-        .splash-title, .splash-sub, .splash-quote { 
-            text-shadow: 0 3px 8px rgba(0,0,0,0.9) !important; 
-            color: #fff !important;
-        }
+        #splashScreen, #blockScreen, #kickScreen { background: transparent !important; }
+        .splash-title, .splash-sub, .splash-quote { text-shadow: 0 3px 8px rgba(0,0,0,0.9) !important; color: #fff !important; }
     </style>
 
     <link rel="stylesheet" href="menu.css">
@@ -82,16 +77,11 @@
         .table-option.active { color: #fff; background: var(--olive); }
 
         .mute-icon { display: none !important; }
-        
-        /* تمييز رسائل الكابتن في الدردشة */
-        .cm-cl.captain-msg { background: var(--olive-light); color: #fff; border-bottom-left-radius: 4px; }
-        .cm-cl.captain-msg::before { content: 'كابتن'; position: absolute; top: -10px; right: 5px; font-size: 8px; background: var(--olive); color: #fff; padding: 1px 5px; border-radius: 4px; }
     </style>
 </head>
 <body>
 
 <div class="table-dropdown" id="tableDropdown"></div>
-
 <div class="tw" id="tw"></div>
 
 <div id="splashScreen">
@@ -196,12 +186,11 @@
     let menuPreloaded = false; 
     let cachedMenuData = null; 
 
-    let msgACache = {}; // كل الرسائل الصادرة (زبون + كابتن)
-    let msgBCache = {}; // رسائل الكاشير الواردة
+    let captainChatsCache = {}; 
     let currentCashierMsgCount = 0; 
 
-    function getReadCount() { return parseInt(localStorage.getItem('kabtnReadMsgCount_' + TBL) || '0'); }
-    function setReadCount(count) { localStorage.setItem('kabtnReadMsgCount_' + TBL, String(count)); }
+    function getReadCount() { return parseInt(localStorage.getItem('kabtnReadMsgCount') || '0'); }
+    function setReadCount(count) { localStorage.setItem('kabtnReadMsgCount', String(count)); }
 
     function msgSnd() {
         try {
@@ -218,6 +207,7 @@
         } catch (e) {}
     }
 
+    // دالة حذف الرسائل الأقدم من 24 ساعة من جدول captain_chats
     function cleanOldMessages(cache, path) {
         const now = Date.now();
         const twentyFourHours = 24 * 60 * 60 * 1000;
@@ -282,13 +272,11 @@
         
         orders = {};
         listenOrd();
-        listenCh();
         updateBadge();
         toast("تم التبديل إلى طاولة " + TBL, "success");
     }
 
     const splashQuotes = ["كل وجبة وراءها قصة، وصُنعت بحب لتسعد يومك.", "اللقمة الطيبة تجمع القلوب.. أهلاً بك في عالمنا.", "نطبخ بشغف، لنقدم لك تجربة لا تُنسى."];
-
     function updateAppState() { state.activeTable = TBL; state.myVersion = VER; state.settings.restaurantName = restName; state.settings.restaurantLogo = restLogo; state.isMenuLoaded = menuOk; state.isGeoVerified = isInZone; }
 
     async function loadAppSettings() {
@@ -323,21 +311,9 @@
 
     function bindEvents() {
         document.getElementById("splashBtn").addEventListener("click", function(e) { if (!this.classList.contains('show')) { e.preventDefault(); return; } dismissSplash(); });
-
-        document.getElementById('tableSelectorBtn').addEventListener('click', function(e) {
-            e.stopPropagation();
-            document.getElementById('tableDropdown').classList.toggle('show');
-        });
-        document.getElementById('tableDropdown').addEventListener('click', function(e) {
-            if (e.target.classList.contains('table-option') && e.target.getAttribute('data-table')) {
-                changeTable(e.target.getAttribute('data-table'));
-            }
-        });
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('#tableSelectorBtn') && !e.target.closest('#tableDropdown')) {
-                document.getElementById('tableDropdown').classList.remove('show');
-            }
-        });
+        document.getElementById('tableSelectorBtn').addEventListener('click', function(e) { e.stopPropagation(); document.getElementById('tableDropdown').classList.toggle('show'); });
+        document.getElementById('tableDropdown').addEventListener('click', function(e) { if (e.target.classList.contains('table-option') && e.target.getAttribute('data-table')) { changeTable(e.target.getAttribute('data-table')); } });
+        document.addEventListener('click', function(e) { if (!e.target.closest('#tableSelectorBtn') && !e.target.closest('#tableDropdown')) { document.getElementById('tableDropdown').classList.remove('show'); } });
 
         document.getElementById("bibBtn").addEventListener("click", function() { document.getElementById("invoiceModal").style.display = "flex"; });
         document.getElementById("invClose").addEventListener("click", closeInv);
@@ -352,10 +328,7 @@
         document.getElementById("imgModal").addEventListener("click", function(e) { if (e.target.id === "imgModal") closeImgModal(); });
     }
 
-    function dismissSplash() {
-        document.getElementById("splashScreen").classList.add("hide");
-        setTimeout(function() { document.getElementById("splashScreen").style.display = "none"; document.getElementById("blockScreen").style.display = "flex"; updateHeader(); setTimeout(function() { initGeo(); }, 100); }, 600);
-    }
+    function dismissSplash() { document.getElementById("splashScreen").classList.add("hide"); setTimeout(function() { document.getElementById("splashScreen").style.display = "none"; document.getElementById("blockScreen").style.display = "flex"; updateHeader(); setTimeout(function() { initGeo(); }, 100); }, 600); }
 
     async function initGeo() {
         sGeo("ld", "🔄", "جاري التحقق...", "نبحث عن النطاق الجغرافي.");
@@ -404,27 +377,29 @@
     function sendOrd() { if (!Object.keys(orders).length) { toast("لا توجد طلبات لإرسالها", "error"); return; } if (!navigator.onLine) { toast("لا يوجد اتصال بالإنترنت.", "error"); return; } var dist = curDist || 0; var sr = ref(db, "tablesB/table_" + TBL + "/sent_orders"); for (var k in orders) { var it = orders[k]; set(push(sr), { name: it.name, price: it.price, quantity: it.quantity, settled_by: "captain", settled_at: new Date().toISOString(), sent_distance: Math.round(dist) }); } remove(ref(db, "tablesA/table_" + TBL + "/current_orders")).then(function() { toast("تم إرسال طلباتك بنجاح", "success"); closeInv(); }).catch(function() { toast("حدث خطأ أثناء الإرسال.", "error"); }); }
     function closeInv() { document.getElementById("invoiceModal").style.display = "none"; }
 
-    /* === نظام الدردشة (يرسل في msgA مع تحديد sender: captain ، ويستقبل من msgB) === */
+    /* === نظام محادثة الكابتن (captain_chats) === */
     function listenCh() {
-        var tk = "table_" + TBL;
-        
-        // الاستماع لرسائل الكاشير (msgB)
-        onValue(ref(db, "msgB/" + tk), function(snap) {
+        // الاستماع لمسار الكاشير
+        onValue(ref(db, "captain_chats/admin5"), function(snap) {
             var prevCount = currentCashierMsgCount;
-            msgBCache = snap.val() || {};
-            currentCashierMsgCount = Object.keys(msgBCache).length;
-
-            if (currentCashierMsgCount > prevCount && !chatOn && prevCount >= 0) {
-                msgSnd(); // تشغيل صوت الإشعار
+            captainChatsCache = snap.val() || {};
+            
+            // حساب رسائل الكاشير فقط للإشعارات
+            var cashierMsgs = 0;
+            for (var k in captainChatsCache) {
+                if (captainChatsCache[k].sender === 'cashier') cashierMsgs++;
             }
-            cleanOldMessages(msgBCache, "msgB/" + tk + "/");
-            updateBadge(); renderChat();  
-        });
+            currentCashierMsgCount = cashierMsgs;
 
-        // الاستماع للرسائل الصادرة (msgA) لعرضها في الشات
-        onValue(ref(db, "msgA/" + tk), function(snap) {
-            msgACache = snap.val() || {};
-            cleanOldMessages(msgACache, "msgA/" + tk + "/");
+            // تشغيل صوت إذا وردت رسالة جديدة والمحادثة مغلقة
+            if (currentCashierMsgCount > prevCount && !chatOn && prevCount >= 0) {
+                msgSnd();
+            }
+
+            // حذف الرسائل الأقدم من 24 ساعة
+            cleanOldMessages(captainChatsCache, "captain_chats/admin5/");
+            
+            updateBadge(); 
             renderChat();  
         });
     }
@@ -433,9 +408,11 @@
         if (!chatOn) return; 
         var box = document.getElementById("chatMsgs"); box.innerHTML = ""; var msgs = [];
         
-        // تجميع الرسائل الصادرة والواردة
-        for (var k in msgACache) { var m2 = msgACache[k]; m2.src = "client"; m2.isCaptain = (m2.sender === 'captain'); msgs.push(m2); }
-        for (var k2 in msgBCache) { var m = msgBCache[k2]; m.src = "cashier"; msgs.push(m); }
+        for (var k in captainChatsCache) {
+            var m = captainChatsCache[k];
+            m.src = (m.sender === 'captain') ? "client" : "cashier";
+            msgs.push(m);
+        }
         
         msgs.sort(function(a, b) { return new Date(a.timestamp) - new Date(b.timestamp); });
         if (!msgs.length) { box.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px;font-size:13px;">ابدأ المحادثة مع الكاشير.</p>'; return; }
@@ -443,8 +420,7 @@
         for (var j = 0; j < msgs.length; j++) {
             var msg = msgs[j]; 
             var t2 = new Date(msg.timestamp).toLocaleTimeString("ar-IQ", { hour: "2-digit", minute: "2-digit" });
-            var extraClass = msg.isCaptain ? ' captain-msg' : '';
-            box.innerHTML += '<div class="cm ' + (msg.src === "client" ? "cm-cl" : "cm-ca") + extraClass + '">' + msg.text + '<div class="cm-t">' + t2 + '</div></div>';
+            box.innerHTML += '<div class="cm ' + (msg.src === "client" ? "cm-cl" : "cm-ca") + '">' + msg.text + '<div class="cm-t">' + t2 + '</div></div>';
         }
         box.scrollTop = box.scrollHeight;
     }
@@ -456,8 +432,13 @@
 
     function sendCh() {
         var inp = document.getElementById("chatInput"); var txt = inp.value.trim(); if (!txt) return;
-        // إرسال الرسالة في جدول msgA مع إضافة حقل sender لتمييزها كرسالة كابتن
-        set(push(ref(db, "msgA/table_" + TBL)), { text: txt, timestamp: new Date().toISOString(), sender: "captain" }); 
+        // إرسال رسالة الكابتن في نفس المسار الذي يستمع إليه الكاشير
+        set(push(ref(db, "captain_chats/admin5")), { 
+            text: txt, 
+            timestamp: new Date().toISOString(), 
+            sender: "captain",
+            sender_name: "كابتن"
+        }); 
         inp.value = "";
     }
 

@@ -32,7 +32,6 @@
             backdrop-filter: blur(10px);
         }
 
-        /* زر اختيار الطاولة داخل الهيدر */
         .table-selector {
             position: relative;
             display: inline-flex;
@@ -52,10 +51,9 @@
         }
         .table-selector:active { transform: scale(0.95); background: rgba(255,255,255,0.2); }
         
-        /* القائمة المنسدلة فوق كل شيء */
         .table-dropdown {
-            position: fixed; /* ثابتة فوق كل العناصر */
-            top: 70px; /* أسفل الهيدر مباشرة */
+            position: fixed;
+            top: 70px;
             right: 10px;
             background: var(--bg-card);
             border: 1px solid var(--border);
@@ -63,7 +61,7 @@
             box-shadow: 0 15px 50px rgba(0,0,0,0.3);
             max-height: 70vh;
             overflow-y: auto;
-            z-index: 999999; /* أعلى طبقة */
+            z-index: 999999;
             display: none;
             width: 160px;
             padding: 8px 0;
@@ -81,14 +79,17 @@
             font-weight: 600;
         }
         .table-option:hover { background: var(--bg-warm); }
-        .table-option.active { color: #fff; background: var(--olive); border-radius: 0; }
+        .table-option.active { color: #fff; background: var(--olive); }
 
         .mute-icon { display: none !important; }
+        
+        /* تمييز رسائل الكابتن في الدردشة */
+        .cm-cl.captain-msg { background: var(--olive-light); color: #fff; border-bottom-left-radius: 4px; }
+        .cm-cl.captain-msg::before { content: 'كابتن'; position: absolute; top: -10px; right: 5px; font-size: 8px; background: var(--olive); color: #fff; padding: 1px 5px; border-radius: 4px; }
     </style>
 </head>
 <body>
 
-<!-- القائمة المنسدلة للطاولات (خارج الهيدر لتكون فوق كل شيء) -->
 <div class="table-dropdown" id="tableDropdown"></div>
 
 <div class="tw" id="tw"></div>
@@ -141,7 +142,7 @@
         <div class="hb">
             <div class="table-selector" id="tableSelectorBtn">
                 <i class="fas fa-chair"></i>
-                <span id="selectedTableText">طاولة 1</span>
+                <span id="selectedTableText">جاري التحميل...</span>
                 <i class="fas fa-chevron-down" style="font-size:10px;"></i>
             </div>
             <button class="msg-fab" id="msgFab"><i class="fas fa-comment-dots"></i><span class="msg-dot" id="msgDot">0</span></button>
@@ -187,7 +188,7 @@
     document.addEventListener('contextmenu', e => e.preventDefault());
     document.addEventListener('gesturestart', e => e.preventDefault());
 
-    let TBL = "1", VER = "", zone = null, watchID = null, restName = "", restLogo = "";
+    let TBL = "", VER = "", zone = null, watchID = null, restName = "", restLogo = "";
     let orders = {}, menuOk = false, chatOn = false, unreadN = 0;
     let curLat = null, curLon = null, curDist = null, isInZone = false;
     const menuLookup = {};
@@ -195,11 +196,10 @@
     let menuPreloaded = false; 
     let cachedMenuData = null; 
 
-    let msgCCache = {}; // رسائل الكاشير (الواردة للكابتن)
-    let msgDCache = {}; // رسائل الكابتن (الصادرة)
+    let msgACache = {}; // كل الرسائل الصادرة (زبون + كابتن)
+    let msgBCache = {}; // رسائل الكاشير الواردة
     let currentCashierMsgCount = 0; 
 
-    /* === نظام الإشعارات === */
     function getReadCount() { return parseInt(localStorage.getItem('kabtnReadMsgCount_' + TBL) || '0'); }
     function setReadCount(count) { localStorage.setItem('kabtnReadMsgCount_' + TBL, String(count)); }
 
@@ -218,7 +218,6 @@
         } catch (e) {}
     }
 
-    /* === دالة تنظيف الرسائل القديمة (أكثر من 24 ساعة) === */
     function cleanOldMessages(cache, path) {
         const now = Date.now();
         const twentyFourHours = 24 * 60 * 60 * 1000;
@@ -226,22 +225,50 @@
             if (cache[k].timestamp) {
                 const msgTime = new Date(cache[k].timestamp).getTime();
                 if (now - msgTime > twentyFourHours) {
-                    remove(ref(db, path + k)); // حذف من قاعدة البيانات
+                    remove(ref(db, path + k));
                 }
             }
         }
     }
 
-    /* === بناء قائمة الطاولات === */
-    function buildTableDropdown() {
-        const dropdown = document.getElementById('tableDropdown');
-        dropdown.innerHTML = '';
-        for (let i = 1; i <= 30; i++) {
-            const div = document.createElement('div');
-            div.className = 'table-option' + (i == TBL ? ' active' : '');
-            div.textContent = 'طاولة ' + i;
-            div.setAttribute('data-table', i);
-            dropdown.appendChild(div);
+    async function loadTablesFromDB() {
+        try {
+            const snap = await get(ref(db, "tablesA"));
+            const data = snap.val();
+            const dropdown = document.getElementById('tableDropdown');
+            dropdown.innerHTML = '';
+            
+            let tablesArray = [];
+            if (data) {
+                for (var key in data) {
+                    if (key.startsWith('table_')) {
+                        let num = parseInt(key.replace('table_', ''));
+                        if (!isNaN(num)) tablesArray.push(num);
+                    }
+                }
+            }
+            
+            tablesArray.sort((a, b) => a - b);
+
+            if (tablesArray.length === 0) {
+                dropdown.innerHTML = '<div class="table-option">لا توجد طاولات</div>';
+                return;
+            }
+
+            TBL = String(tablesArray[0]);
+            document.getElementById('selectedTableText').textContent = 'طاولة ' + TBL;
+
+            tablesArray.forEach(tableNum => {
+                const div = document.createElement('div');
+                div.className = 'table-option' + (tableNum == TBL ? ' active' : '');
+                div.textContent = 'طاولة ' + tableNum;
+                div.setAttribute('data-table', tableNum);
+                dropdown.appendChild(div);
+            });
+
+        } catch (e) {
+            console.error("Error loading tables:", e);
+            document.getElementById('selectedTableText').textContent = 'خطأ';
         }
     }
 
@@ -253,7 +280,6 @@
         });
         document.getElementById('tableDropdown').classList.remove('show');
         
-        // إعادة تحميل البيانات للطاولة الجديدة
         orders = {};
         listenOrd();
         listenCh();
@@ -285,7 +311,7 @@
         splashBtn.innerHTML = '<i class="fas fa-utensils" style="margin-left:8px;font-size:13px"></i> مشاهدة المينيو';
         var quoteText = splashQuotes[Math.floor(Math.random() * splashQuotes.length)];
         quoteEl.classList.add("visible"); var charIndex = 0;
-        setTimeout(function() { splashBtn.classList.add("show"); }, 7000); // 7 ثواني
+        setTimeout(function() { splashBtn.classList.add("show"); }, 7000);
         function typeCharacter() {
             if (charIndex < quoteText.length) { quoteEl.innerHTML = quoteText.substring(0, charIndex + 1) + '<span class="splash-cursor"></span>'; charIndex++; setTimeout(typeCharacter, 65); } 
             else { quoteEl.innerHTML = quoteText; }
@@ -293,18 +319,17 @@
         setTimeout(typeCharacter, 800);
     }
 
-    function preloadInBackground() { VER = "1.1.1"; buildTableDropdown(); onValue(ref(db, "orders"), function(snap) { cachedMenuData = snap.val(); menuPreloaded = true; if (isInZone && menuOk) renderMenu(cachedMenuData); }); }
+    function preloadInBackground() { VER = "1.1.1"; loadTablesFromDB(); onValue(ref(db, "orders"), function(snap) { cachedMenuData = snap.val(); menuPreloaded = true; if (isInZone && menuOk) renderMenu(cachedMenuData); }); }
 
     function bindEvents() {
         document.getElementById("splashBtn").addEventListener("click", function(e) { if (!this.classList.contains('show')) { e.preventDefault(); return; } dismissSplash(); });
 
-        // فتح/إغلاق القائمة واختيار الطاولة
         document.getElementById('tableSelectorBtn').addEventListener('click', function(e) {
             e.stopPropagation();
             document.getElementById('tableDropdown').classList.toggle('show');
         });
         document.getElementById('tableDropdown').addEventListener('click', function(e) {
-            if (e.target.classList.contains('table-option')) {
+            if (e.target.classList.contains('table-option') && e.target.getAttribute('data-table')) {
                 changeTable(e.target.getAttribute('data-table'));
             }
         });
@@ -358,7 +383,7 @@
     function onE() { document.getElementById("geoCard").style.display = "none"; document.getElementById("geoBlocked").style.display = "block"; }
     function updateDistBar(dist, radius) { var proximity = Math.max(0, Math.min(100, (1 - dist / radius) * 100)); var fill = document.getElementById("distFill"); var val = document.getElementById("distValue"); fill.style.width = proximity + "%"; var r, g, b; if (proximity >= 50) { var t = (proximity - 50) / 50; r = Math.round(180 - (180 - 74) * t); g = Math.round(60 + (124 - 60) * t); b = Math.round(60 + (89 - 60) * t); } else { var t3 = proximity / 50; r = Math.round(184 + (180 - 184) * t3); g = Math.round(80 - 20 * t3); b = Math.round(80 - 20 * t3); } var color = "rgb(" + r + "," + g + "," + b + ")"; fill.style.background = color; val.textContent = Math.round(proximity) + "%"; val.style.color = color; }
 
-    function initMenu() { menuOk = true; state.isMenuLoaded = true; updateAppState(); if (menuPreloaded && cachedMenuData !== null) renderMenu(cachedMenuData); else document.getElementById("menuCats").innerHTML = '<p style="color:var(--text-muted);padding:30px;text-align:center;font-size:13px;">جاري تحضير المنيو...</p>'; }
+    function initMenu() { menuOk = true; state.isMenuLoaded = true; updateAppState(); if (menuPreloaded && cachedMenuData !== null) renderMenu(cachedMenuData); else document.getElementById("menuCats").innerHTML = '<p style="color:var(--text-muted);padding:30px;text-align:center;font-size:13px;">جاري تحضير المينيو...</p>'; }
 
     function renderMenu(data) {
         var c = document.getElementById("menuCats"); c.innerHTML = ""; for (var key in menuLookup) delete menuLookup[key];
@@ -379,33 +404,27 @@
     function sendOrd() { if (!Object.keys(orders).length) { toast("لا توجد طلبات لإرسالها", "error"); return; } if (!navigator.onLine) { toast("لا يوجد اتصال بالإنترنت.", "error"); return; } var dist = curDist || 0; var sr = ref(db, "tablesB/table_" + TBL + "/sent_orders"); for (var k in orders) { var it = orders[k]; set(push(sr), { name: it.name, price: it.price, quantity: it.quantity, settled_by: "captain", settled_at: new Date().toISOString(), sent_distance: Math.round(dist) }); } remove(ref(db, "tablesA/table_" + TBL + "/current_orders")).then(function() { toast("تم إرسال طلباتك بنجاح", "success"); closeInv(); }).catch(function() { toast("حدث خطأ أثناء الإرسال.", "error"); }); }
     function closeInv() { document.getElementById("invoiceModal").style.display = "none"; }
 
-    /* === نظام محادثة الكابتن (msgC للوارد، msgD للصادر) === */
+    /* === نظام الدردشة (يرسل في msgA مع تحديد sender: captain ، ويستقبل من msgB) === */
     function listenCh() {
         var tk = "table_" + TBL;
         
-        // الكابتن يستقبل من msgC (الكاشير)
-        onValue(ref(db, "msgC/" + tk), function(snap) {
+        // الاستماع لرسائل الكاشير (msgB)
+        onValue(ref(db, "msgB/" + tk), function(snap) {
             var prevCount = currentCashierMsgCount;
-            msgCCache = snap.val() || {};
-            currentCashierMsgCount = Object.keys(msgCCache).length;
+            msgBCache = snap.val() || {};
+            currentCashierMsgCount = Object.keys(msgBCache).length;
 
-            // تشغيل صوت الإشعار عند وصول رسالة جديدة والمحادثة مغلقة
             if (currentCashierMsgCount > prevCount && !chatOn && prevCount >= 0) {
-                msgSnd();
+                msgSnd(); // تشغيل صوت الإشعار
             }
-
-            // تنظيف الرسائل الأقدم من 24 ساعة
-            cleanOldMessages(msgCCache, "msgC/" + tk + "/");
-            
-            updateBadge(); 
-            renderChat();  
+            cleanOldMessages(msgBCache, "msgB/" + tk + "/");
+            updateBadge(); renderChat();  
         });
 
-        // الكابتن يرسل من msgD (يستمع لها لعرضها في الشاشة)
-        onValue(ref(db, "msgD/" + tk), function(snap) {
-            msgDCache = snap.val() || {};
-            // تنظيف الرسائل الأقدم من 24 ساعة
-            cleanOldMessages(msgDCache, "msgD/" + tk + "/");
+        // الاستماع للرسائل الصادرة (msgA) لعرضها في الشات
+        onValue(ref(db, "msgA/" + tk), function(snap) {
+            msgACache = snap.val() || {};
+            cleanOldMessages(msgACache, "msgA/" + tk + "/");
             renderChat();  
         });
     }
@@ -413,47 +432,33 @@
     function renderChat() {
         if (!chatOn) return; 
         var box = document.getElementById("chatMsgs"); box.innerHTML = ""; var msgs = [];
-        // رسائل الكابتن (صادر)
-        for (var k in msgDCache) { var m2 = msgDCache[k]; m2.src = "client"; msgs.push(m2); }
-        // رسائل الكاشير (وارد)
-        for (var k2 in msgCCache) { var m = msgCCache[k2]; m.src = "cashier"; msgs.push(m); }
+        
+        // تجميع الرسائل الصادرة والواردة
+        for (var k in msgACache) { var m2 = msgACache[k]; m2.src = "client"; m2.isCaptain = (m2.sender === 'captain'); msgs.push(m2); }
+        for (var k2 in msgBCache) { var m = msgBCache[k2]; m.src = "cashier"; msgs.push(m); }
         
         msgs.sort(function(a, b) { return new Date(a.timestamp) - new Date(b.timestamp); });
         if (!msgs.length) { box.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px;font-size:13px;">ابدأ المحادثة مع الكاشير.</p>'; return; }
+        
         for (var j = 0; j < msgs.length; j++) {
-            var msg = msgs[j]; var t2 = new Date(msg.timestamp).toLocaleTimeString("ar-IQ", { hour: "2-digit", minute: "2-digit" });
-            box.innerHTML += '<div class="cm ' + (msg.src === "client" ? "cm-cl" : "cm-ca") + '">' + msg.text + '<div class="cm-t">' + t2 + '</div></div>';
+            var msg = msgs[j]; 
+            var t2 = new Date(msg.timestamp).toLocaleTimeString("ar-IQ", { hour: "2-digit", minute: "2-digit" });
+            var extraClass = msg.isCaptain ? ' captain-msg' : '';
+            box.innerHTML += '<div class="cm ' + (msg.src === "client" ? "cm-cl" : "cm-ca") + extraClass + '">' + msg.text + '<div class="cm-t">' + t2 + '</div></div>';
         }
         box.scrollTop = box.scrollHeight;
     }
 
-    function updateBadge() {
-        var cachedReadCount = getReadCount();
-        var unreadCount = chatOn ? 0 : Math.max(0, currentCashierMsgCount - cachedReadCount);
-        showUnread(unreadCount);
-    }
-
-    function showUnread(c) {
-        var dot = document.getElementById("msgDot");
-        if (c > 0) { dot.style.display = "flex"; dot.textContent = c > 9 ? "9+" : String(c); } 
-        else { dot.style.display = "none"; }
-        unreadN = c;
-    }
-
-    function openCh() {
-        chatOn = true;
-        setReadCount(currentCashierMsgCount);
-        updateBadge(); 
-        document.getElementById("chatModal").style.display = "flex";
-        renderChat(); 
-    }
-
+    function updateBadge() { var cachedReadCount = getReadCount(); var unreadCount = chatOn ? 0 : Math.max(0, currentCashierMsgCount - cachedReadCount); showUnread(unreadCount); }
+    function showUnread(c) { var dot = document.getElementById("msgDot"); if (c > 0) { dot.style.display = "flex"; dot.textContent = c > 9 ? "9+" : String(c); } else { dot.style.display = "none"; } unreadN = c; }
+    function openCh() { chatOn = true; setReadCount(currentCashierMsgCount); updateBadge(); document.getElementById("chatModal").style.display = "flex"; renderChat(); }
     function closeCh() { chatOn = false; document.getElementById("chatModal").style.display = "none"; }
 
     function sendCh() {
         var inp = document.getElementById("chatInput"); var txt = inp.value.trim(); if (!txt) return;
-        // الكابتن يرسل إلى msgD
-        set(push(ref(db, "msgD/table_" + TBL)), { text: txt, timestamp: new Date().toISOString() }); inp.value = "";
+        // إرسال الرسالة في جدول msgA مع إضافة حقل sender لتمييزها كرسالة كابتن
+        set(push(ref(db, "msgA/table_" + TBL)), { text: txt, timestamp: new Date().toISOString(), sender: "captain" }); 
+        inp.value = "";
     }
 
     window.openImage = function(src) { if (!src) return; var modal = document.getElementById("imgModal"); var img = document.getElementById("imgModalImg"); img.src = src; modal.style.display = "flex"; };

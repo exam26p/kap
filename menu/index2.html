@@ -34,7 +34,6 @@
             z-index: -2;
         }
 
-        /* حاوية أيقونات الصوت والتواصل الاجتماعي */
         .bottom-icons-container {
             position: fixed;
             bottom: 30px;
@@ -44,7 +43,7 @@
             justify-content: center;
             align-items: center;
             gap: 15px;
-            z-index: 1000000; /* مستوى طبقة عالي جداً لضمان عدم تغطيته */
+            z-index: 1000000;
             transition: all 0.4s ease;
         }
 
@@ -57,7 +56,6 @@
         .social-icon, .mute-icon {
             width: 56px;
             height: 56px;
-            /* تم استبدال الـ backdrop-filter بخلفية RGBa لتجنب حجب النقر على الهواتف */
             background: rgba(30, 50, 31, 0.85); 
             -webkit-tap-highlight-color: transparent;
             border-radius: 50%;
@@ -74,7 +72,6 @@
             z-index: 1000001;
         }
 
-        /* تأثير الضغط المحسّن */
         .social-icon:active {
             transform: scale(0.88);
             background: rgba(61, 90, 62, 0.95);
@@ -83,8 +80,8 @@
 
         .social-icon i {
             font-size: 24px;
-            color: #C9A96E; /* اللون الذهبي ليظهر بوضوح على الخلفية الداكنة */
-            pointer-events: none; /* مهم جداً: يمنع الأيقونة من اعتراض الضغطة */
+            color: #C9A96E; 
+            pointer-events: none; 
         }
 
         .mute-icon {
@@ -95,7 +92,7 @@
             width: 28px;
             height: 28px;
             fill: #C9A96E;
-            pointer-events: none; /* يمنع الـ SVG من اعتراض الضغطة */
+            pointer-events: none; 
         }
         .mute-icon.unmuted {
             display: none;
@@ -113,9 +110,7 @@
     <source src="https://raw.githubusercontent.com/exam26p/kap/main/assets/background_video.mp4" type="video/mp4">
 </video>
 
-<!-- حاوية أيقونات الصوت والتواصل الاجتماعي -->
 <div class="bottom-icons-container" id="bottomIconsContainer">
-    <!-- تم تحويلها لأزرار لضمان عمل النقر على الموبايل -->
     <button id="socialFb" class="social-icon" data-url="#" title="فيسبوك"><i class="fab fa-facebook-f"></i></button>
     <button id="socialIg" class="social-icon" data-url="#" title="انستغرام"><i class="fab fa-instagram"></i></button>
     <button id="socialWa" class="social-icon" data-url="#" title="واتساب"><i class="fab fa-whatsapp"></i></button>
@@ -213,35 +208,41 @@
     </div>
 </div>
 
+<!-- سكربت التحكم بالصوت والفيديو (تم إصلاح مشكلة التشغيل التلقائي) -->
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         const bgVideo = document.getElementById('bgVideo');
         const muteToggle = document.getElementById('muteToggle');
         const splashBtn = document.getElementById('splashBtn');
 
+        // منع إيقاف الفيديو بالخطأ
         bgVideo.addEventListener('click', function(e) { e.preventDefault(); });
         bgVideo.addEventListener('touchstart', function(e) { e.preventDefault(); }, { passive: false });
 
+        // دالة تفعيل صوت الفيديو (تعمل فقط بعد تفاعل المستخدم)
         function enableSound() {
             if (bgVideo.muted) {
                 bgVideo.muted = false;
-                bgVideo.play().catch(()=>{});
-                muteToggle.classList.add('unmuted');
+                bgVideo.play().then(() => {
+                    muteToggle.classList.add('unmuted');
+                }).catch(() => {});
             }
         }
 
-        // إصلاح مشكلة النقر المسبق
+        // تفعيل الصوت عند الضغط على زر شاشة التحميل
         splashBtn.addEventListener("click", function(e) {
             if (!splashBtn.classList.contains('show')) { e.preventDefault(); return; }
             enableSound();
+            if (window.initAppAudio) window.initAppAudio(); // تشغيل صوت النقرات
         });
 
-        // استخدام touchstart للصوت لتجنب تعارض أحداث الـ click مع أزرار التواصل
-        muteToggle.addEventListener('touchstart', function(e) {
-            e.preventDefault(); // منع السلوك الافتراضي لتجنب الحجب
+        // تفعيل الصوت عند الضغط على أيقونة الصوت
+        muteToggle.addEventListener('click', function() {
             enableSound();
-        }, { passive: false });
+            if (window.initAppAudio) window.initAppAudio();
+        });
 
+        // مراقبة حالة الصوت لإخفاء/إظهار الأيقونة
         bgVideo.addEventListener('volumechange', function() {
             if (bgVideo.muted) { muteToggle.classList.remove('unmuted'); } 
             else { muteToggle.classList.add('unmuted'); }
@@ -270,7 +271,61 @@
     let currentCashierMsgCount = 0; 
     let cachedReadCount = 0; 
 
-    /* === سحب روابط التواصل الاجتماعي وربطها بشكل محكم === */
+    /* === إصلاح مشكلة AudioContext === */
+    let aC = null; 
+    let lClk = 0, audioResumed = false, pendingMsgSounds = 0; 
+
+    // دالة تهيئة الصوت (لا تعمل إلا بعد ضغطة حقيقية من المستخدم)
+    window.initAppAudio = function() {
+        if (!aC) {
+            try { aC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return; }
+        }
+        if (aC.state === "suspended") aC.resume();
+        audioResumed = true;
+        // تشغيل أي أصوات كانت معلقة قبل تفعيل الصوت
+        for (var i = 0; i < pendingMsgSounds; i++) msgSnd();
+        pendingMsgSounds = 0;
+    };
+
+    // تفعيل الصوت أيضاً عند أي نقرة على الصفحة كضمان إضافي
+    document.addEventListener("click", function() {
+        if (window.initAppAudio) window.initAppAudio();
+    }, { once: true });
+
+    function cSnd() {
+        if (!aC || !audioResumed) return;
+        var n = Date.now(); if (n - lClk < 80) return; lClk = n;
+        try {
+            if (aC.state === "suspended") aC.resume();
+            var o = aC.createOscillator(), g = aC.createGain();
+            o.connect(g); g.connect(aC.destination); o.type = "sine";
+            o.frequency.setValueAtTime(600 + Math.random() * 400, aC.currentTime);
+            g.gain.setValueAtTime(0.015, aC.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001, aC.currentTime + 0.05);
+            o.start(aC.currentTime); o.stop(aC.currentTime + 0.05);
+        } catch (e) {}
+    }
+    
+    function addSnd(el) { if (el) el.addEventListener("click", cSnd, { passive: true }); }
+    
+    function msgSnd() {
+        if (!aC) return;
+        try {
+            if (!audioResumed) { pendingMsgSounds++; return; }
+            if (aC.state === "suspended") aC.resume();
+            var now = aC.currentTime;
+            [0, 0.15, 0.3].forEach(function(d, i) {
+                var o = aC.createOscillator(), g = aC.createGain();
+                o.connect(g); g.connect(aC.destination); o.type = "sine";
+                o.frequency.setValueAtTime([660, 880, 1100][i], now + d);
+                g.gain.setValueAtTime(0.06, now + d);
+                g.gain.exponentialRampToValueAtTime(0.001, now + d + 0.12);
+                o.start(now + d); o.stop(now + d + 0.12);
+            });
+        } catch (e) {}
+    }
+
+    /* === سحب روابط التواصل الاجتماعي === */
     async function loadSocialLinks() {
         try {
             const snap = await get(ref(db, "data/-OtW677IyPfMvtFSza0w"));
@@ -281,18 +336,15 @@
                 if (data.whatsapp) document.getElementById('socialWa').setAttribute('data-url', data.whatsapp);
                 if (data.map) document.getElementById('socialMap').setAttribute('data-url', data.map);
             }
-        } catch (e) {
-            console.error("Error loading social links:", e);
-        }
+        } catch (e) { console.error("Error loading social links:", e); }
 
-        // ربط حدث النقر بشكل مباشر وإجباري
         const socialButtons = document.querySelectorAll('.social-icon');
         socialButtons.forEach(btn => {
             btn.addEventListener('click', function(event) {
-                event.stopPropagation(); // منع انتقال الحدث لأي عنصر آخر
+                event.stopPropagation();
                 const url = this.getAttribute('data-url');
                 if (url && url !== '#') {
-                    window.open(url, '_blank'); // فتح الرابط في نافذة خارجية
+                    window.open(url, '_blank');
                 } else {
                     toast("الرابط غير متاح حالياً", "info");
                 }
@@ -316,27 +368,6 @@
         state.activeTable = TBL; state.myVersion = VER;
         state.settings.restaurantName = restName; state.settings.restaurantLogo = restLogo;
         state.isMenuLoaded = menuOk; state.isGeoVerified = isInZone;
-    }
-
-    var aC = new (window.AudioContext || window.webkitAudioContext)();
-    var lClk = 0, audioResumed = false, pendingMsgSounds = 0; 
-
-    // تم تغيير حدث الصوت العام إلى touchstart لمنع سرقة أحداث الـ click
-    document.addEventListener("touchstart", function() {
-        if (!audioResumed) {
-            audioResumed = true; if (aC.state === "suspended") aC.resume();
-            for (var i = 0; i < pendingMsgSounds; i++) msgSnd();
-            pendingMsgSounds = 0;
-        }
-    }, { once: true });
-
-    function cSnd() {
-        var n = Date.now(); if (n - lClk < 80) return; lClk = n;
-        try { if (aC.state === "suspended") aC.resume(); var o = aC.createOscillator(), g = aC.createGain(); o.connect(g); g.connect(aC.destination); o.type = "sine"; o.frequency.setValueAtTime(600 + Math.random() * 400, aC.currentTime); g.gain.setValueAtTime(0.015, aC.currentTime); g.gain.exponentialRampToValueAtTime(0.001, aC.currentTime + 0.05); o.start(aC.currentTime); o.stop(aC.currentTime + 0.05); } catch (e) {}
-    }
-    function addSnd(el) { if (el) el.addEventListener("click", cSnd, { passive: true }); }
-    function msgSnd() {
-        try { if (!audioResumed) { pendingMsgSounds++; return; } if (aC.state === "suspended") aC.resume(); var now = aC.currentTime; [0, 0.15, 0.3].forEach(function(d, i) { var o = aC.createOscillator(), g = aC.createGain(); o.connect(g); g.connect(aC.destination); o.type = "sine"; o.frequency.setValueAtTime([660, 880, 1100][i], now + d); g.gain.setValueAtTime(0.06, now + d); g.gain.exponentialRampToValueAtTime(0.001, now + d + 0.12); o.start(now + d); o.stop(now + d + 0.12); }); } catch (e) {}
     }
 
     async function loadAppSettings() {
@@ -446,7 +477,6 @@
             for (var itemId in items) {
                 var it = items[itemId]; menuLookup[catId + "_" + itemId] = { name: it.name, price: it.price };
                 var detId = "det_" + catId + "_" + itemId; var details = it.details || ""; var hasDetails = details && details.trim().length > 0; var imgSrc = it.image || "";
-
                 itemHTML += '<div class="item-card"><div class="item-img-container" onclick="window.openImage(\'' + imgSrc + '\')">' + (imgSrc ? '<img src="' + imgSrc + '" alt="" loading="' + (catIndex <= 1 ? 'eager' : 'lazy') + '" onerror="this.style.opacity=0">' : '') + '<div class="item-overlay"><div class="item-name">' + it.name + '</div><div class="item-meta"><span class="item-price">' + fmt(it.price) + ' د.ع</span></div></div></div>' + (hasDetails ? '<div class="item-det-wrap" id="' + detId + '"><div class="item-det-inner"><div class="item-det-text">' + details + '</div></div></div>' : '') + '<div class="item-actions-bar">' + (hasDetails ? '<button class="det-btn" data-target="' + detId + '"><i class="fas fa-info-circle"></i> التفاصيل</button>' : '<div></div>') + '<button class="ba" data-c="' + catId + '" data-i="' + itemId + '"><i class="fas fa-plus"></i> طلب</button></div></div>';
             }
             var catImg = cat.image || ""; var hasImg = catImg && catImg.length > 10; var acc = document.createElement("div"); acc.className = "cat-acc";

@@ -24,22 +24,20 @@
     <link rel="stylesheet" href="menu.css">
 
     <style>
-        /* إخفاء الفيديو وفكرة الخلفية */
         #bgVideo { display: none; }
         body { background: var(--bg-warm); }
 
-        /* شاشة التحميل بدون فيديو */
         #splashScreen {
             background: linear-gradient(135deg, rgba(44,62,45,0.95), rgba(61,90,62,0.9)) !important;
             backdrop-filter: blur(10px);
         }
 
-        /* زر اختيار الطاولة */
+        /* زر اختيار الطاولة داخل الهيدر */
         .table-selector {
             position: relative;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             background: rgba(255,255,255,0.1);
             backdrop-filter: blur(8px);
             color: var(--gold-light);
@@ -50,27 +48,32 @@
             border: 1px solid rgba(255,255,255,0.08);
             cursor: pointer;
             transition: all 0.2s;
+            z-index: 10;
         }
         .table-selector:active { transform: scale(0.95); background: rgba(255,255,255,0.2); }
         
+        /* القائمة المنسدلة فوق كل شيء */
         .table-dropdown {
-            position: absolute;
-            top: 110%;
-            right: 0;
+            position: fixed; /* ثابتة فوق كل العناصر */
+            top: 70px; /* أسفل الهيدر مباشرة */
+            right: 10px;
             background: var(--bg-card);
             border: 1px solid var(--border);
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            max-height: 250px;
+            border-radius: 16px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+            max-height: 70vh;
             overflow-y: auto;
-            z-index: 999;
+            z-index: 999999; /* أعلى طبقة */
             display: none;
-            min-width: 140px;
+            width: 160px;
+            padding: 8px 0;
         }
-        .table-dropdown.show { display: block; }
+        .table-dropdown.show { display: block; animation: slideDown 0.2s ease; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        
         .table-option {
-            padding: 10px 16px;
-            font-size: 14px;
+            padding: 12px 16px;
+            font-size: 15px;
             color: var(--text-dark);
             cursor: pointer;
             transition: background 0.2s;
@@ -78,13 +81,15 @@
             font-weight: 600;
         }
         .table-option:hover { background: var(--bg-warm); }
-        .table-option.active { color: var(--olive); background: var(--olive-pale); }
+        .table-option.active { color: #fff; background: var(--olive); border-radius: 0; }
 
-        /* زر المينيو بدون صوت */
         .mute-icon { display: none !important; }
     </style>
 </head>
 <body>
+
+<!-- القائمة المنسدلة للطاولات (خارج الهيدر لتكون فوق كل شيء) -->
+<div class="table-dropdown" id="tableDropdown"></div>
 
 <div class="tw" id="tw"></div>
 
@@ -134,14 +139,10 @@
             <p>اختر من تشكيلة وجباتنا المميزة</p>
         </div>
         <div class="hb">
-            <!-- زر اختيار الطاولة يدوياً -->
             <div class="table-selector" id="tableSelectorBtn">
                 <i class="fas fa-chair"></i>
                 <span id="selectedTableText">طاولة 1</span>
                 <i class="fas fa-chevron-down" style="font-size:10px;"></i>
-                <div class="table-dropdown" id="tableDropdown">
-                    <!-- سيتم إضافة الطاولات برمجياً -->
-                </div>
             </div>
             <button class="msg-fab" id="msgFab"><i class="fas fa-comment-dots"></i><span class="msg-dot" id="msgDot">0</span></button>
         </div>
@@ -194,16 +195,14 @@
     let menuPreloaded = false; 
     let cachedMenuData = null; 
 
-    let msgCCache = {}; 
-    let msgDCache = {}; 
+    let msgCCache = {}; // رسائل الكاشير (الواردة للكابتن)
+    let msgDCache = {}; // رسائل الكابتن (الصادرة)
     let currentCashierMsgCount = 0; 
 
     /* === نظام الإشعارات === */
     function getReadCount() { return parseInt(localStorage.getItem('kabtnReadMsgCount_' + TBL) || '0'); }
     function setReadCount(count) { localStorage.setItem('kabtnReadMsgCount_' + TBL, String(count)); }
 
-    function cSnd() {}
-    function addSnd(el) { if (el) el.addEventListener("click", cSnd, { passive: true }); }
     function msgSnd() {
         try {
             var aC = new (window.AudioContext || window.webkitAudioContext)();
@@ -219,6 +218,20 @@
         } catch (e) {}
     }
 
+    /* === دالة تنظيف الرسائل القديمة (أكثر من 24 ساعة) === */
+    function cleanOldMessages(cache, path) {
+        const now = Date.now();
+        const twentyFourHours = 24 * 60 * 60 * 1000;
+        for (var k in cache) {
+            if (cache[k].timestamp) {
+                const msgTime = new Date(cache[k].timestamp).getTime();
+                if (now - msgTime > twentyFourHours) {
+                    remove(ref(db, path + k)); // حذف من قاعدة البيانات
+                }
+            }
+        }
+    }
+
     /* === بناء قائمة الطاولات === */
     function buildTableDropdown() {
         const dropdown = document.getElementById('tableDropdown');
@@ -227,9 +240,7 @@
             const div = document.createElement('div');
             div.className = 'table-option' + (i == TBL ? ' active' : '');
             div.textContent = 'طاولة ' + i;
-            div.addEventListener('click', function() {
-                changeTable(i);
-            });
+            div.setAttribute('data-table', i);
             dropdown.appendChild(div);
         }
     }
@@ -237,29 +248,22 @@
     function changeTable(newTable) {
         TBL = String(newTable);
         document.getElementById('selectedTableText').textContent = 'طاولة ' + TBL;
+        document.querySelectorAll('.table-option').forEach(el => {
+            el.classList.toggle('active', el.getAttribute('data-table') == newTable);
+        });
         document.getElementById('tableDropdown').classList.remove('show');
-        document.getElementById('tableDropdown').querySelectorAll('.table-option').forEach(el => el.classList.remove('active'));
-        event.target.classList.add('active');
         
-        // إعادة تحميل الطلبات والدردشة الخاصة بالطاولة الجديدة
+        // إعادة تحميل البيانات للطاولة الجديدة
         orders = {};
         listenOrd();
         listenCh();
         updateBadge();
-        toast("تم التبديل إلى " + 'طاولة ' + TBL, "success");
+        toast("تم التبديل إلى طاولة " + TBL, "success");
     }
 
-    const splashQuotes = [
-        "كل وجبة وراءها قصة، وصُنعت بحب لتسعد يومك.",
-        "اللقمة الطيبة تجمع القلوب.. أهلاً بك في عالمنا.",
-        "نطبخ بشغف، لنقدم لك تجربة لا تُنسى.",
-    ];
+    const splashQuotes = ["كل وجبة وراءها قصة، وصُنعت بحب لتسعد يومك.", "اللقمة الطيبة تجمع القلوب.. أهلاً بك في عالمنا.", "نطبخ بشغف، لنقدم لك تجربة لا تُنسى."];
 
-    function updateAppState() {
-        state.activeTable = TBL; state.myVersion = VER;
-        state.settings.restaurantName = restName; state.settings.restaurantLogo = restLogo;
-        state.isMenuLoaded = menuOk; state.isGeoVerified = isInZone;
-    }
+    function updateAppState() { state.activeTable = TBL; state.myVersion = VER; state.settings.restaurantName = restName; state.settings.restaurantLogo = restLogo; state.isMenuLoaded = menuOk; state.isGeoVerified = isInZone; }
 
     async function loadAppSettings() {
         try {
@@ -279,56 +283,45 @@
         var quoteEl = document.getElementById("splashQuote"); var splashBtn = document.getElementById("splashBtn");
         if (!quoteEl || !splashBtn) return;
         splashBtn.innerHTML = '<i class="fas fa-utensils" style="margin-left:8px;font-size:13px"></i> مشاهدة المينيو';
-        var randomIndex = Math.floor(Math.random() * splashQuotes.length); var quoteText = splashQuotes[randomIndex];
+        var quoteText = splashQuotes[Math.floor(Math.random() * splashQuotes.length)];
         quoteEl.classList.add("visible"); var charIndex = 0;
-        
-        // مدة 7 ثواني فقط
-        setTimeout(function() { splashBtn.classList.add("show"); }, 7000);
-
+        setTimeout(function() { splashBtn.classList.add("show"); }, 7000); // 7 ثواني
         function typeCharacter() {
-            if (charIndex < quoteText.length) {
-                quoteEl.innerHTML = quoteText.substring(0, charIndex + 1) + '<span class="splash-cursor"></span>'; charIndex++;
-                var nextDelay = 65;
-                setTimeout(typeCharacter, nextDelay);
-            } else {
-                quoteEl.innerHTML = quoteText;
-            }
+            if (charIndex < quoteText.length) { quoteEl.innerHTML = quoteText.substring(0, charIndex + 1) + '<span class="splash-cursor"></span>'; charIndex++; setTimeout(typeCharacter, 65); } 
+            else { quoteEl.innerHTML = quoteText; }
         }
         setTimeout(typeCharacter, 800);
     }
 
-    function preloadInBackground() {
-        VER = "1.1.1"; // إصدار افتراضي للكابتن
-        buildTableDropdown();
-        onValue(ref(db, "orders"), function(snap) { cachedMenuData = snap.val(); menuPreloaded = true; if (isInZone && menuOk) renderMenu(cachedMenuData); });
-    }
+    function preloadInBackground() { VER = "1.1.1"; buildTableDropdown(); onValue(ref(db, "orders"), function(snap) { cachedMenuData = snap.val(); menuPreloaded = true; if (isInZone && menuOk) renderMenu(cachedMenuData); }); }
 
     function bindEvents() {
-        var splashBtn = document.getElementById("splashBtn");
-        splashBtn.addEventListener("click", function(e) {
-            if (!splashBtn.classList.contains('show')) { e.preventDefault(); return; }
-            dismissSplash();
-        });
+        document.getElementById("splashBtn").addEventListener("click", function(e) { if (!this.classList.contains('show')) { e.preventDefault(); return; } dismissSplash(); });
 
-        // فتح/إغلاق قائمة الطاولات
+        // فتح/إغلاق القائمة واختيار الطاولة
         document.getElementById('tableSelectorBtn').addEventListener('click', function(e) {
-            if (e.target.closest('.table-option')) return;
+            e.stopPropagation();
             document.getElementById('tableDropdown').classList.toggle('show');
         });
+        document.getElementById('tableDropdown').addEventListener('click', function(e) {
+            if (e.target.classList.contains('table-option')) {
+                changeTable(e.target.getAttribute('data-table'));
+            }
+        });
         document.addEventListener('click', function(e) {
-            if (!e.target.closest('#tableSelectorBtn')) {
+            if (!e.target.closest('#tableSelectorBtn') && !e.target.closest('#tableDropdown')) {
                 document.getElementById('tableDropdown').classList.remove('show');
             }
         });
 
-        var bibBtn = document.getElementById("bibBtn"); bibBtn.addEventListener("click", function() { document.getElementById("invoiceModal").style.display = "flex"; });
-        var invClose = document.getElementById("invClose"); invClose.addEventListener("click", closeInv);
+        document.getElementById("bibBtn").addEventListener("click", function() { document.getElementById("invoiceModal").style.display = "flex"; });
+        document.getElementById("invClose").addEventListener("click", closeInv);
         document.getElementById("invoiceModal").addEventListener("click", function(e) { if (e.target.id === "invoiceModal") closeInv(); });
-        var btnSend = document.getElementById("btnSend"); btnSend.addEventListener("click", sendOrd);
-        var msgFab = document.getElementById("msgFab"); msgFab.addEventListener("click", openCh);
-        var chatClose = document.getElementById("chatClose"); chatClose.addEventListener("click", closeCh);
+        document.getElementById("btnSend").addEventListener("click", sendOrd);
+        document.getElementById("msgFab").addEventListener("click", openCh);
+        document.getElementById("chatClose").addEventListener("click", closeCh);
         document.getElementById("chatModal").addEventListener("click", function(e) { if (e.target.id === "chatModal") closeCh(); });
-        var chatSendBtn = document.getElementById("chatSendBtn"); chatSendBtn.addEventListener("click", sendCh);
+        document.getElementById("chatSendBtn").addEventListener("click", sendCh);
         document.getElementById("chatInput").addEventListener("keydown", function(e) { if (e.key === "Enter") sendCh(); });
         document.getElementById("imgModalClose").addEventListener("click", closeImgModal);
         document.getElementById("imgModal").addEventListener("click", function(e) { if (e.target.id === "imgModal") closeImgModal(); });
@@ -336,12 +329,7 @@
 
     function dismissSplash() {
         document.getElementById("splashScreen").classList.add("hide");
-        setTimeout(function() { 
-            document.getElementById("splashScreen").style.display = "none"; 
-            document.getElementById("blockScreen").style.display = "flex"; 
-            updateHeader(); 
-            setTimeout(function() { initGeo(); }, 100); 
-        }, 600);
+        setTimeout(function() { document.getElementById("splashScreen").style.display = "none"; document.getElementById("blockScreen").style.display = "flex"; updateHeader(); setTimeout(function() { initGeo(); }, 100); }, 600);
     }
 
     async function initGeo() {
@@ -359,47 +347,12 @@
     function startW() { if (!navigator.geolocation) { document.getElementById("geoCard").style.display = "none"; document.getElementById("geoBlocked").style.display = "block"; return; } watchID = navigator.geolocation.watchPosition(onP, onE, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }); }
 
     function onP(pos) {
-        curLat = pos.coords.latitude; curLon = pos.coords.longitude;
-        curDist = haversine(curLat, curLon, zone.center_latitude, zone.center_longitude);
-        var rad = zone.radius_meters || 100;
-        
-        if (curDist > 50000) { 
-            if (!isInZone) {
-                isInZone = false; state.isGeoVerified = false; updateAppState();
-                document.getElementById("menuContent").style.display = "none";
-                document.getElementById("bottomBar").style.display = "none";
-                document.getElementById("distBar").style.display = "none";
-                document.getElementById("kickScreen").style.display = "none";
-                document.getElementById("blockScreen").style.display = "flex";
-                sGeo("err", "🛡️", "موقعك غير دقيق", "يبدو أنك تستخدم VPN أو موقعك بعيد جداً.");
-            }
-            return;
-        }
-
+        curLat = pos.coords.latitude; curLon = pos.coords.longitude; curDist = haversine(curLat, curLon, zone.center_latitude, zone.center_longitude); var rad = zone.radius_meters || 100;
+        if (curDist > 50000) { if (!isInZone) { isInZone = false; state.isGeoVerified = false; updateAppState(); document.getElementById("menuContent").style.display = "none"; document.getElementById("bottomBar").style.display = "none"; document.getElementById("distBar").style.display = "none"; document.getElementById("kickScreen").style.display = "none"; document.getElementById("blockScreen").style.display = "flex"; sGeo("err", "🛡️", "موقعك غير دقيق", "يبدو أنك تستخدم VPN أو موقعك بعيد جداً."); } return; }
         updateDistBar(curDist, rad);
-        if (curDist <= rad) {
-            if (!isInZone) {
-                isInZone = true; state.isGeoVerified = true; updateAppState();
-                document.getElementById("blockScreen").style.display = "none"; document.getElementById("kickScreen").style.display = "none";
-                document.getElementById("menuContent").style.display = "block"; document.getElementById("bottomBar").style.display = "flex";
-                document.getElementById("distBar").style.display = "block"; if (!menuOk) initMenu();
-                listenOrd(); listenCh(); // تشغيل الطلبات والدردشة بعد التأكد من الموقع
-            }
-        } else if (curDist <= rad * 2) {
-            if (isInZone) {
-                isInZone = false; state.isGeoVerified = false; updateAppState();
-                document.getElementById("menuContent").style.display = "none"; document.getElementById("bottomBar").style.display = "none";
-                document.getElementById("distBar").style.display = "none"; document.getElementById("blockScreen").style.display = "flex";
-                sGeo("err", "🚫", "خارج النطاق", "اقترب أكثر من المطعم.");
-            }
-        } else {
-            if (!document.getElementById("kickScreen").style.display || document.getElementById("kickScreen").style.display === "none") {
-                isInZone = false; state.isGeoVerified = false; updateAppState();
-                document.getElementById("menuContent").style.display = "none"; document.getElementById("bottomBar").style.display = "none";
-                document.getElementById("distBar").style.display = "none"; document.getElementById("blockScreen").style.display = "none";
-                document.getElementById("kickScreen").style.display = "flex";
-            }
-        }
+        if (curDist <= rad) { if (!isInZone) { isInZone = true; state.isGeoVerified = true; updateAppState(); document.getElementById("blockScreen").style.display = "none"; document.getElementById("kickScreen").style.display = "none"; document.getElementById("menuContent").style.display = "block"; document.getElementById("bottomBar").style.display = "flex"; document.getElementById("distBar").style.display = "block"; if (!menuOk) initMenu(); listenOrd(); listenCh(); } }
+        else if (curDist <= rad * 2) { if (isInZone) { isInZone = false; state.isGeoVerified = false; updateAppState(); document.getElementById("menuContent").style.display = "none"; document.getElementById("bottomBar").style.display = "none"; document.getElementById("distBar").style.display = "none"; document.getElementById("blockScreen").style.display = "flex"; sGeo("err", "🚫", "خارج النطاق", "اقترب أكثر من المطعم."); } }
+        else { if (!document.getElementById("kickScreen").style.display || document.getElementById("kickScreen").style.display === "none") { isInZone = false; state.isGeoVerified = false; updateAppState(); document.getElementById("menuContent").style.display = "none"; document.getElementById("bottomBar").style.display = "none"; document.getElementById("distBar").style.display = "none"; document.getElementById("blockScreen").style.display = "none"; document.getElementById("kickScreen").style.display = "flex"; } }
     }
 
     function onE() { document.getElementById("geoCard").style.display = "none"; document.getElementById("geoBlocked").style.display = "block"; }
@@ -413,15 +366,8 @@
         state.menuData = data; var catIndex = 0;
         for (var catId in data) {
             catIndex++; var cat = data[catId]; var items = cat.items || {}; var cnt = Object.keys(items).length; var itemHTML = "";
-            for (var itemId in items) {
-                var it = items[itemId]; menuLookup[catId + "_" + itemId] = { name: it.name, price: it.price };
-                var detId = "det_" + catId + "_" + itemId; var details = it.details || ""; var hasDetails = details && details.trim().length > 0; var imgSrc = it.image || "";
-                itemHTML += '<div class="item-card"><div class="item-img-container" onclick="window.openImage(\'' + imgSrc + '\')">' + (imgSrc ? '<img src="' + imgSrc + '" alt="" loading="' + (catIndex <= 1 ? 'eager' : 'lazy') + '" onerror="this.style.opacity=0">' : '') + '<div class="item-overlay"><div class="item-name">' + it.name + '</div><div class="item-meta"><span class="item-price">' + fmt(it.price) + ' د.ع</span></div></div></div>' + (hasDetails ? '<div class="item-det-wrap" id="' + detId + '"><div class="item-det-inner"><div class="item-det-text">' + details + '</div></div></div>' : '') + '<div class="item-actions-bar">' + (hasDetails ? '<button class="det-btn" data-target="' + detId + '"><i class="fas fa-info-circle"></i> التفاصيل</button>' : '<div></div>') + '<button class="ba" data-c="' + catId + '" data-i="' + itemId + '"><i class="fas fa-plus"></i> طلب</button></div></div>';
-            }
-            var catImg = cat.image || ""; var hasImg = catImg && catImg.length > 10; var acc = document.createElement("div"); acc.className = "cat-acc";
-            var imgPart = hasImg ? '<img src="' + catImg + '" alt="" loading="eager" style="opacity:0;transition:opacity .4s" onload="this.style.opacity=1">' : '<div class="cat-hd-fallback">🍽</div>';
-            acc.innerHTML = '<div class="cat-hd">' + imgPart + '<div class="cat-hd-content"><div class="cat-hi"><h3>' + cat.name + '</h3><span class="cc">' + cnt + ' صنف</span></div><i class="fas fa-chevron-down cat-arr"></i></div></div><div class="cat-bd">' + itemHTML + '</div>';
-            c.appendChild(acc);
+            for (var itemId in items) { var it = items[itemId]; menuLookup[catId + "_" + itemId] = { name: it.name, price: it.price }; var detId = "det_" + catId + "_" + itemId; var details = it.details || ""; var hasDetails = details && details.trim().length > 0; var imgSrc = it.image || ""; itemHTML += '<div class="item-card"><div class="item-img-container" onclick="window.openImage(\'' + imgSrc + '\')">' + (imgSrc ? '<img src="' + imgSrc + '" alt="" loading="' + (catIndex <= 1 ? 'eager' : 'lazy') + '" onerror="this.style.opacity=0">' : '') + '<div class="item-overlay"><div class="item-name">' + it.name + '</div><div class="item-meta"><span class="item-price">' + fmt(it.price) + ' د.ع</span></div></div></div>' + (hasDetails ? '<div class="item-det-wrap" id="' + detId + '"><div class="item-det-inner"><div class="item-det-text">' + details + '</div></div></div>' : '') + '<div class="item-actions-bar">' + (hasDetails ? '<button class="det-btn" data-target="' + detId + '"><i class="fas fa-info-circle"></i> التفاصيل</button>' : '<div></div>') + '<button class="ba" data-c="' + catId + '" data-i="' + itemId + '"><i class="fas fa-plus"></i> طلب</button></div></div>'; }
+            var catImg = cat.image || ""; var hasImg = catImg && catImg.length > 10; var acc = document.createElement("div"); acc.className = "cat-acc"; var imgPart = hasImg ? '<img src="' + catImg + '" alt="" loading="eager" style="opacity:0;transition:opacity .4s" onload="this.style.opacity=1">' : '<div class="cat-hd-fallback">🍽</div>'; acc.innerHTML = '<div class="cat-hd">' + imgPart + '<div class="cat-hd-content"><div class="cat-hi"><h3>' + cat.name + '</h3><span class="cc">' + cnt + ' صنف</span></div><i class="fas fa-chevron-down cat-arr"></i></div></div><div class="cat-bd">' + itemHTML + '</div>'; c.appendChild(acc);
         }
         c.querySelectorAll(".ba").forEach(function(btn) { btn.addEventListener("click", function() { var cId = this.getAttribute("data-c"), iId = this.getAttribute("data-i"); var item = menuLookup[cId + "_" + iId]; if (item) addIt(cId, iId, item.name, item.price); }); });
         c.querySelectorAll(".det-btn").forEach(function(btn) { btn.addEventListener("click", function() { var target = document.getElementById(this.getAttribute("data-target")); if (target) { var isOpen = target.classList.toggle("open"); this.classList.toggle("active", isOpen); this.innerHTML = isOpen ? '<i class="fas fa-chevron-up"></i> إغلاق' : '<i class="fas fa-info-circle"></i> التفاصيل'; } }); });
@@ -429,30 +375,37 @@
     }
 
     function addIt(cId, iId, name, price) { var k = cId + "_" + iId; var r = ref(db, "tablesA/table_" + TBL + "/current_orders/" + k); if (orders[k]) update(r, { quantity: orders[k].quantity + 1 }); else set(r, { name: name, price: price, quantity: 1 }); }
-    
-    function listenOrd() { 
-        var tk = "table_" + TBL; 
-        onValue(ref(db, "tablesA/" + tk + "/current_orders"), function(snap) { var d = snap.val(); orders = d || {}; state.ordersData = orders; var total = 0, count = 0; var ic = document.getElementById("invItems"); if (!d) { ic.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px;font-size:13px;">لا توجد طلبات معلقة.</p>'; document.getElementById("btnSend").disabled = true; document.getElementById("barCount").textContent = "٠"; document.getElementById("barTotal").innerHTML = 'الإجمالي: <span>٠ دينار</span>'; document.getElementById("invTotal").textContent = "الإجمالي: ٠ دينار"; return; } document.getElementById("btnSend").disabled = false; ic.innerHTML = ""; for (var k in d) { var it = d[k]; var sub = it.price * it.quantity; total += sub; count += it.quantity; var row = document.createElement("div"); row.className = "inv-i"; row.innerHTML = '<div style="min-width:0;flex:1"><div class="inv-n">' + it.name + '</div><div class="inv-s">' + fmt(it.price) + ' د.ع × ' + it.quantity + '</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><span class="inv-t">' + fmt(sub) + '</span><div class="qc"><button class="qb qmin" data-key="' + k + '" data-d="-1">−</button><span class="qv">' + it.quantity + '</span><button class="qb qplu" data-key="' + k + '" data-d="1">+</button></div></div>'; ic.appendChild(row); } ic.querySelectorAll(".qb").forEach(function(qb) { qb.addEventListener("click", function() { var k = this.getAttribute("data-key"); var dd = parseInt(this.getAttribute("data-d")); var r = ref(db, "tablesA/table_" + TBL + "/current_orders/" + k); var n = orders[k].quantity + dd; if (n <= 0) remove(r); else update(r, { quantity: n }); }); }); document.getElementById("barCount").textContent = count; document.getElementById("barTotal").innerHTML = 'الإجمالي: <span>' + fmt(total) + ' دينار</span>'; document.getElementById("invTotal").textContent = "الإجمالي: " + fmt(total) + " دينار"; }); 
-        onValue(ref(db, "tablesB/" + tk + "/sent_orders"), function(snap) { var d = snap.val(); var c = document.getElementById("sentItems"); if (!d) { c.innerHTML = '<p style="color:var(--text-muted);font-size:12px;">لا توجد طلبات مرسلة.</p>'; return; } c.innerHTML = ""; for (var k in d) { var it = d[k]; c.innerHTML += '<div class="si"><span>• ' + it.name + ' (×' + it.quantity + ')</span><span style="color:var(--text-muted);font-size:11px;">' + fmt(it.price * it.quantity) + ' د.ع</span></div>'; } }); 
-    }
-    
+    function listenOrd() { var tk = "table_" + TBL; onValue(ref(db, "tablesA/" + tk + "/current_orders"), function(snap) { var d = snap.val(); orders = d || {}; state.ordersData = orders; var total = 0, count = 0; var ic = document.getElementById("invItems"); if (!d) { ic.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px;font-size:13px;">لا توجد طلبات معلقة.</p>'; document.getElementById("btnSend").disabled = true; document.getElementById("barCount").textContent = "٠"; document.getElementById("barTotal").innerHTML = 'الإجمالي: <span>٠ دينار</span>'; document.getElementById("invTotal").textContent = "الإجمالي: ٠ دينار"; return; } document.getElementById("btnSend").disabled = false; ic.innerHTML = ""; for (var k in d) { var it = d[k]; var sub = it.price * it.quantity; total += sub; count += it.quantity; var row = document.createElement("div"); row.className = "inv-i"; row.innerHTML = '<div style="min-width:0;flex:1"><div class="inv-n">' + it.name + '</div><div class="inv-s">' + fmt(it.price) + ' د.ع × ' + it.quantity + '</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><span class="inv-t">' + fmt(sub) + '</span><div class="qc"><button class="qb qmin" data-key="' + k + '" data-d="-1">−</button><span class="qv">' + it.quantity + '</span><button class="qb qplu" data-key="' + k + '" data-d="1">+</button></div></div>'; ic.appendChild(row); } ic.querySelectorAll(".qb").forEach(function(qb) { qb.addEventListener("click", function() { var k = this.getAttribute("data-key"); var dd = parseInt(this.getAttribute("data-d")); var r = ref(db, "tablesA/table_" + TBL + "/current_orders/" + k); var n = orders[k].quantity + dd; if (n <= 0) remove(r); else update(r, { quantity: n }); }); }); document.getElementById("barCount").textContent = count; document.getElementById("barTotal").innerHTML = 'الإجمالي: <span>' + fmt(total) + ' دينار</span>'; document.getElementById("invTotal").textContent = "الإجمالي: " + fmt(total) + " دينار"; }); onValue(ref(db, "tablesB/" + tk + "/sent_orders"), function(snap) { var d = snap.val(); var c = document.getElementById("sentItems"); if (!d) { c.innerHTML = '<p style="color:var(--text-muted);font-size:12px;">لا توجد طلبات مرسلة.</p>'; return; } c.innerHTML = ""; for (var k in d) { var it = d[k]; c.innerHTML += '<div class="si"><span>• ' + it.name + ' (×' + it.quantity + ')</span><span style="color:var(--text-muted);font-size:11px;">' + fmt(it.price * it.quantity) + ' د.ع</span></div>'; } }); }
     function sendOrd() { if (!Object.keys(orders).length) { toast("لا توجد طلبات لإرسالها", "error"); return; } if (!navigator.onLine) { toast("لا يوجد اتصال بالإنترنت.", "error"); return; } var dist = curDist || 0; var sr = ref(db, "tablesB/table_" + TBL + "/sent_orders"); for (var k in orders) { var it = orders[k]; set(push(sr), { name: it.name, price: it.price, quantity: it.quantity, settled_by: "captain", settled_at: new Date().toISOString(), sent_distance: Math.round(dist) }); } remove(ref(db, "tablesA/table_" + TBL + "/current_orders")).then(function() { toast("تم إرسال طلباتك بنجاح", "success"); closeInv(); }).catch(function() { toast("حدث خطأ أثناء الإرسال.", "error"); }); }
     function closeInv() { document.getElementById("invoiceModal").style.display = "none"; }
 
-    /* === نظام محادثة الكابتن (msgC و msgD) === */
+    /* === نظام محادثة الكابتن (msgC للوارد، msgD للصادر) === */
     function listenCh() {
         var tk = "table_" + TBL;
-        onValue(ref(db, "msgC/" + tk), function(snap) { msgCCache = snap.val() || {}; renderChat(); });
         
-        onValue(ref(db, "msgD/" + tk), function(snap) {
+        // الكابتن يستقبل من msgC (الكاشير)
+        onValue(ref(db, "msgC/" + tk), function(snap) {
             var prevCount = currentCashierMsgCount;
-            msgDCache = snap.val() || {};
-            currentCashierMsgCount = Object.keys(msgDCache).length;
+            msgCCache = snap.val() || {};
+            currentCashierMsgCount = Object.keys(msgCCache).length;
 
+            // تشغيل صوت الإشعار عند وصول رسالة جديدة والمحادثة مغلقة
             if (currentCashierMsgCount > prevCount && !chatOn && prevCount >= 0) {
                 msgSnd();
             }
+
+            // تنظيف الرسائل الأقدم من 24 ساعة
+            cleanOldMessages(msgCCache, "msgC/" + tk + "/");
+            
             updateBadge(); 
+            renderChat();  
+        });
+
+        // الكابتن يرسل من msgD (يستمع لها لعرضها في الشاشة)
+        onValue(ref(db, "msgD/" + tk), function(snap) {
+            msgDCache = snap.val() || {};
+            // تنظيف الرسائل الأقدم من 24 ساعة
+            cleanOldMessages(msgDCache, "msgD/" + tk + "/");
             renderChat();  
         });
     }
@@ -460,8 +413,11 @@
     function renderChat() {
         if (!chatOn) return; 
         var box = document.getElementById("chatMsgs"); box.innerHTML = ""; var msgs = [];
-        for (var k in msgCCache) { var m = msgCCache[k]; m.src = "client"; msgs.push(m); }
-        for (var k2 in msgDCache) { var m2 = msgDCache[k2]; m2.src = "cashier"; msgs.push(m2); }
+        // رسائل الكابتن (صادر)
+        for (var k in msgDCache) { var m2 = msgDCache[k]; m2.src = "client"; msgs.push(m2); }
+        // رسائل الكاشير (وارد)
+        for (var k2 in msgCCache) { var m = msgCCache[k2]; m.src = "cashier"; msgs.push(m); }
+        
         msgs.sort(function(a, b) { return new Date(a.timestamp) - new Date(b.timestamp); });
         if (!msgs.length) { box.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px;font-size:13px;">ابدأ المحادثة مع الكاشير.</p>'; return; }
         for (var j = 0; j < msgs.length; j++) {
@@ -496,7 +452,8 @@
 
     function sendCh() {
         var inp = document.getElementById("chatInput"); var txt = inp.value.trim(); if (!txt) return;
-        set(push(ref(db, "msgC/table_" + TBL)), { text: txt, timestamp: new Date().toISOString() }); inp.value = "";
+        // الكابتن يرسل إلى msgD
+        set(push(ref(db, "msgD/table_" + TBL)), { text: txt, timestamp: new Date().toISOString() }); inp.value = "";
     }
 
     window.openImage = function(src) { if (!src) return; var modal = document.getElementById("imgModal"); var img = document.getElementById("imgModalImg"); img.src = src; modal.style.display = "flex"; };

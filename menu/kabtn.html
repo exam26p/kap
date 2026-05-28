@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1">
+    <title>كابتن - المنيو الرقمي</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧑‍✈️</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Noto+Kufi+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <style>
+        body { background: transparent !important; }
+        body::before, body::after { content: none !important; }
+        #splashScreen, #blockScreen, #kickScreen { 
+            background: transparent !important; 
+        }
+        .splash-title, .splash-sub, .splash-quote { 
+            text-shadow: 0 3px 8px rgba(0,0,0,0.9) !important; 
+            color: #fff !important;
+        }
+    </style>
+
+    <link rel="stylesheet" href="menu.css">
+
+    <style>
+        /* إخفاء الفيديو وفكرة الخلفية */
+        #bgVideo { display: none; }
+        body { background: var(--bg-warm); }
+
+        /* شاشة التحميل بدون فيديو */
+        #splashScreen {
+            background: linear-gradient(135deg, rgba(44,62,45,0.95), rgba(61,90,62,0.9)) !important;
+            backdrop-filter: blur(10px);
+        }
+
+        /* زر اختيار الطاولة */
+        .table-selector {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(8px);
+            color: var(--gold-light);
+            padding: 6px 14px;
+            border-radius: 18px;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px solid rgba(255,255,255,0.08);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .table-selector:active { transform: scale(0.95); background: rgba(255,255,255,0.2); }
+        
+        .table-dropdown {
+            position: absolute;
+            top: 110%;
+            right: 0;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-height: 250px;
+            overflow-y: auto;
+            z-index: 999;
+            display: none;
+            min-width: 140px;
+        }
+        .table-dropdown.show { display: block; }
+        .table-option {
+            padding: 10px 16px;
+            font-size: 14px;
+            color: var(--text-dark);
+            cursor: pointer;
+            transition: background 0.2s;
+            text-align: center;
+            font-weight: 600;
+        }
+        .table-option:hover { background: var(--bg-warm); }
+        .table-option.active { color: var(--olive); background: var(--olive-pale); }
+
+        /* زر المينيو بدون صوت */
+        .mute-icon { display: none !important; }
+    </style>
+</head>
+<body>
+
+<div class="tw" id="tw"></div>
+
+<div id="splashScreen">
+    <div class="splash-leaf"></div><div class="splash-leaf"></div><div class="splash-leaf"></div>
+    <div class="splash-leaf"></div><div class="splash-leaf"></div><div class="splash-leaf"></div>
+    <div class="splash-logo" id="splashLogo">🧑‍✈️</div>
+    <div class="splash-title" id="splashTitle">وضع الكابتن</div>
+    <div class="splash-sub">للطلبات الخاصة بالجالسين</div>
+    <div class="splash-progress">
+        <div id="splashQuote" class="splash-quote"></div>
+    </div>
+    <button class="splash-btn" id="splashBtn">متابعة</button>
+</div>
+
+<div id="blockScreen">
+    <div class="geo-card" id="geoCard">
+        <div class="geo-icon wait" id="geoIcon">📡</div>
+        <div class="geo-title" id="geoTitle">جاري التحضير...</div>
+        <div class="geo-msg" id="geoMsg"></div>
+        <div class="geo-dist" id="geoDist"></div>
+    </div>
+    <div class="geo-blocked" id="geoBlocked">
+        <div class="bi"><i class="fas fa-location-crosshairs"></i></div>
+        <h3>الموقع غير متاح حالياً</h3>
+        <p>عذراً، لا يمكننا الوصول إلى موقعك. يرجى تفعيل خدمة تحديد الموقع ثم أعد تحميل الصفحة.</p>
+    </div>
+</div>
+
+<div id="kickScreen">
+    <div class="kick-icon"><i class="fas fa-location-arrow"></i></div>
+    <div class="kick-title">ابتعدت عن منطقة المطعم</div>
+    <div class="kick-msg">عذراً، لقد تجاوزت النطاق المسموح به. يرجى العودة إلى منطقة المطعم.</div>
+</div>
+
+<div id="distBar">
+    <div class="dist-bar-inner">
+        <div class="dist-track"><div class="dist-fill" id="distFill" style="width:0%;background:var(--red)"></div></div>
+        <span class="dist-value" id="distValue">0%</span>
+    </div>
+</div>
+
+<div id="menuContent">
+    <div class="main-header">
+        <div class="hi">
+            <h2 id="headerTitle">المنيو الرقمي</h2>
+            <p>اختر من تشكيلة وجباتنا المميزة</p>
+        </div>
+        <div class="hb">
+            <!-- زر اختيار الطاولة يدوياً -->
+            <div class="table-selector" id="tableSelectorBtn">
+                <i class="fas fa-chair"></i>
+                <span id="selectedTableText">طاولة 1</span>
+                <i class="fas fa-chevron-down" style="font-size:10px;"></i>
+                <div class="table-dropdown" id="tableDropdown">
+                    <!-- سيتم إضافة الطاولات برمجياً -->
+                </div>
+            </div>
+            <button class="msg-fab" id="msgFab"><i class="fas fa-comment-dots"></i><span class="msg-dot" id="msgDot">0</span></button>
+        </div>
+    </div>
+    <div class="section-deco"><span>✦</span></div>
+    <div id="menuCats"></div>
+</div>
+
+<div id="imgModal">
+    <img id="imgModalImg" src="" alt="Full Size">
+    <button id="imgModalClose">إغلاق</button>
+</div>
+
+<div class="bottom-bar" id="bottomBar">
+    <span class="bt" id="barTotal">الإجمالي: <span>٠ دينار</span></span>
+    <button class="bib" id="bibBtn"><i class="fas fa-receipt"></i> الفاتورة <span class="bc" id="barCount">٠</span></button>
+</div>
+
+<div id="invoiceModal">
+    <div class="inv-c" id="invCard">
+        <div class="inv-h"><h3>📄 الفاتورة</h3><button class="inv-x" id="invClose">&times;</button></div>
+        <div id="invItems"><p style="color:var(--text-muted);text-align:center;padding:20px;font-size:13px;">لا توجد طلبات.</p></div>
+        <div class="inv-tb" id="invTotal">الإجمالي: ٠ دينار</div>
+        <button class="bs" id="btnSend" disabled><i class="fas fa-paper-plane" style="margin-left:5px;"></i> إرسال للمطبخ</button>
+        <div class="sbox"><h4><i class="fas fa-check-double"></i> طلبات مرسلة:</h4><div id="sentItems"><p style="color:var(--text-muted);font-size:12px;">لا توجد.</p></div></div>
+    </div>
+</div>
+
+<div id="chatModal">
+    <div class="ch-c" id="chatCard">
+        <div class="ch-h"><h3><i class="fas fa-headset"></i> محادثة الكابتن</h3><button class="inv-x" id="chatClose">&times;</button></div>
+        <div class="ch-m" id="chatMsgs"></div>
+        <div class="ch-in"><input type="text" id="chatInput" placeholder="اكتب رسالتك..."><button id="chatSendBtn">إرسال</button></div>
+    </div>
+</div>
+
+<script type="module">
+    import { db, ref, set, push, onValue, remove, update, get } from './db2.js';
+    import { fmt, toast, haversine } from './utils2.js';
+    import { state } from './state2.js';
+
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('gesturestart', e => e.preventDefault());
+
+    let TBL = "1", VER = "", zone = null, watchID = null, restName = "", restLogo = "";
+    let orders = {}, menuOk = false, chatOn = false, unreadN = 0;
+    let curLat = null, curLon = null, curDist = null, isInZone = false;
+    const menuLookup = {};
+
+    let menuPreloaded = false; 
+    let cachedMenuData = null; 
+
+    let msgCCache = {}; 
+    let msgDCache = {}; 
+    let currentCashierMsgCount = 0; 
+
+    /* === نظام الإشعارات === */
+    function getReadCount() { return parseInt(localStorage.getItem('kabtnReadMsgCount_' + TBL) || '0'); }
+    function setReadCount(count) { localStorage.setItem('kabtnReadMsgCount_' + TBL, String(count)); }
+
+    function cSnd() {}
+    function addSnd(el) { if (el) el.addEventListener("click", cSnd, { passive: true }); }
+    function msgSnd() {
+        try {
+            var aC = new (window.AudioContext || window.webkitAudioContext)();
+            var now = aC.currentTime;
+            [0, 0.15, 0.3].forEach(function(d, i) {
+                var o = aC.createOscillator(), g = aC.createGain();
+                o.connect(g); g.connect(aC.destination); o.type = "sine";
+                o.frequency.setValueAtTime([660, 880, 1100][i], now + d);
+                g.gain.setValueAtTime(0.06, now + d);
+                g.gain.exponentialRampToValueAtTime(0.001, now + d + 0.12);
+                o.start(now + d); o.stop(now + d + 0.12);
+            });
+        } catch (e) {}
+    }
+
+    /* === بناء قائمة الطاولات === */
+    function buildTableDropdown() {
+        const dropdown = document.getElementById('tableDropdown');
+        dropdown.innerHTML = '';
+        for (let i = 1; i <= 30; i++) {
+            const div = document.createElement('div');
+            div.className = 'table-option' + (i == TBL ? ' active' : '');
+            div.textContent = 'طاولة ' + i;
+            div.addEventListener('click', function() {
+                changeTable(i);
+            });
+            dropdown.appendChild(div);
+        }
+    }
+
+    function changeTable(newTable) {
+        TBL = String(newTable);
+        document.getElementById('selectedTableText').textContent = 'طاولة ' + TBL;
+        document.getElementById('tableDropdown').classList.remove('show');
+        document.getElementById('tableDropdown').querySelectorAll('.table-option').forEach(el => el.classList.remove('active'));
+        event.target.classList.add('active');
+        
+        // إعادة تحميل الطلبات والدردشة الخاصة بالطاولة الجديدة
+        orders = {};
+        listenOrd();
+        listenCh();
+        updateBadge();
+        toast("تم التبديل إلى " + 'طاولة ' + TBL, "success");
+    }
+
+    const splashQuotes = [
+        "كل وجبة وراءها قصة، وصُنعت بحب لتسعد يومك.",
+        "اللقمة الطيبة تجمع القلوب.. أهلاً بك في عالمنا.",
+        "نطبخ بشغف، لنقدم لك تجربة لا تُنسى.",
+    ];
+
+    function updateAppState() {
+        state.activeTable = TBL; state.myVersion = VER;
+        state.settings.restaurantName = restName; state.settings.restaurantLogo = restLogo;
+        state.isMenuLoaded = menuOk; state.isGeoVerified = isInZone;
+    }
+
+    async function loadAppSettings() {
+        try {
+            var snap = await get(ref(db, "app_settings")); var data = snap.val(); if (!data) return;
+            if (data.restaurantName && data.restaurantName.trim()) { restName = data.restaurantName.trim(); document.title = "كابتن - " + restName; document.getElementById("splashTitle").textContent = restName; state.settings.restaurantName = restName; }
+            if (data.restaurantLogo && data.restaurantLogo.length > 20) { restLogo = data.restaurantLogo; var splashLogo = document.getElementById("splashLogo"); if (splashLogo) splashLogo.innerHTML = '<img src="' + restLogo + '" onerror="this.parentNode.innerHTML=\'🧑‍✈️\'" alt="">'; state.settings.restaurantLogo = restLogo; }
+        } catch (e) {}
+    }
+
+    function updateHeader() {
+        var h = document.getElementById("headerTitle");
+        if (restLogo && restLogo.length > 20) { h.innerHTML = '<img src="' + restLogo + '" alt="" onerror="this.style.display=\'none\'"> ' + restName; } 
+        else { h.textContent = restName || 'المنيو الرقمي'; }
+    }
+
+    function initSplashQuote() {
+        var quoteEl = document.getElementById("splashQuote"); var splashBtn = document.getElementById("splashBtn");
+        if (!quoteEl || !splashBtn) return;
+        splashBtn.innerHTML = '<i class="fas fa-utensils" style="margin-left:8px;font-size:13px"></i> مشاهدة المينيو';
+        var randomIndex = Math.floor(Math.random() * splashQuotes.length); var quoteText = splashQuotes[randomIndex];
+        quoteEl.classList.add("visible"); var charIndex = 0;
+        
+        // مدة 7 ثواني فقط
+        setTimeout(function() { splashBtn.classList.add("show"); }, 7000);
+
+        function typeCharacter() {
+            if (charIndex < quoteText.length) {
+                quoteEl.innerHTML = quoteText.substring(0, charIndex + 1) + '<span class="splash-cursor"></span>'; charIndex++;
+                var nextDelay = 65;
+                setTimeout(typeCharacter, nextDelay);
+            } else {
+                quoteEl.innerHTML = quoteText;
+            }
+        }
+        setTimeout(typeCharacter, 800);
+    }
+
+    function preloadInBackground() {
+        VER = "1.1.1"; // إصدار افتراضي للكابتن
+        buildTableDropdown();
+        onValue(ref(db, "orders"), function(snap) { cachedMenuData = snap.val(); menuPreloaded = true; if (isInZone && menuOk) renderMenu(cachedMenuData); });
+    }
+
+    function bindEvents() {
+        var splashBtn = document.getElementById("splashBtn");
+        splashBtn.addEventListener("click", function(e) {
+            if (!splashBtn.classList.contains('show')) { e.preventDefault(); return; }
+            dismissSplash();
+        });
+
+        // فتح/إغلاق قائمة الطاولات
+        document.getElementById('tableSelectorBtn').addEventListener('click', function(e) {
+            if (e.target.closest('.table-option')) return;
+            document.getElementById('tableDropdown').classList.toggle('show');
+        });
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('#tableSelectorBtn')) {
+                document.getElementById('tableDropdown').classList.remove('show');
+            }
+        });
+
+        var bibBtn = document.getElementById("bibBtn"); bibBtn.addEventListener("click", function() { document.getElementById("invoiceModal").style.display = "flex"; });
+        var invClose = document.getElementById("invClose"); invClose.addEventListener("click", closeInv);
+        document.getElementById("invoiceModal").addEventListener("click", function(e) { if (e.target.id === "invoiceModal") closeInv(); });
+        var btnSend = document.getElementById("btnSend"); btnSend.addEventListener("click", sendOrd);
+        var msgFab = document.getElementById("msgFab"); msgFab.addEventListener("click", openCh);
+        var chatClose = document.getElementById("chatClose"); chatClose.addEventListener("click", closeCh);
+        document.getElementById("chatModal").addEventListener("click", function(e) { if (e.target.id === "chatModal") closeCh(); });
+        var chatSendBtn = document.getElementById("chatSendBtn"); chatSendBtn.addEventListener("click", sendCh);
+        document.getElementById("chatInput").addEventListener("keydown", function(e) { if (e.key === "Enter") sendCh(); });
+        document.getElementById("imgModalClose").addEventListener("click", closeImgModal);
+        document.getElementById("imgModal").addEventListener("click", function(e) { if (e.target.id === "imgModal") closeImgModal(); });
+    }
+
+    function dismissSplash() {
+        document.getElementById("splashScreen").classList.add("hide");
+        setTimeout(function() { 
+            document.getElementById("splashScreen").style.display = "none"; 
+            document.getElementById("blockScreen").style.display = "flex"; 
+            updateHeader(); 
+            setTimeout(function() { initGeo(); }, 100); 
+        }, 600);
+    }
+
+    async function initGeo() {
+        sGeo("ld", "🔄", "جاري التحقق...", "نبحث عن النطاق الجغرافي.");
+        try {
+            var snap = await get(ref(db, "cobes")); var all = snap.val(); if (!all) { sGeo("err", "📋", "لا توجد نطاقات", "لم يتم تسجيل أي نطاق جغرافي."); return; }
+            var found = null; for (var id in all) { if (all[id].version_number === VER) { found = all[id]; break; } }
+            if (!found) { sGeo("err", "🚫", "إصدار غير صالح", 'الإصدار غير موجود.'); return; }
+            zone = found.geo_zone; if (!zone || !zone.center_latitude) { sGeo("err", "📍", "بيانات ناقصة", "الإصدار موجود لكن بدون إحداثيات."); return; }
+            sGeo("wait", "✅", "تم التحقق", "جاري تتبع موقعك لحظياً."); startW();
+        } catch (e) { sGeo("err", "📡", "خطأ في الاتصال", "تعذر الاتصال حالياً."); }
+    }
+
+    function sGeo(ic, i, t, m) { var el = document.getElementById("geoIcon"); el.className = "geo-icon " + ic; el.innerHTML = i; document.getElementById("geoTitle").textContent = t; document.getElementById("geoMsg").textContent = m; document.getElementById("geoDist").style.display = "none"; document.getElementById("geoBlocked").style.display = "none"; }
+    function startW() { if (!navigator.geolocation) { document.getElementById("geoCard").style.display = "none"; document.getElementById("geoBlocked").style.display = "block"; return; } watchID = navigator.geolocation.watchPosition(onP, onE, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }); }
+
+    function onP(pos) {
+        curLat = pos.coords.latitude; curLon = pos.coords.longitude;
+        curDist = haversine(curLat, curLon, zone.center_latitude, zone.center_longitude);
+        var rad = zone.radius_meters || 100;
+        
+        if (curDist > 50000) { 
+            if (!isInZone) {
+                isInZone = false; state.isGeoVerified = false; updateAppState();
+                document.getElementById("menuContent").style.display = "none";
+                document.getElementById("bottomBar").style.display = "none";
+                document.getElementById("distBar").style.display = "none";
+                document.getElementById("kickScreen").style.display = "none";
+                document.getElementById("blockScreen").style.display = "flex";
+                sGeo("err", "🛡️", "موقعك غير دقيق", "يبدو أنك تستخدم VPN أو موقعك بعيد جداً.");
+            }
+            return;
+        }
+
+        updateDistBar(curDist, rad);
+        if (curDist <= rad) {
+            if (!isInZone) {
+                isInZone = true; state.isGeoVerified = true; updateAppState();
+                document.getElementById("blockScreen").style.display = "none"; document.getElementById("kickScreen").style.display = "none";
+                document.getElementById("menuContent").style.display = "block"; document.getElementById("bottomBar").style.display = "flex";
+                document.getElementById("distBar").style.display = "block"; if (!menuOk) initMenu();
+                listenOrd(); listenCh(); // تشغيل الطلبات والدردشة بعد التأكد من الموقع
+            }
+        } else if (curDist <= rad * 2) {
+            if (isInZone) {
+                isInZone = false; state.isGeoVerified = false; updateAppState();
+                document.getElementById("menuContent").style.display = "none"; document.getElementById("bottomBar").style.display = "none";
+                document.getElementById("distBar").style.display = "none"; document.getElementById("blockScreen").style.display = "flex";
+                sGeo("err", "🚫", "خارج النطاق", "اقترب أكثر من المطعم.");
+            }
+        } else {
+            if (!document.getElementById("kickScreen").style.display || document.getElementById("kickScreen").style.display === "none") {
+                isInZone = false; state.isGeoVerified = false; updateAppState();
+                document.getElementById("menuContent").style.display = "none"; document.getElementById("bottomBar").style.display = "none";
+                document.getElementById("distBar").style.display = "none"; document.getElementById("blockScreen").style.display = "none";
+                document.getElementById("kickScreen").style.display = "flex";
+            }
+        }
+    }
+
+    function onE() { document.getElementById("geoCard").style.display = "none"; document.getElementById("geoBlocked").style.display = "block"; }
+    function updateDistBar(dist, radius) { var proximity = Math.max(0, Math.min(100, (1 - dist / radius) * 100)); var fill = document.getElementById("distFill"); var val = document.getElementById("distValue"); fill.style.width = proximity + "%"; var r, g, b; if (proximity >= 50) { var t = (proximity - 50) / 50; r = Math.round(180 - (180 - 74) * t); g = Math.round(60 + (124 - 60) * t); b = Math.round(60 + (89 - 60) * t); } else { var t3 = proximity / 50; r = Math.round(184 + (180 - 184) * t3); g = Math.round(80 - 20 * t3); b = Math.round(80 - 20 * t3); } var color = "rgb(" + r + "," + g + "," + b + ")"; fill.style.background = color; val.textContent = Math.round(proximity) + "%"; val.style.color = color; }
+
+    function initMenu() { menuOk = true; state.isMenuLoaded = true; updateAppState(); if (menuPreloaded && cachedMenuData !== null) renderMenu(cachedMenuData); else document.getElementById("menuCats").innerHTML = '<p style="color:var(--text-muted);padding:30px;text-align:center;font-size:13px;">جاري تحضير المنيو...</p>'; }
+
+    function renderMenu(data) {
+        var c = document.getElementById("menuCats"); c.innerHTML = ""; for (var key in menuLookup) delete menuLookup[key];
+        if (!data) { c.innerHTML = '<p style="color:var(--text-muted);padding:30px;text-align:center;font-size:13px;">المنيو فارغ حالياً.</p>'; return; }
+        state.menuData = data; var catIndex = 0;
+        for (var catId in data) {
+            catIndex++; var cat = data[catId]; var items = cat.items || {}; var cnt = Object.keys(items).length; var itemHTML = "";
+            for (var itemId in items) {
+                var it = items[itemId]; menuLookup[catId + "_" + itemId] = { name: it.name, price: it.price };
+                var detId = "det_" + catId + "_" + itemId; var details = it.details || ""; var hasDetails = details && details.trim().length > 0; var imgSrc = it.image || "";
+                itemHTML += '<div class="item-card"><div class="item-img-container" onclick="window.openImage(\'' + imgSrc + '\')">' + (imgSrc ? '<img src="' + imgSrc + '" alt="" loading="' + (catIndex <= 1 ? 'eager' : 'lazy') + '" onerror="this.style.opacity=0">' : '') + '<div class="item-overlay"><div class="item-name">' + it.name + '</div><div class="item-meta"><span class="item-price">' + fmt(it.price) + ' د.ع</span></div></div></div>' + (hasDetails ? '<div class="item-det-wrap" id="' + detId + '"><div class="item-det-inner"><div class="item-det-text">' + details + '</div></div></div>' : '') + '<div class="item-actions-bar">' + (hasDetails ? '<button class="det-btn" data-target="' + detId + '"><i class="fas fa-info-circle"></i> التفاصيل</button>' : '<div></div>') + '<button class="ba" data-c="' + catId + '" data-i="' + itemId + '"><i class="fas fa-plus"></i> طلب</button></div></div>';
+            }
+            var catImg = cat.image || ""; var hasImg = catImg && catImg.length > 10; var acc = document.createElement("div"); acc.className = "cat-acc";
+            var imgPart = hasImg ? '<img src="' + catImg + '" alt="" loading="eager" style="opacity:0;transition:opacity .4s" onload="this.style.opacity=1">' : '<div class="cat-hd-fallback">🍽</div>';
+            acc.innerHTML = '<div class="cat-hd">' + imgPart + '<div class="cat-hd-content"><div class="cat-hi"><h3>' + cat.name + '</h3><span class="cc">' + cnt + ' صنف</span></div><i class="fas fa-chevron-down cat-arr"></i></div></div><div class="cat-bd">' + itemHTML + '</div>';
+            c.appendChild(acc);
+        }
+        c.querySelectorAll(".ba").forEach(function(btn) { btn.addEventListener("click", function() { var cId = this.getAttribute("data-c"), iId = this.getAttribute("data-i"); var item = menuLookup[cId + "_" + iId]; if (item) addIt(cId, iId, item.name, item.price); }); });
+        c.querySelectorAll(".det-btn").forEach(function(btn) { btn.addEventListener("click", function() { var target = document.getElementById(this.getAttribute("data-target")); if (target) { var isOpen = target.classList.toggle("open"); this.classList.toggle("active", isOpen); this.innerHTML = isOpen ? '<i class="fas fa-chevron-up"></i> إغلاق' : '<i class="fas fa-info-circle"></i> التفاصيل'; } }); });
+        c.querySelectorAll(".cat-hd").forEach(function(hd) { hd.addEventListener("click", function() { var wasOpen = hd.parentElement.classList.contains("open"); document.querySelectorAll(".cat-acc.open").forEach(function(a) { a.classList.remove("open"); }); if (!wasOpen) hd.parentElement.classList.add("open"); }); });
+    }
+
+    function addIt(cId, iId, name, price) { var k = cId + "_" + iId; var r = ref(db, "tablesA/table_" + TBL + "/current_orders/" + k); if (orders[k]) update(r, { quantity: orders[k].quantity + 1 }); else set(r, { name: name, price: price, quantity: 1 }); }
+    
+    function listenOrd() { 
+        var tk = "table_" + TBL; 
+        onValue(ref(db, "tablesA/" + tk + "/current_orders"), function(snap) { var d = snap.val(); orders = d || {}; state.ordersData = orders; var total = 0, count = 0; var ic = document.getElementById("invItems"); if (!d) { ic.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px;font-size:13px;">لا توجد طلبات معلقة.</p>'; document.getElementById("btnSend").disabled = true; document.getElementById("barCount").textContent = "٠"; document.getElementById("barTotal").innerHTML = 'الإجمالي: <span>٠ دينار</span>'; document.getElementById("invTotal").textContent = "الإجمالي: ٠ دينار"; return; } document.getElementById("btnSend").disabled = false; ic.innerHTML = ""; for (var k in d) { var it = d[k]; var sub = it.price * it.quantity; total += sub; count += it.quantity; var row = document.createElement("div"); row.className = "inv-i"; row.innerHTML = '<div style="min-width:0;flex:1"><div class="inv-n">' + it.name + '</div><div class="inv-s">' + fmt(it.price) + ' د.ع × ' + it.quantity + '</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><span class="inv-t">' + fmt(sub) + '</span><div class="qc"><button class="qb qmin" data-key="' + k + '" data-d="-1">−</button><span class="qv">' + it.quantity + '</span><button class="qb qplu" data-key="' + k + '" data-d="1">+</button></div></div>'; ic.appendChild(row); } ic.querySelectorAll(".qb").forEach(function(qb) { qb.addEventListener("click", function() { var k = this.getAttribute("data-key"); var dd = parseInt(this.getAttribute("data-d")); var r = ref(db, "tablesA/table_" + TBL + "/current_orders/" + k); var n = orders[k].quantity + dd; if (n <= 0) remove(r); else update(r, { quantity: n }); }); }); document.getElementById("barCount").textContent = count; document.getElementById("barTotal").innerHTML = 'الإجمالي: <span>' + fmt(total) + ' دينار</span>'; document.getElementById("invTotal").textContent = "الإجمالي: " + fmt(total) + " دينار"; }); 
+        onValue(ref(db, "tablesB/" + tk + "/sent_orders"), function(snap) { var d = snap.val(); var c = document.getElementById("sentItems"); if (!d) { c.innerHTML = '<p style="color:var(--text-muted);font-size:12px;">لا توجد طلبات مرسلة.</p>'; return; } c.innerHTML = ""; for (var k in d) { var it = d[k]; c.innerHTML += '<div class="si"><span>• ' + it.name + ' (×' + it.quantity + ')</span><span style="color:var(--text-muted);font-size:11px;">' + fmt(it.price * it.quantity) + ' د.ع</span></div>'; } }); 
+    }
+    
+    function sendOrd() { if (!Object.keys(orders).length) { toast("لا توجد طلبات لإرسالها", "error"); return; } if (!navigator.onLine) { toast("لا يوجد اتصال بالإنترنت.", "error"); return; } var dist = curDist || 0; var sr = ref(db, "tablesB/table_" + TBL + "/sent_orders"); for (var k in orders) { var it = orders[k]; set(push(sr), { name: it.name, price: it.price, quantity: it.quantity, settled_by: "captain", settled_at: new Date().toISOString(), sent_distance: Math.round(dist) }); } remove(ref(db, "tablesA/table_" + TBL + "/current_orders")).then(function() { toast("تم إرسال طلباتك بنجاح", "success"); closeInv(); }).catch(function() { toast("حدث خطأ أثناء الإرسال.", "error"); }); }
+    function closeInv() { document.getElementById("invoiceModal").style.display = "none"; }
+
+    /* === نظام محادثة الكابتن (msgC و msgD) === */
+    function listenCh() {
+        var tk = "table_" + TBL;
+        onValue(ref(db, "msgC/" + tk), function(snap) { msgCCache = snap.val() || {}; renderChat(); });
+        
+        onValue(ref(db, "msgD/" + tk), function(snap) {
+            var prevCount = currentCashierMsgCount;
+            msgDCache = snap.val() || {};
+            currentCashierMsgCount = Object.keys(msgDCache).length;
+
+            if (currentCashierMsgCount > prevCount && !chatOn && prevCount >= 0) {
+                msgSnd();
+            }
+            updateBadge(); 
+            renderChat();  
+        });
+    }
+
+    function renderChat() {
+        if (!chatOn) return; 
+        var box = document.getElementById("chatMsgs"); box.innerHTML = ""; var msgs = [];
+        for (var k in msgCCache) { var m = msgCCache[k]; m.src = "client"; msgs.push(m); }
+        for (var k2 in msgDCache) { var m2 = msgDCache[k2]; m2.src = "cashier"; msgs.push(m2); }
+        msgs.sort(function(a, b) { return new Date(a.timestamp) - new Date(b.timestamp); });
+        if (!msgs.length) { box.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px;font-size:13px;">ابدأ المحادثة مع الكاشير.</p>'; return; }
+        for (var j = 0; j < msgs.length; j++) {
+            var msg = msgs[j]; var t2 = new Date(msg.timestamp).toLocaleTimeString("ar-IQ", { hour: "2-digit", minute: "2-digit" });
+            box.innerHTML += '<div class="cm ' + (msg.src === "client" ? "cm-cl" : "cm-ca") + '">' + msg.text + '<div class="cm-t">' + t2 + '</div></div>';
+        }
+        box.scrollTop = box.scrollHeight;
+    }
+
+    function updateBadge() {
+        var cachedReadCount = getReadCount();
+        var unreadCount = chatOn ? 0 : Math.max(0, currentCashierMsgCount - cachedReadCount);
+        showUnread(unreadCount);
+    }
+
+    function showUnread(c) {
+        var dot = document.getElementById("msgDot");
+        if (c > 0) { dot.style.display = "flex"; dot.textContent = c > 9 ? "9+" : String(c); } 
+        else { dot.style.display = "none"; }
+        unreadN = c;
+    }
+
+    function openCh() {
+        chatOn = true;
+        setReadCount(currentCashierMsgCount);
+        updateBadge(); 
+        document.getElementById("chatModal").style.display = "flex";
+        renderChat(); 
+    }
+
+    function closeCh() { chatOn = false; document.getElementById("chatModal").style.display = "none"; }
+
+    function sendCh() {
+        var inp = document.getElementById("chatInput"); var txt = inp.value.trim(); if (!txt) return;
+        set(push(ref(db, "msgC/table_" + TBL)), { text: txt, timestamp: new Date().toISOString() }); inp.value = "";
+    }
+
+    window.openImage = function(src) { if (!src) return; var modal = document.getElementById("imgModal"); var img = document.getElementById("imgModalImg"); img.src = src; modal.style.display = "flex"; };
+    window.closeImgModal = function() { document.getElementById("imgModal").style.display = "none"; };
+
+    bindEvents();
+    loadAppSettings();
+    preloadInBackground();
+    initSplashQuote();
+
+</script>
+</body>
+</html>

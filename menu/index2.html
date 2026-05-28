@@ -208,33 +208,41 @@
     </div>
 </div>
 
+<!-- سكربت التحكم بالصوت والفيديو (تم إصلاح مشكلة التشغيل التلقائي) -->
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         const bgVideo = document.getElementById('bgVideo');
         const muteToggle = document.getElementById('muteToggle');
         const splashBtn = document.getElementById('splashBtn');
 
+        // منع إيقاف الفيديو بالخطأ
         bgVideo.addEventListener('click', function(e) { e.preventDefault(); });
         bgVideo.addEventListener('touchstart', function(e) { e.preventDefault(); }, { passive: false });
 
+        // دالة تفعيل صوت الفيديو (تعمل فقط بعد تفاعل المستخدم)
         function enableSound() {
             if (bgVideo.muted) {
                 bgVideo.muted = false;
-                bgVideo.play().then(() => { muteToggle.classList.add('unmuted'); }).catch(() => {});
+                bgVideo.play().then(() => {
+                    muteToggle.classList.add('unmuted');
+                }).catch(() => {});
             }
         }
 
+        // تفعيل الصوت عند الضغط على زر شاشة التحميل
         splashBtn.addEventListener("click", function(e) {
             if (!splashBtn.classList.contains('show')) { e.preventDefault(); return; }
             enableSound();
-            if (window.initAppAudio) window.initAppAudio();
+            if (window.initAppAudio) window.initAppAudio(); // تشغيل صوت النقرات
         });
 
+        // تفعيل الصوت عند الضغط على أيقونة الصوت
         muteToggle.addEventListener('click', function() {
             enableSound();
             if (window.initAppAudio) window.initAppAudio();
         });
 
+        // مراقبة حالة الصوت لإخفاء/إظهار الأيقونة
         bgVideo.addEventListener('volumechange', function() {
             if (bgVideo.muted) { muteToggle.classList.remove('unmuted'); } 
             else { muteToggle.classList.add('unmuted'); }
@@ -263,30 +271,61 @@
     let currentCashierMsgCount = 0; 
     let cachedReadCount = 0; 
 
+    /* === إصلاح مشكلة AudioContext === */
     let aC = null; 
     let lClk = 0, audioResumed = false, pendingMsgSounds = 0; 
 
+    // دالة تهيئة الصوت (لا تعمل إلا بعد ضغطة حقيقية من المستخدم)
     window.initAppAudio = function() {
-        if (!aC) { try { aC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return; } }
+        if (!aC) {
+            try { aC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return; }
+        }
         if (aC.state === "suspended") aC.resume();
         audioResumed = true;
+        // تشغيل أي أصوات كانت معلقة قبل تفعيل الصوت
         for (var i = 0; i < pendingMsgSounds; i++) msgSnd();
         pendingMsgSounds = 0;
     };
 
-    document.addEventListener("click", function() { if (window.initAppAudio) window.initAppAudio(); }, { once: true });
+    // تفعيل الصوت أيضاً عند أي نقرة على الصفحة كضمان إضافي
+    document.addEventListener("click", function() {
+        if (window.initAppAudio) window.initAppAudio();
+    }, { once: true });
 
     function cSnd() {
         if (!aC || !audioResumed) return;
         var n = Date.now(); if (n - lClk < 80) return; lClk = n;
-        try { if (aC.state === "suspended") aC.resume(); var o = aC.createOscillator(), g = aC.createGain(); o.connect(g); g.connect(aC.destination); o.type = "sine"; o.frequency.setValueAtTime(600 + Math.random() * 400, aC.currentTime); g.gain.setValueAtTime(0.015, aC.currentTime); g.gain.exponentialRampToValueAtTime(0.001, aC.currentTime + 0.05); o.start(aC.currentTime); o.stop(aC.currentTime + 0.05); } catch (e) {}
+        try {
+            if (aC.state === "suspended") aC.resume();
+            var o = aC.createOscillator(), g = aC.createGain();
+            o.connect(g); g.connect(aC.destination); o.type = "sine";
+            o.frequency.setValueAtTime(600 + Math.random() * 400, aC.currentTime);
+            g.gain.setValueAtTime(0.015, aC.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001, aC.currentTime + 0.05);
+            o.start(aC.currentTime); o.stop(aC.currentTime + 0.05);
+        } catch (e) {}
     }
+    
     function addSnd(el) { if (el) el.addEventListener("click", cSnd, { passive: true }); }
+    
     function msgSnd() {
         if (!aC) return;
-        try { if (!audioResumed) { pendingMsgSounds++; return; } if (aC.state === "suspended") aC.resume(); var now = aC.currentTime; [0, 0.15, 0.3].forEach(function(d, i) { var o = aC.createOscillator(), g = aC.createGain(); o.connect(g); g.connect(aC.destination); o.type = "sine"; o.frequency.setValueAtTime([660, 880, 1100][i], now + d); g.gain.setValueAtTime(0.06, now + d); g.gain.exponentialRampToValueAtTime(0.001, now + d + 0.12); o.start(now + d); o.stop(now + d + 0.12); }); } catch (e) {}
+        try {
+            if (!audioResumed) { pendingMsgSounds++; return; }
+            if (aC.state === "suspended") aC.resume();
+            var now = aC.currentTime;
+            [0, 0.15, 0.3].forEach(function(d, i) {
+                var o = aC.createOscillator(), g = aC.createGain();
+                o.connect(g); g.connect(aC.destination); o.type = "sine";
+                o.frequency.setValueAtTime([660, 880, 1100][i], now + d);
+                g.gain.setValueAtTime(0.06, now + d);
+                g.gain.exponentialRampToValueAtTime(0.001, now + d + 0.12);
+                o.start(now + d); o.stop(now + d + 0.12);
+            });
+        } catch (e) {}
     }
 
+    /* === سحب روابط التواصل الاجتماعي === */
     async function loadSocialLinks() {
         try {
             const snap = await get(ref(db, "data/-OtW677IyPfMvtFSza0w"));
@@ -304,8 +343,11 @@
             btn.addEventListener('click', function(event) {
                 event.stopPropagation();
                 const url = this.getAttribute('data-url');
-                if (url && url !== '#') { window.open(url, '_blank'); } 
-                else { toast("الرابط غير متاح حالياً", "info"); }
+                if (url && url !== '#') {
+                    window.open(url, '_blank');
+                } else {
+                    toast("الرابط غير متاح حالياً", "info");
+                }
             });
         });
     }
@@ -339,8 +381,11 @@
 
     function updateHeader() {
         var h = document.getElementById("headerTitle");
-        if (restLogo && restLogo.length > 20) { h.innerHTML = '<img src="' + restLogo + '" alt="" onerror="this.style.display=\'none\'"> ' + restName; } 
-        else { h.textContent = restName || 'المنيو الرقمي'; }
+        if (restLogo && restLogo.length > 20) {
+            h.innerHTML = '<img src="' + restLogo + '" alt="" onerror="this.style.display=\'none\'"> ' + restName;
+        } else {
+            h.textContent = restName || 'المنيو الرقمي';
+        }
     }
 
     function initSplashQuote() {
@@ -412,59 +457,12 @@
     function sGeo(ic, i, t, m) { var el = document.getElementById("geoIcon"); el.className = "geo-icon " + ic; el.innerHTML = i; document.getElementById("geoTitle").textContent = t; document.getElementById("geoMsg").textContent = m; document.getElementById("geoDist").style.display = "none"; document.getElementById("geoBlocked").style.display = "none"; }
     function startW() { if (!navigator.geolocation) { document.getElementById("geoCard").style.display = "none"; document.getElementById("geoBlocked").style.display = "block"; return; } watchID = navigator.geolocation.watchPosition(onP, onE, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }); }
 
-    /* === دالة تحديد الموقع مع كشف الـ VPN === */
     function onP(pos) {
-        curLat = pos.coords.latitude; curLon = pos.coords.longitude;
-        curDist = haversine(curLat, curLon, zone.center_latitude, zone.center_longitude);
-        var rad = zone.radius_meters || 100;
-        
-        // كشف الـ VPN أو الموقع غير الدقيق: إذا كانت المسافة أكبر من 50 كم
-        if (curDist > 50000) { 
-            if (!isInZone) {
-                isInZone = false; state.isGeoVerified = false; updateAppState();
-                document.getElementById("menuContent").style.display = "none";
-                document.getElementById("bottomBar").style.display = "none";
-                document.getElementById("distBar").style.display = "none";
-                document.getElementById("kickScreen").style.display = "none";
-                document.getElementById("blockScreen").style.display = "flex";
-                
-                // عرض رسالة مخصصة للمستخدم
-                sGeo("err", "🛡️", "موقعك غير دقيق", "يبدو أنك تستخدم VPN أو موقعك بعيد جداً. يرجى إيقافه وتفعيل تحديد الموقع بدقة.");
-                var dEl = document.getElementById("geoDist");
-                dEl.style.display = "block";
-                dEl.className = "geo-dist out";
-                dEl.innerHTML = '<i class="fas fa-shield-halved" style="margin-left:5px;"></i><b>الموقع غير حقيقي أو بعيد جداً</b>';
-            }
-            return; // إيقاف المعالجة هنا لحماية النظام
-        }
-
-        updateDistBar(curDist, rad);
-        if (curDist <= rad) {
-            if (!isInZone) {
-                isInZone = true; state.isGeoVerified = true; updateAppState();
-                document.getElementById("blockScreen").style.display = "none"; document.getElementById("kickScreen").style.display = "none";
-                document.getElementById("menuContent").style.display = "block"; document.getElementById("bottomBar").style.display = "flex";
-                document.getElementById("distBar").style.display = "block"; if (!menuOk) initMenu();
-            }
-        } else if (curDist <= rad * 2) {
-            if (isInZone) {
-                isInZone = false; state.isGeoVerified = false; updateAppState();
-                document.getElementById("menuContent").style.display = "none"; document.getElementById("bottomBar").style.display = "none";
-                document.getElementById("distBar").style.display = "none"; document.getElementById("blockScreen").style.display = "flex";
-                sGeo("err", "🚫", "خارج النطاق", "اقترب أكثر من المطعم.");
-            }
-            var dEl2 = document.getElementById("geoDist"); dEl2.style.display = "block"; dEl2.className = "geo-dist out";
-            dEl2.innerHTML = '<i class="fas fa-triangle-exclamation" style="margin-left:5px;"></i><b>خارج النطاق المسموح</b>';
-        } else {
-            if (!document.getElementById("kickScreen").style.display || document.getElementById("kickScreen").style.display === "none") {
-                isInZone = false; state.isGeoVerified = false; updateAppState();
-                document.getElementById("menuContent").style.display = "none"; document.getElementById("bottomBar").style.display = "none";
-                document.getElementById("distBar").style.display = "none"; document.getElementById("blockScreen").style.display = "none";
-                document.getElementById("kickScreen").style.display = "flex";
-            }
-        }
+        curLat = pos.coords.latitude; curLon = pos.coords.longitude; curDist = haversine(curLat, curLon, zone.center_latitude, zone.center_longitude); var rad = zone.radius_meters || 100; updateDistBar(curDist, rad);
+        if (curDist <= rad) { if (!isInZone) { isInZone = true; state.isGeoVerified = true; updateAppState(); document.getElementById("blockScreen").style.display = "none"; document.getElementById("kickScreen").style.display = "none"; document.getElementById("menuContent").style.display = "block"; document.getElementById("bottomBar").style.display = "flex"; document.getElementById("distBar").style.display = "block"; if (!menuOk) initMenu(); } }
+        else if (curDist <= rad * 2) { if (isInZone) { isInZone = false; state.isGeoVerified = false; updateAppState(); document.getElementById("menuContent").style.display = "none"; document.getElementById("bottomBar").style.display = "none"; document.getElementById("distBar").style.display = "none"; document.getElementById("blockScreen").style.display = "flex"; sGeo("err", "🚫", "خارج النطاق", "اقترب أكثر من المطعم."); } var dEl = document.getElementById("geoDist"); dEl.style.display = "block"; dEl.className = "geo-dist out"; dEl.innerHTML = '<i class="fas fa-triangle-exclamation" style="margin-left:5px;"></i><b>خارج النطاق المسموح</b>'; }
+        else { if (!document.getElementById("kickScreen").style.display || document.getElementById("kickScreen").style.display === "none") { isInZone = false; state.isGeoVerified = false; updateAppState(); document.getElementById("menuContent").style.display = "none"; document.getElementById("bottomBar").style.display = "none"; document.getElementById("distBar").style.display = "none"; document.getElementById("blockScreen").style.display = "none"; document.getElementById("kickScreen").style.display = "flex"; } }
     }
-
     function onE() { document.getElementById("geoCard").style.display = "none"; document.getElementById("geoBlocked").style.display = "block"; }
     function updateDistBar(dist, radius) { var proximity = Math.max(0, Math.min(100, (1 - dist / radius) * 100)); var fill = document.getElementById("distFill"); var val = document.getElementById("distValue"); fill.style.width = proximity + "%"; var r, g, b; if (proximity >= 50) { var t = (proximity - 50) / 50; r = Math.round(180 - (180 - 74) * t); g = Math.round(60 + (124 - 60) * t); b = Math.round(60 + (89 - 60) * t); } else { var t3 = proximity / 50; r = Math.round(184 + (180 - 184) * t3); g = Math.round(80 - 20 * t3); b = Math.round(80 - 20 * t3); } var color = "rgb(" + r + "," + g + "," + b + ")"; fill.style.background = color; val.textContent = Math.round(proximity) + "%"; val.style.color = color; }
 

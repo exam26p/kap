@@ -208,41 +208,33 @@
     </div>
 </div>
 
-<!-- سكربت التحكم بالصوت والفيديو (تم إصلاح مشكلة التشغيل التلقائي) -->
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         const bgVideo = document.getElementById('bgVideo');
         const muteToggle = document.getElementById('muteToggle');
         const splashBtn = document.getElementById('splashBtn');
 
-        // منع إيقاف الفيديو بالخطأ
         bgVideo.addEventListener('click', function(e) { e.preventDefault(); });
         bgVideo.addEventListener('touchstart', function(e) { e.preventDefault(); }, { passive: false });
 
-        // دالة تفعيل صوت الفيديو (تعمل فقط بعد تفاعل المستخدم)
         function enableSound() {
             if (bgVideo.muted) {
                 bgVideo.muted = false;
-                bgVideo.play().then(() => {
-                    muteToggle.classList.add('unmuted');
-                }).catch(() => {});
+                bgVideo.play().then(() => { muteToggle.classList.add('unmuted'); }).catch(() => {});
             }
         }
 
-        // تفعيل الصوت عند الضغط على زر شاشة التحميل
         splashBtn.addEventListener("click", function(e) {
             if (!splashBtn.classList.contains('show')) { e.preventDefault(); return; }
             enableSound();
-            if (window.initAppAudio) window.initAppAudio(); // تشغيل صوت النقرات
+            if (window.initAppAudio) window.initAppAudio();
         });
 
-        // تفعيل الصوت عند الضغط على أيقونة الصوت
         muteToggle.addEventListener('click', function() {
             enableSound();
             if (window.initAppAudio) window.initAppAudio();
         });
 
-        // مراقبة حالة الصوت لإخفاء/إظهار الأيقونة
         bgVideo.addEventListener('volumechange', function() {
             if (bgVideo.muted) { muteToggle.classList.remove('unmuted'); } 
             else { muteToggle.classList.add('unmuted'); }
@@ -269,63 +261,39 @@
     let msgACache = {}; 
     let msgBCache = {}; 
     let currentCashierMsgCount = 0; 
-    let cachedReadCount = 0; 
 
-    /* === إصلاح مشكلة AudioContext === */
+    /* === نظام الإشعارات المحسن (localStorage) === */
+    function getReadCount() {
+        return parseInt(localStorage.getItem('readMsgCount_' + TBL) || '0');
+    }
+    function setReadCount(count) {
+        localStorage.setItem('readMsgCount_' + TBL, String(count));
+    }
+
     let aC = null; 
     let lClk = 0, audioResumed = false, pendingMsgSounds = 0; 
 
-    // دالة تهيئة الصوت (لا تعمل إلا بعد ضغطة حقيقية من المستخدم)
     window.initAppAudio = function() {
-        if (!aC) {
-            try { aC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return; }
-        }
+        if (!aC) { try { aC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return; } }
         if (aC.state === "suspended") aC.resume();
         audioResumed = true;
-        // تشغيل أي أصوات كانت معلقة قبل تفعيل الصوت
         for (var i = 0; i < pendingMsgSounds; i++) msgSnd();
         pendingMsgSounds = 0;
     };
 
-    // تفعيل الصوت أيضاً عند أي نقرة على الصفحة كضمان إضافي
-    document.addEventListener("click", function() {
-        if (window.initAppAudio) window.initAppAudio();
-    }, { once: true });
+    document.addEventListener("click", function() { if (window.initAppAudio) window.initAppAudio(); }, { once: true });
 
     function cSnd() {
         if (!aC || !audioResumed) return;
         var n = Date.now(); if (n - lClk < 80) return; lClk = n;
-        try {
-            if (aC.state === "suspended") aC.resume();
-            var o = aC.createOscillator(), g = aC.createGain();
-            o.connect(g); g.connect(aC.destination); o.type = "sine";
-            o.frequency.setValueAtTime(600 + Math.random() * 400, aC.currentTime);
-            g.gain.setValueAtTime(0.015, aC.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.001, aC.currentTime + 0.05);
-            o.start(aC.currentTime); o.stop(aC.currentTime + 0.05);
-        } catch (e) {}
+        try { if (aC.state === "suspended") aC.resume(); var o = aC.createOscillator(), g = aC.createGain(); o.connect(g); g.connect(aC.destination); o.type = "sine"; o.frequency.setValueAtTime(600 + Math.random() * 400, aC.currentTime); g.gain.setValueAtTime(0.015, aC.currentTime); g.gain.exponentialRampToValueAtTime(0.001, aC.currentTime + 0.05); o.start(aC.currentTime); o.stop(aC.currentTime + 0.05); } catch (e) {}
     }
-    
     function addSnd(el) { if (el) el.addEventListener("click", cSnd, { passive: true }); }
-    
     function msgSnd() {
         if (!aC) return;
-        try {
-            if (!audioResumed) { pendingMsgSounds++; return; }
-            if (aC.state === "suspended") aC.resume();
-            var now = aC.currentTime;
-            [0, 0.15, 0.3].forEach(function(d, i) {
-                var o = aC.createOscillator(), g = aC.createGain();
-                o.connect(g); g.connect(aC.destination); o.type = "sine";
-                o.frequency.setValueAtTime([660, 880, 1100][i], now + d);
-                g.gain.setValueAtTime(0.06, now + d);
-                g.gain.exponentialRampToValueAtTime(0.001, now + d + 0.12);
-                o.start(now + d); o.stop(now + d + 0.12);
-            });
-        } catch (e) {}
+        try { if (!audioResumed) { pendingMsgSounds++; return; } if (aC.state === "suspended") aC.resume(); var now = aC.currentTime; [0, 0.15, 0.3].forEach(function(d, i) { var o = aC.createOscillator(), g = aC.createGain(); o.connect(g); g.connect(aC.destination); o.type = "sine"; o.frequency.setValueAtTime([660, 880, 1100][i], now + d); g.gain.setValueAtTime(0.06, now + d); g.gain.exponentialRampToValueAtTime(0.001, now + d + 0.12); o.start(now + d); o.stop(now + d + 0.12); }); } catch (e) {}
     }
 
-    /* === سحب روابط التواصل الاجتماعي === */
     async function loadSocialLinks() {
         try {
             const snap = await get(ref(db, "data/-OtW677IyPfMvtFSza0w"));
@@ -343,11 +311,8 @@
             btn.addEventListener('click', function(event) {
                 event.stopPropagation();
                 const url = this.getAttribute('data-url');
-                if (url && url !== '#') {
-                    window.open(url, '_blank');
-                } else {
-                    toast("الرابط غير متاح حالياً", "info");
-                }
+                if (url && url !== '#') { window.open(url, '_blank'); } 
+                else { toast("الرابط غير متاح حالياً", "info"); }
             });
         });
     }
@@ -381,11 +346,8 @@
 
     function updateHeader() {
         var h = document.getElementById("headerTitle");
-        if (restLogo && restLogo.length > 20) {
-            h.innerHTML = '<img src="' + restLogo + '" alt="" onerror="this.style.display=\'none\'"> ' + restName;
-        } else {
-            h.textContent = restName || 'المنيو الرقمي';
-        }
+        if (restLogo && restLogo.length > 20) { h.innerHTML = '<img src="' + restLogo + '" alt="" onerror="this.style.display=\'none\'"> ' + restName; } 
+        else { h.textContent = restName || 'المنيو الرقمي'; }
     }
 
     function initSplashQuote() {
@@ -458,11 +420,54 @@
     function startW() { if (!navigator.geolocation) { document.getElementById("geoCard").style.display = "none"; document.getElementById("geoBlocked").style.display = "block"; return; } watchID = navigator.geolocation.watchPosition(onP, onE, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }); }
 
     function onP(pos) {
-        curLat = pos.coords.latitude; curLon = pos.coords.longitude; curDist = haversine(curLat, curLon, zone.center_latitude, zone.center_longitude); var rad = zone.radius_meters || 100; updateDistBar(curDist, rad);
-        if (curDist <= rad) { if (!isInZone) { isInZone = true; state.isGeoVerified = true; updateAppState(); document.getElementById("blockScreen").style.display = "none"; document.getElementById("kickScreen").style.display = "none"; document.getElementById("menuContent").style.display = "block"; document.getElementById("bottomBar").style.display = "flex"; document.getElementById("distBar").style.display = "block"; if (!menuOk) initMenu(); } }
-        else if (curDist <= rad * 2) { if (isInZone) { isInZone = false; state.isGeoVerified = false; updateAppState(); document.getElementById("menuContent").style.display = "none"; document.getElementById("bottomBar").style.display = "none"; document.getElementById("distBar").style.display = "none"; document.getElementById("blockScreen").style.display = "flex"; sGeo("err", "🚫", "خارج النطاق", "اقترب أكثر من المطعم."); } var dEl = document.getElementById("geoDist"); dEl.style.display = "block"; dEl.className = "geo-dist out"; dEl.innerHTML = '<i class="fas fa-triangle-exclamation" style="margin-left:5px;"></i><b>خارج النطاق المسموح</b>'; }
-        else { if (!document.getElementById("kickScreen").style.display || document.getElementById("kickScreen").style.display === "none") { isInZone = false; state.isGeoVerified = false; updateAppState(); document.getElementById("menuContent").style.display = "none"; document.getElementById("bottomBar").style.display = "none"; document.getElementById("distBar").style.display = "none"; document.getElementById("blockScreen").style.display = "none"; document.getElementById("kickScreen").style.display = "flex"; } }
+        curLat = pos.coords.latitude; curLon = pos.coords.longitude;
+        curDist = haversine(curLat, curLon, zone.center_latitude, zone.center_longitude);
+        var rad = zone.radius_meters || 100;
+        
+        if (curDist > 50000) { 
+            if (!isInZone) {
+                isInZone = false; state.isGeoVerified = false; updateAppState();
+                document.getElementById("menuContent").style.display = "none";
+                document.getElementById("bottomBar").style.display = "none";
+                document.getElementById("distBar").style.display = "none";
+                document.getElementById("kickScreen").style.display = "none";
+                document.getElementById("blockScreen").style.display = "flex";
+                sGeo("err", "🛡️", "موقعك غير دقيق", "يبدو أنك تستخدم VPN أو موقعك بعيد جداً. يرجى إيقافه وتفعيل تحديد الموقع بدقة.");
+                var dEl = document.getElementById("geoDist");
+                dEl.style.display = "block";
+                dEl.className = "geo-dist out";
+                dEl.innerHTML = '<i class="fas fa-shield-halved" style="margin-left:5px;"></i><b>الموقع غير حقيقي أو بعيد جداً</b>';
+            }
+            return;
+        }
+
+        updateDistBar(curDist, rad);
+        if (curDist <= rad) {
+            if (!isInZone) {
+                isInZone = true; state.isGeoVerified = true; updateAppState();
+                document.getElementById("blockScreen").style.display = "none"; document.getElementById("kickScreen").style.display = "none";
+                document.getElementById("menuContent").style.display = "block"; document.getElementById("bottomBar").style.display = "flex";
+                document.getElementById("distBar").style.display = "block"; if (!menuOk) initMenu();
+            }
+        } else if (curDist <= rad * 2) {
+            if (isInZone) {
+                isInZone = false; state.isGeoVerified = false; updateAppState();
+                document.getElementById("menuContent").style.display = "none"; document.getElementById("bottomBar").style.display = "none";
+                document.getElementById("distBar").style.display = "none"; document.getElementById("blockScreen").style.display = "flex";
+                sGeo("err", "🚫", "خارج النطاق", "اقترب أكثر من المطعم.");
+            }
+            var dEl2 = document.getElementById("geoDist"); dEl2.style.display = "block"; dEl2.className = "geo-dist out";
+            dEl2.innerHTML = '<i class="fas fa-triangle-exclamation" style="margin-left:5px;"></i><b>خارج النطاق المسموح</b>';
+        } else {
+            if (!document.getElementById("kickScreen").style.display || document.getElementById("kickScreen").style.display === "none") {
+                isInZone = false; state.isGeoVerified = false; updateAppState();
+                document.getElementById("menuContent").style.display = "none"; document.getElementById("bottomBar").style.display = "none";
+                document.getElementById("distBar").style.display = "none"; document.getElementById("blockScreen").style.display = "none";
+                document.getElementById("kickScreen").style.display = "flex";
+            }
+        }
     }
+
     function onE() { document.getElementById("geoCard").style.display = "none"; document.getElementById("geoBlocked").style.display = "block"; }
     function updateDistBar(dist, radius) { var proximity = Math.max(0, Math.min(100, (1 - dist / radius) * 100)); var fill = document.getElementById("distFill"); var val = document.getElementById("distValue"); fill.style.width = proximity + "%"; var r, g, b; if (proximity >= 50) { var t = (proximity - 50) / 50; r = Math.round(180 - (180 - 74) * t); g = Math.round(60 + (124 - 60) * t); b = Math.round(60 + (89 - 60) * t); } else { var t3 = proximity / 50; r = Math.round(184 + (180 - 184) * t3); g = Math.round(80 - 20 * t3); b = Math.round(80 - 20 * t3); } var color = "rgb(" + r + "," + g + "," + b + ")"; fill.style.background = color; val.textContent = Math.round(proximity) + "%"; val.style.color = color; }
 
@@ -494,13 +499,76 @@
     function sendOrd() { if (!Object.keys(orders).length) { toast("لا توجد طلبات لإرسالها", "error"); return; } if (!navigator.onLine) { toast("لا يوجد اتصال بالإنترنت.", "error"); return; } if (curLat === null || curLon === null) { toast("جاري تحديد موقعك...", "error"); return; } if (!zone || !zone.center_latitude) { toast("بيانات النطاق غير متوفرة.", "error"); return; } var dist = haversine(curLat, curLon, zone.center_latitude, zone.center_longitude); var rad = zone.radius_meters || 100; if (dist > rad) { toast("أنت خارج المنطقة.", "error"); return; } var sr = ref(db, "tablesB/table_" + TBL + "/sent_orders"); for (var k in orders) { var it = orders[k]; set(push(sr), { name: it.name, price: it.price, quantity: it.quantity, settled_by: "customer", settled_at: new Date().toISOString(), sent_distance: Math.round(dist) }); } remove(ref(db, "tablesA/table_" + TBL + "/current_orders")).then(function() { toast("تم إرسال طلباتك بنجاح", "success"); closeInv(); }).catch(function() { toast("حدث خطأ أثناء الإرسال.", "error"); }); }
     function closeInv() { document.getElementById("invoiceModal").style.display = "none"; }
 
-    function listenCh() { var tk = "table_" + TBL; onValue(ref(db, "msgA/" + tk), function(snap) { msgACache = snap.val() || {}; renderChat(); }); onValue(ref(db, "msgB/" + tk), function(snap) { var prevCount = currentCashierMsgCount; msgBCache = snap.val() || {}; currentCashierMsgCount = Object.keys(msgBCache).length; if (currentCashierMsgCount > prevCount && !chatOn && prevCount >= 0) msgSnd(); updateBadge(); renderChat(); }); onValue(ref(db, "read_counters/" + tk), function(snap) { cachedReadCount = snap.val() || 0; updateBadge(); }); }
-    function renderChat() { if (!chatOn) return; var box = document.getElementById("chatMsgs"); box.innerHTML = ""; var msgs = []; for (var k in msgACache) { var m = msgACache[k]; m.src = "client"; msgs.push(m); } for (var k2 in msgBCache) { var m2 = msgBCache[k2]; m2.src = "cashier"; msgs.push(m2); } msgs.sort(function(a, b) { return new Date(a.timestamp) - new Date(b.timestamp); }); if (!msgs.length) { box.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px;font-size:13px;">ابدأ المحادثة مع الكاشير.</p>'; return; } for (var j = 0; j < msgs.length; j++) { var msg = msgs[j]; var t2 = new Date(msg.timestamp).toLocaleTimeString("ar-IQ", { hour: "2-digit", minute: "2-digit" }); box.innerHTML += '<div class="cm ' + (msg.src === "client" ? "cm-cl" : "cm-ca") + '">' + msg.text + '<div class="cm-t">' + t2 + '</div></div>'; } box.scrollTop = box.scrollHeight; }
-    function updateBadge() { var unreadCount = chatOn ? 0 : Math.max(0, currentCashierMsgCount - cachedReadCount); showUnread(unreadCount); }
-    function showUnread(c) { var dot = document.getElementById("msgDot"); if (c > 0) { dot.style.display = "flex"; dot.textContent = c > 9 ? "9+" : String(c); } else { dot.style.display = "none"; } unreadN = c; }
-    function openCh() { chatOn = true; cachedReadCount = currentCashierMsgCount; set(ref(db, "read_counters/table_" + TBL), currentCashierMsgCount); updateBadge(); document.getElementById("chatModal").style.display = "flex"; renderChat(); }
-    function closeCh() { chatOn = false; document.getElementById("chatModal").style.display = "none"; }
-    function sendCh() { var inp = document.getElementById("chatInput"); var txt = inp.value.trim(); if (!txt) return; set(push(ref(db, "msgA/table_" + TBL)), { text: txt, timestamp: new Date().toISOString() }); inp.value = ""; }
+    /* === نظام المحادثة والإشعارات المضبوط === */
+    function listenCh() {
+        var tk = "table_" + TBL;
+        onValue(ref(db, "msgA/" + tk), function(snap) { msgACache = snap.val() || {}; renderChat(); });
+        
+        onValue(ref(db, "msgB/" + tk), function(snap) {
+            var prevCount = currentCashierMsgCount;
+            msgBCache = snap.val() || {};
+            currentCashierMsgCount = Object.keys(msgBCache).length;
+
+            // تشغيل صوت فقط عند وصول رسالة جديدة من الكاشير والمحادثة مغلقة
+            if (currentCashierMsgCount > prevCount && !chatOn && prevCount >= 0) {
+                msgSnd();
+            }
+
+            updateBadge(); 
+            renderChat();  
+        });
+    }
+
+    function renderChat() {
+        if (!chatOn) return; 
+        var box = document.getElementById("chatMsgs"); box.innerHTML = ""; var msgs = [];
+        for (var k in msgACache) { var m = msgACache[k]; m.src = "client"; msgs.push(m); }
+        for (var k2 in msgBCache) { var m2 = msgBCache[k2]; m2.src = "cashier"; msgs.push(m2); }
+        msgs.sort(function(a, b) { return new Date(a.timestamp) - new Date(b.timestamp); });
+        if (!msgs.length) { box.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px;font-size:13px;">ابدأ المحادثة مع الكاشير.</p>'; return; }
+        for (var j = 0; j < msgs.length; j++) {
+            var msg = msgs[j]; var t2 = new Date(msg.timestamp).toLocaleTimeString("ar-IQ", { hour: "2-digit", minute: "2-digit" });
+            box.innerHTML += '<div class="cm ' + (msg.src === "client" ? "cm-cl" : "cm-ca") + '">' + msg.text + '<div class="cm-t">' + t2 + '</div></div>';
+        }
+        box.scrollTop = box.scrollHeight;
+    }
+
+    function updateBadge() {
+        var cachedReadCount = getReadCount();
+        // عدد الرسائل غير المقروءة = إجمالي رسائل الكاشير - الرسائل التي قرأها العميل
+        var unreadCount = chatOn ? 0 : Math.max(0, currentCashierMsgCount - cachedReadCount);
+        showUnread(unreadCount);
+    }
+
+    function showUnread(c) {
+        var dot = document.getElementById("msgDot");
+        if (c > 0) {
+            dot.style.display = "flex";
+            dot.textContent = c > 9 ? "9+" : String(c);
+        } else {
+            dot.style.display = "none";
+        }
+        unreadN = c;
+    }
+
+    function openCh() {
+        chatOn = true;
+        // تحديث العداد المحلي بأن العميل قرأ جميع الرسائل الحالية
+        setReadCount(currentCashierMsgCount);
+        updateBadge(); 
+        document.getElementById("chatModal").style.display = "flex";
+        renderChat(); 
+    }
+
+    function closeCh() {
+        chatOn = false;
+        document.getElementById("chatModal").style.display = "none";
+    }
+
+    function sendCh() {
+        var inp = document.getElementById("chatInput"); var txt = inp.value.trim(); if (!txt) return;
+        set(push(ref(db, "msgA/table_" + TBL)), { text: txt, timestamp: new Date().toISOString() }); inp.value = "";
+    }
 
     window.openImage = function(src) { if (!src) return; var modal = document.getElementById("imgModal"); var img = document.getElementById("imgModalImg"); img.src = src; modal.style.display = "flex"; };
     window.closeImgModal = function() { document.getElementById("imgModal").style.display = "none"; };

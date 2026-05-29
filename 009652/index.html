@@ -7,6 +7,14 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- ===== أكواد تحويل التطبيق PWA (في الـ Head) ===== -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="الكابتن">
+    <link rel="apple-touch-icon" href="icon.png">
+
     <style>
         :root {
             --bg-dark: #0f172a; --bg-dark-2: #1e293b; --bg-dark-3: #334155;
@@ -120,8 +128,10 @@
 </head>
 <body>
 
+<!-- شريط الإشعارات -->
 <div id="toastWrap"></div>
 
+<!-- نافذة التأكيد -->
 <div id="confirmOverlay">
     <div class="confirm-box">
         <div class="cb-icon"><i class="fas fa-exclamation-triangle"></i></div>
@@ -131,6 +141,20 @@
             <button class="btn btn-ghost" id="confirmNo"><i class="fas fa-times"></i> إلغاء</button>
         </div>
     </div>
+</div>
+
+<!-- شريط تثبيت الآيفون (الأفضل أن يكون هنا مبكراً في الـ Body) -->
+<div id="ios-prompt" style="display: none; position: fixed; bottom: 80px; left: 5%; width: 90%; background: white; color: black; padding: 15px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 9999; direction: rtl; font-family: sans-serif;">
+  <div style="display: flex; align-items: center; justify-content: space-between;">
+    <div style="display: flex; align-items: center;">
+      <img src="icon.png" style="width: 40px; height: 40px; border-radius: 8px; margin-left: 10px;">
+      <div>
+        <strong style="font-size: 14px;">تثبيت تطبيق كابتن مانجمنت</strong>
+        <div style="font-size: 11px; color: #666; margin-top: 3px;">اضغط على زر <img src="https://img.icons8.com/ios/50/000000/share-rounded.png" style="width:15px; display:inline; vertical-align:middle;"> ثم <b>"إضافة إلى الشاشة الرئيسية"</b></div>
+      </div>
+    </div>
+    <button onclick="closeIosPrompt()" style="background:none; border:none; font-size: 18px; color: #999; cursor:pointer;">×</button>
+  </div>
 </div>
 
 <!-- الشريط العلوي -->
@@ -156,7 +180,6 @@
     <div id="tab-devices" class="tab-panel active">
         <div class="sec-head"><h2>إدارة الأجهزة</h2><p>تسجيل الأجهزة ومطابقة الإصدارات</p></div>
         <button class="btn btn-accent btn-block" onclick="toggleForm('deviceVerifyForm')"><i class="fas fa-plus"></i> إضافة جهاز جديد</button>
-
         <div id="deviceVerifyForm" class="card" style="display:none;margin-top:14px">
             <div class="card-head"><h3><i class="fas fa-search" style="margin-left:6px;color:var(--info)"></i>خطوة 1: فحص الإصدار</h3></div>
             <div class="card-body">
@@ -165,7 +188,6 @@
                 <div id="verifyMsg"></div>
             </div>
         </div>
-
         <div id="deviceSaveForm" class="card" style="display:none">
             <div class="card-head"><h3><i class="fas fa-save" style="margin-left:6px;color:var(--success)"></i>خطوة 2: تسمية الجهاز</h3></div>
             <div class="card-body">
@@ -173,7 +195,6 @@
                 <button class="btn btn-success btn-block" onclick="saveDeviceToAdmines()"><i class="fas fa-save"></i> حفظ وتثبيت</button>
             </div>
         </div>
-
         <div class="card">
             <div class="card-head"><h3>الأجهزة المسجلة</h3><span class="badge badge-amber" id="devCount">0</span></div>
             <div class="card-body" style="padding:10px">
@@ -186,7 +207,6 @@
     <div id="tab-users" class="tab-panel">
         <div class="sec-head"><h2>إدارة اليوزرات</h2><p>إنشاء وتعديل حسابات الموظفين</p></div>
         <button class="btn btn-accent btn-block" onclick="openUserForm(false)"><i class="fas fa-user-plus"></i> يوزر جديد</button>
-
         <div id="userFormBox" class="card" style="display:none;margin-top:14px">
             <div class="card-head"><h3 id="userFormTitle">إنشاء حساب</h3></div>
             <div class="card-body">
@@ -199,7 +219,6 @@
                 </div>
             </div>
         </div>
-
         <div class="card">
             <div class="card-head"><h3>قائمة اليوزرات</h3><span class="badge badge-blue" id="usrCount">0</span></div>
             <div class="card-body" style="padding:10px">
@@ -211,7 +230,6 @@
     <!-- ===== قسم المبيعات ===== -->
     <div id="tab-sales" class="tab-panel">
         <div class="sec-head"><h2>تقارير المبيعات</h2><p>فلترة حسب اليوزر والفترة الزمنية</p></div>
-
         <div class="card">
             <div class="card-head"><h3><i class="fas fa-filter" style="margin-left:6px;color:var(--info)"></i>الفلاتر</h3></div>
             <div class="card-body">
@@ -225,16 +243,13 @@
                 </div>
             </div>
         </div>
-
         <div id="totalSalesCard" class="card" style="display:none;border-right:4px solid var(--accent)">
             <div class="card-body" id="totalSalesBody"></div>
         </div>
-
         <div id="userRevSection" style="display:none">
             <h3 style="font-size:15px;font-weight:700;margin:14px 0 8px"><i class="fas fa-users" style="margin-left:6px;color:var(--accent)"></i>توزيع الإيرادات</h3>
             <div class="user-rev-grid" id="userRevGrid"></div>
         </div>
-
         <div class="card">
             <div class="card-head"><h3>تفاصيل الأرشيف</h3><span class="badge badge-green" id="salesCount">0</span></div>
             <div class="card-body" style="padding:10px">
@@ -263,6 +278,7 @@
     <button class="bnav-item nav-restricted" data-tab="orders" disabled><i class="fas fa-box"></i><span>المنتجات</span></button>
 </nav>
 
+<!-- ===== جميع الأكواد البرمجية مجموعة هنا قبل إغلاق الـ Body ===== -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getDatabase, ref, onValue, set, remove, push, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
@@ -608,31 +624,26 @@
     }
 
     initSystemCore();
-</script>
-     <div id="ios-prompt" style="display: none; position: fixed; bottom: 80px; left: 5%; width: 90%; background: white; color: black; padding: 15px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 9999; direction: rtl; font-family: sans-serif;">
-      <div style="display: flex; align-items: center; justify-content: space-between;">
-        <div style="display: flex; align-items: center;">
-          <img src="icon.png" style="width: 40px; height: 40px; border-radius: 8px; margin-left: 10px;">
-          <div>
-            <strong style="font-size: 14px;">تثبيت تطبيق كابتن مانجمنت</strong>
-            <div style="font-size: 11px; color: #666; margin-top: 3px;">اضغط على زر <img src="https://img.icons8.com/ios/50/000000/share-rounded.png" style="width:15px; display:inline; vertical-align:middle;"> ثم <b>"إضافة إلى الشاشة الرئيسية"</b></div>
-          </div>
-        </div>
-        <button onclick="closeIosPrompt()" style="background:none; border:none; font-size: 18px; color: #999; cursor:pointer;">×</button>
-      </div>
-    </div>
 
-<script>
-  let deferredPrompt;
-  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; });
-  const isAppInstalled = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-  function isIos() { return /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase()); }
-  function isSafari() { const ua = window.navigator.userAgent.toLowerCase(); return ua.includes('safari') && !ua.includes('chrome') && !ua.includes('crios'); }
-  function closeIosPrompt() { document.getElementById('ios-prompt').style.display = 'none'; localStorage.setItem('iosPromptDismissed', 'true'); }
-  window.addEventListener('load', () => {
-    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
-    if (isIos() && isSafari() && !isAppInstalled && !localStorage.getItem('iosPromptDismissed')) document.getElementById('ios-prompt').style.display = 'block';
-  });
+    /* ===== سكربت تثبيت الـ PWA (دمج هنا ليكون مع باقي السكربتات) ===== */
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; });
+    const isAppInstalled = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    function isIos() { return /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase()); }
+    function isSafari() { const ua = window.navigator.userAgent.toLowerCase(); return ua.includes('safari') && !ua.includes('chrome') && !ua.includes('crios'); }
+    window.closeIosPrompt = function() { 
+        document.getElementById('ios-prompt').style.display = 'none'; 
+        localStorage.setItem('iosPromptDismissed', 'true'); 
+    }
+    
+    // تسجيل الـ Service Worker وتشغيل شريط الآيفون
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').then(reg => console.log('Captain PWA Ready!'));
+    }
+    if (isIos() && isSafari() && !isAppInstalled && !localStorage.getItem('iosPromptDismissed')) {
+        document.getElementById('ios-prompt').style.display = 'block';
+    }
+
 </script>
 </body>
 </html>

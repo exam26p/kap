@@ -205,41 +205,24 @@
         <div style="font-size: 11px; color: #666; margin-top: 3px;">اضغط على زر <img src="https://img.icons8.com/ios/50/000000/share-rounded.png" style="width:15px; display:inline; vertical-align:middle;"> ثم <b>"إضافة إلى الشاشة الرئيسية"</b></div>
       </div>
     </div>
-    <button onclick="document.getElementById('ios-prompt').style.display='none'" style="background:none; border:none; font-size: 18px; color: #999; cursor:pointer;">×</button>
+    <!-- لاحظ إضافة دالة الإغلاق الذكي هنا -->
+    <button onclick="closeIosPrompt()" style="background:none; border:none; font-size: 18px; color: #999; cursor:pointer;">×</button>
   </div>
 </div>
 
 <script>
-  // 1. التعامل مع الأندرويد (ومنع التكرار والتحكم بالظهور)
+  // 1. التعامل مع الأندرويد
   let deferredPrompt;
   
   window.addEventListener('beforeinstallprompt', (e) => {
-    // منع المتصفح من إظهار الشريط الافتراضي فوراً
     e.preventDefault();
     deferredPrompt = e;
-    
-    // هنا يمكنك إظهار زر تثبيت خاص بك في الموقع إذا أردت
-    console.log("الأندرويد جاهز للتثبيت، تم حفظ الطلب لمنع التكرار.");
   });
 
-  // كود يتم استدعاؤه إذا ضغط المستخدم على زر التثبيت الخاص بك (للأندرويد)
-  function triggerAndroidInstall() {
-    if (deferredPrompt) {
-      deferredPrompt.prompt(); // إظهار نافذة التثبيت
-      deferredPrompt.userChoice.then((choiceResult) => {
-        if (choiceResult.outcome === 'accepted') {
-          console.log('المستخدم وافق على التثبيت');
-          // بمجرد القبول، المتصفح لن يظهر النافذة مجدداً تلقائياً
-        }
-        deferredPrompt = null;
-      });
-    }
-  }
-
-  // معرفة هل التطبيق مفتوح حالياً كتطبيق مستقل (مُنزل مسبقاً)؟
+  // 2. معرفة هل التطبيق مفتوح كتطبيق مستقل (مُنزل مسبقاً)؟
   const isAppInstalled = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
 
-  // 2. التعامل مع الآيفون (iOS)
+  // 3. التعامل مع الآيفون (iOS)
   function isIos() {
     const userAgent = window.navigator.userAgent.toLowerCase();
     return /iphone|ipad|ipod/.test(userAgent);
@@ -250,6 +233,12 @@
     return userAgent.includes('safari') && !userAgent.includes('chrome') && !userAgent.includes('crios');
   }
 
+  // دالة إغلاق شريط الآيفون مع حفظ الاختيار في الذاكرة
+  function closeIosPrompt() {
+    document.getElementById('ios-prompt').style.display = 'none';
+    localStorage.setItem('iosPromptDismissed', 'true'); // حفظ الحالة
+  }
+
   // تشغيل المنطق عند تحميل الصفحة
   window.addEventListener('load', () => {
     // تسجيل الـ Service Worker
@@ -257,9 +246,11 @@
       navigator.serviceWorker.register('sw.js');
     }
 
-    // إذا كان الجهاز آيفون، والمتصفح سفاري، والتطبيق لـيـس مثبتاً بعد
-    if (isIos() && isSafari() && !isAppInstalled) {
-      // أظهر شريط الإرشادات الذكي للآيفون
+    // التحقق من شريط الآيفون
+    const iosDismissed = localStorage.getItem('iosPromptDismissed');
+    
+    // إذا كان آيفون + سفاري + التطبيق غير مثبت + ولم يقم بإغلاق الشريط مسبقاً
+    if (isIos() && isSafari() && !isAppInstalled && !iosDismissed) {
       document.getElementById('ios-prompt').style.display = 'block';
     }
   });

@@ -2,266 +2,152 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>لوحة التحكم الإدارية</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-dark: #0f172a;
-            --bg-dark-2: #1e293b;
-            --bg-dark-3: #334155;
-            --bg-light: #f8fafc;
-            --bg-white: #ffffff;
-            --accent: #f59e0b;
-            --accent-dark: #d97706;
-            --accent-light: #fbbf24;
-            --success: #059669;
-            --success-bg: #ecfdf5;
-            --danger: #dc2626;
-            --danger-bg: #fef2f2;
-            --info: #2563eb;
-            --info-bg: #eff6ff;
-            --warning: #d97706;
-            --warning-bg: #fffbeb;
-            --text-primary: #0f172a;
-            --text-secondary: #64748b;
-            --text-muted: #94a3b8;
-            --text-white: #f1f5f9;
-            --border: #e2e8f0;
-            --border-dark: #334155;
-            --shadow-sm: 0 1px 2px rgba(0,0,0,.05);
-            --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
-            --shadow-md: 0 4px 6px rgba(0,0,0,.06), 0 2px 4px rgba(0,0,0,.04);
-            --shadow-lg: 0 10px 25px rgba(0,0,0,.08);
-            --radius: 14px;
-            --radius-sm: 10px;
-            --radius-xs: 6px;
-            --sidebar-w: 270px;
+            --bg-dark: #0f172a; --bg-dark-2: #1e293b; --bg-dark-3: #334155;
+            --bg-light: #f8fafc; --bg-white: #ffffff;
+            --accent: #f59e0b; --accent-dark: #d97706; --accent-light: #fbbf24;
+            --success: #059669; --success-bg: #ecfdf5;
+            --danger: #dc2626; --danger-bg: #fef2f2;
+            --info: #2563eb; --info-bg: #eff6ff;
+            --warning: #d97706; --warning-bg: #fffbeb;
+            --text-primary: #0f172a; --text-secondary: #64748b; --text-muted: #94a3b8; --text-white: #f1f5f9;
+            --border: #e2e8f0; --border-dark: #334155;
+            --radius: 14px; --radius-sm: 10px;
         }
-        *{box-sizing:border-box;margin:0;padding:0}
-        body{font-family:'Tajawal',sans-serif;background:var(--bg-light);color:var(--text-primary);display:flex;min-height:100vh;overflow-x:hidden}
-        ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+        *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+        body{font-family:'Tajawal',sans-serif;background:var(--bg-light);color:var(--text-primary);min-height:100vh;overflow-x:hidden;padding-bottom:70px}
+        ::-webkit-scrollbar{width:0px}
 
-        /* ===== الشريط الجانبي ===== */
-        #sidebar{width:var(--sidebar-w);background:linear-gradient(180deg,var(--bg-dark) 0%,var(--bg-dark-2) 100%);color:var(--text-white);display:flex;flex-direction:column;position:fixed;top:0;right:0;bottom:0;z-index:100;transition:transform .35s cubic-bezier(.4,0,.2,1);box-shadow:-4px 0 20px rgba(0,0,0,.2)}
-        .sb-head{padding:24px 20px 20px;border-bottom:1px solid var(--border-dark)}
-        .sb-logo{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--accent-dark));display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:12px;box-shadow:0 4px 12px rgba(245,158,11,.3)}
-        .sb-name{font-size:18px;font-weight:800;color:var(--text-white)}
-        .sb-sub{font-size:12px;color:var(--text-muted);margin-top:2px}
-        .sb-nav{flex:1;padding:16px 12px;display:flex;flex-direction:column;gap:4px;overflow-y:auto}
-        .sb-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:var(--radius-sm);cursor:pointer;transition:all .2s;color:var(--text-muted);font-size:14px;font-weight:600;position:relative;border:none;background:none;width:100%;text-align:right;font-family:inherit}
-        .sb-item i{width:20px;text-align:center;font-size:16px;transition:color .2s}
-        .sb-item:hover{background:rgba(255,255,255,.06);color:var(--text-white)}
-        .sb-item.active{background:linear-gradient(135deg,rgba(245,158,11,.15),rgba(245,158,11,.08));color:var(--accent-light)}
-        .sb-item.active i{color:var(--accent)}
-        .sb-item.active::before{content:'';position:absolute;right:0;top:50%;transform:translateY(-50%);width:3px;height:60%;background:var(--accent);border-radius:0 3px 3px 0}
-        .sb-item:disabled{opacity:.35;cursor:not-allowed;pointer-events:none}
-        .sb-foot{padding:16px 20px;border-top:1px solid var(--border-dark)}
-        .sb-status{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-muted)}
-        .sb-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-        .sb-dot.on{background:var(--success);box-shadow:0 0 8px rgba(5,150,105,.6);animation:dotPulse 2s infinite}
-        .sb-dot.off{background:var(--danger)}
+        /* ===== الشريط العلوي ===== */
+        .top-bar{background:var(--bg-white);padding:12px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+        .tb-title{font-size:17px;font-weight:800;color:var(--text-primary)}
+        .status-chip{margin-right:auto;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;display:flex;align-items:center;gap:6px}
+        .status-chip .dot{width:7px;height:7px;border-radius:50%}
+        .status-chip.on{background:var(--success-bg);color:var(--success)}.status-chip.on .dot{background:var(--success);animation:dotPulse 2s infinite}
+        .status-chip.off{background:var(--danger-bg);color:var(--danger)}.status-chip.off .dot{background:var(--danger)}
         @keyframes dotPulse{0%,100%{opacity:1}50%{opacity:.4}}
-        .sb-session{margin-top:10px;padding:10px;background:rgba(255,255,255,.04);border-radius:var(--radius-xs);font-size:11px;color:var(--text-muted);line-height:1.6}
-        .sb-session b{color:var(--text-white)}
 
-        /* ===== المحتوى الرئيسي ===== */
-        #mainArea{flex:1;margin-right:var(--sidebar-w);min-height:100vh;display:flex;flex-direction:column}
-        #topBar{background:var(--bg-white);padding:16px 28px;display:flex;align-items:center;gap:16px;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;box-shadow:var(--shadow-sm)}
-        #menuBtn{display:none;background:none;border:none;font-size:20px;color:var(--text-secondary);cursor:pointer;padding:4px}
-        .tb-title{font-size:20px;font-weight:800;color:var(--text-primary)}
-        .tb-badge{background:var(--success-bg);color:var(--success);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700}
-        .tb-badge.err{background:var(--danger-bg);color:var(--danger)}
-        .tb-time{margin-right:auto;font-size:13px;color:var(--text-muted);direction:ltr}
-        #contentArea{flex:1;padding:24px 28px;animation:fadeUp .4s ease}
+        /* ===== الشريط السفلي (موبايل) ===== */
+        .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg-white);border-top:1px solid var(--border);display:flex;z-index:100;box-shadow:0 -4px 15px rgba(0,0,0,.05);padding:6px 0 env(safe-area-inset-bottom)}
+        .bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;border:none;background:none;color:var(--text-muted);font-size:10px;font-weight:700;font-family:inherit;cursor:pointer;transition:.2s}
+        .bnav-item i{font-size:19px;transition:.2s}
+        .bnav-item.active{color:var(--accent-dark)}
+        .bnav-item.active i{color:var(--accent);transform:translateY(-2px)}
+        .bnav-item:disabled{opacity:.3;pointer-events:none}
+
+        /* ===== المحتوى ===== */
+        .content-area{padding:16px;animation:fadeUp .4s ease}
         @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 
         /* ===== بطاقات الإحصائيات ===== */
-        .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
-        .stat-card{background:var(--bg-white);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);display:flex;align-items:center;gap:16px;transition:transform .2s,box-shadow .2s;border:1px solid var(--border)}
-        .stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
-        .stat-icon{width:50px;height:50px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
-        .stat-icon.amber{background:linear-gradient(135deg,#fef3c7,#fde68a);color:#92400e}
-        .stat-icon.blue{background:linear-gradient(135deg,#dbeafe,#bfdbfe);color:#1e40af}
-        .stat-icon.green{background:linear-gradient(135deg,#d1fae5,#a7f3d0);color:#065f46}
-        .stat-icon.rose{background:linear-gradient(135deg,#ffe4e6,#fecdd3);color:#9f1239}
-        .stat-info h4{font-size:13px;color:var(--text-secondary);font-weight:500;margin-bottom:4px}
-        .stat-info .stat-val{font-size:24px;font-weight:900;color:var(--text-primary)}
+        .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+        .stat-card{background:var(--bg-white);border-radius:var(--radius-sm);padding:14px;box-shadow:0 2px 6px rgba(0,0,0,.04);border:1px solid var(--border);display:flex;align-items:center;gap:10px}
+        .stat-ico{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px}
+        .stat-ico.amber{background:#fef3c7;color:#92400e}.stat-ico.blue{background:#dbeafe;color:#1e40af}
+        .stat-ico.green{background:#d1fae5;color:#065f46}.stat-ico.rose{background:#ffe4e6;color:#9f1239}
+        .stat-info h4{font-size:11px;color:var(--text-secondary);font-weight:500}.stat-val{font-size:18px;font-weight:900}
 
-        /* ===== التبويبات ===== */
-        .tab-panel{display:none;animation:fadeUp .35s ease}
-        .tab-panel.active{display:block}
-        .section-head{margin-bottom:20px}
-        .section-head h2{font-size:20px;font-weight:800;margin-bottom:4px}
-        .section-head p{font-size:13px;color:var(--text-secondary)}
+        /* ===== الأقسام ===== */
+        .tab-panel{display:none}.tab-panel.active{display:block}
+        .sec-head h2{font-size:18px;font-weight:800;margin-bottom:4px}.sec-head p{font-size:12px;color:var(--text-secondary);margin-bottom:16px}
 
         /* ===== الأزرار ===== */
-        .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:var(--radius-sm);font-weight:700;font-size:13px;font-family:inherit;cursor:pointer;border:none;transition:all .2s}
-        .btn:active{transform:scale(.96)}
-        .btn-primary{background:var(--info);color:#fff}.btn-primary:hover{background:#1d4ed8}
-        .btn-success{background:var(--success);color:#fff}.btn-success:hover{background:#047857}
-        .btn-danger{background:var(--danger);color:#fff}.btn-danger:hover{background:#b91c1c}
-        .btn-accent{background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:var(--bg-dark)}.btn-accent:hover{box-shadow:0 4px 15px rgba(245,158,11,.35)}
-        .btn-ghost{background:transparent;color:var(--text-secondary);border:1px solid var(--border)}.btn-ghost:hover{background:var(--bg-light)}
-        .btn-sm{padding:6px 14px;font-size:12px;border-radius:var(--radius-xs)}
-        .btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
+        .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 16px;border-radius:var(--radius-sm);font-weight:700;font-size:13px;font-family:inherit;cursor:pointer;border:none;transition:.2s;width:auto}
+        .btn:active{transform:scale(.96)}.btn-block{width:100%}
+        .btn-primary{background:var(--info);color:#fff}.btn-success{background:var(--success);color:#fff}
+        .btn-danger{background:var(--danger);color:#fff}.btn-accent{background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:var(--bg-dark)}
+        .btn-ghost{background:transparent;color:var(--text-secondary);border:1px solid var(--border)}
+        .btn-sm{padding:6px 12px;font-size:11px}.btn:disabled{opacity:.4;pointer-events:none}
 
         /* ===== البطاقات والنماذج ===== */
-        .card{background:var(--bg-white);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);overflow:hidden;margin-bottom:20px}
-        .card-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-        .card-head h3{font-size:15px;font-weight:700}
-        .card-body{padding:20px}
-        .form-group{margin-bottom:18px}
-        .form-group label{display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:6px}
-        .form-input{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;color:var(--text-primary);background:var(--bg-white);transition:border-color .2s,box-shadow .2s;outline:none}
-        .form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(245,158,11,.12)}
-        .form-input::placeholder{color:var(--text-muted)}
-        select.form-input{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:left 12px center}
-        .form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
-        .form-actions{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap}
+        .card{background:var(--bg-white);border-radius:var(--radius);box-shadow:0 2px 8px rgba(0,0,0,.04);border:1px solid var(--border);overflow:hidden;margin-bottom:14px}
+        .card-head{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg-light)}
+        .card-head h3{font-size:14px;font-weight:700}
+        .card-body{padding:16px}
+        .form-group{margin-bottom:14px}.form-group label{display:block;font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:4px}
+        .form-input{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;color:var(--text-primary);background:var(--bg-white);outline:none}
+        .form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(245,158,11,.1)}
+        select.form-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:left 12px center}
+        .badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700}
+        .badge-amber{background:#fef3c7;color:#92400e}.badge-green{background:#d1fae5;color:#065f46}
+        .badge-blue{background:#dbeafe;color:#1e40af}.badge-red{background:#fee2e2;color:#991b1b}
 
-        /* ===== الجداول ===== */
-        .table-wrap{overflow-x:auto;border-radius:var(--radius-sm)}
-        table{width:100%;border-collapse:collapse;font-size:13px}
-        thead{background:var(--bg-light)}
-        th{padding:12px 16px;text-align:right;font-weight:700;color:var(--text-secondary);font-size:12px;white-space:nowrap;border-bottom:2px solid var(--border)}
-        td{padding:12px 16px;border-bottom:1px solid var(--border);vertical-align:middle}
-        tbody tr{transition:background .15s}
-        tbody tr:hover{background:rgba(245,158,11,.03)}
-        .badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
-        .badge-amber{background:#fef3c7;color:#92400e}
-        .badge-green{background:#d1fae5;color:#065f46}
-        .badge-blue{background:#dbeafe;color:#1e40af}
-        .badge-red{background:#fee2e2;color:#991b1b}
-        .empty-state{text-align:center;padding:40px 20px;color:var(--text-muted)}
-        .empty-state i{font-size:40px;margin-bottom:12px;display:block;opacity:.4}
-        .empty-state p{font-size:14px}
-
-        /* ===== رسائل الحالة ===== */
-        .alert{padding:14px 18px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;display:flex;align-items:center;gap:10px;margin-top:12px;animation:fadeUp .3s ease}
+        .alert{padding:12px 14px;border-radius:var(--radius-sm);font-size:12px;font-weight:600;display:flex;align-items:center;gap:8px;margin-top:10px}
         .alert-success{background:var(--success-bg);color:#065f46;border:1px solid #a7f3d0}
         .alert-error{background:var(--danger-bg);color:#991b1b;border:1px solid #fecaca}
         .alert-info{background:var(--info-bg);color:#1e40af;border:1px solid #93c5fd}
 
-        /* ===== بطاقات إيرادات اليوزرات ===== */
-        .user-rev-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-top:16px}
-        .user-rev-card{background:var(--bg-white);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;text-align:center;transition:all .25s;cursor:pointer}
-        .user-rev-card:hover{border-color:var(--accent);box-shadow:0 0 0 3px rgba(245,158,11,.1);transform:translateY(-2px)}
-        .user-rev-card .ur-avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-dark));display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:18px;color:var(--bg-dark)}
-        .user-rev-card .ur-name{font-size:14px;font-weight:700;margin-bottom:4px}
-        .user-rev-card .ur-total{font-size:20px;font-weight:900;color:var(--success)}
-        .user-rev-card .ur-count{font-size:11px;color:var(--text-muted);margin-top:2px}
-        .user-rev-card .ur-bar{height:4px;background:var(--border);border-radius:2px;margin-top:10px;overflow:hidden}
-        .user-rev-card .ur-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--success));border-radius:2px;transition:width .8s ease}
+        /* ===== عرض الجداول كبطاقات للموبايل ===== */
+        .mobile-list{display:flex;flex-direction:column;gap:10px}
+        .m-card{background:var(--bg-white);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;display:flex;flex-direction:column;gap:8px;animation:fadeUp .3s ease}
+        .m-row{display:flex;justify-content:space-between;align-items:center;font-size:12px}
+        .m-label{color:var(--text-muted);font-weight:500}.m-val{font-weight:700;color:var(--text-primary);text-align:left}
+        .m-actions{display:flex;gap:6px;margin-top:6px;border-top:1px solid var(--border);padding-top:8px}
+
+        /* ===== إيرادات اليوزرات ===== */
+        .user-rev-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+        .user-rev-card{background:var(--bg-white);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;text-align:center;transition:.2s}
+        .user-rev-card:active{transform:scale(.97);border-color:var(--accent)}
+        .ur-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-dark));display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:14px;color:var(--bg-dark);font-weight:800}
+        .ur-name{font-size:12px;font-weight:700;margin-bottom:2px}.ur-total{font-size:16px;font-weight:900;color:var(--success)}
+        .ur-count{font-size:10px;color:var(--text-muted)}.ur-bar{height:3px;background:var(--border);border-radius:2px;margin-top:8px;overflow:hidden}.ur-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--success));border-radius:2px;transition:width .8s ease}
 
         /* ===== Toast ===== */
-        #toastWrap{position:fixed;bottom:24px;left:24px;z-index:9999;display:flex;flex-direction:column-reverse;gap:8px;pointer-events:none}
-        .toast{padding:14px 20px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;color:#fff;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow-lg);pointer-events:auto;animation:toastIn .35s ease;min-width:280px;max-width:420px}
+        #toastWrap{position:fixed;top:16px;left:16px;right:16px;z-index:9999;display:flex;flex-direction:column-reverse;gap:8px;pointer-events:none}
+        .toast{padding:12px 16px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;color:#fff;display:flex;align-items:center;gap:8px;box-shadow:0 8px 20px rgba(0,0,0,.15);pointer-events:auto;animation:toastIn .35s ease;min-width:auto}
         .toast.out{animation:toastOut .3s ease forwards}
         .toast-success{background:var(--success)}.toast-error{background:var(--danger)}.toast-info{background:var(--info)}
-        @keyframes toastIn{from{opacity:0;transform:translateY(16px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
-        @keyframes toastOut{to{opacity:0;transform:translateY(16px) scale(.95)}}
+        @keyframes toastIn{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes toastOut{to{opacity:0;transform:translateY(-16px)}}
 
         /* ===== نافذة التأكيد ===== */
-        #confirmOverlay{position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:9998;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);animation:fadeIn .2s}
+        #confirmOverlay{position:fixed;inset:0;background:rgba(15,23,42,.6);z-index:9998;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);padding:16px}
         #confirmOverlay.show{display:flex}
-        .confirm-box{background:var(--bg-white);border-radius:var(--radius);padding:28px;max-width:420px;width:90%;box-shadow:var(--shadow-lg);animation:fadeUp .3s ease;text-align:center}
-        .confirm-box .cb-icon{width:56px;height:56px;border-radius:50%;background:var(--warning-bg);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:24px;color:var(--warning)}
-        .confirm-box p{font-size:14px;color:var(--text-secondary);line-height:1.7;margin-bottom:20px}
-        .confirm-box .cb-actions{display:flex;gap:10px;justify-content:center}
-        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+        .confirm-box{background:var(--bg-white);border-radius:var(--radius);padding:24px 20px;width:100%;max-width:340px;box-shadow:0 20px 40px rgba(0,0,0,.1);animation:fadeUp .3s ease;text-align:center}
+        .cb-icon{width:48px;height:48px;border-radius:50%;background:var(--warning-bg);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:22px;color:var(--warning)}
+        .confirm-box p{font-size:14px;color:var(--text-secondary);line-height:1.6;margin-bottom:16px}
+        .cb-actions{display:flex;gap:8px}.cb-actions .btn{flex:1}
 
-        /* ===== الطاولة الشريط الجانبي للموبايل ===== */
-        #sbOverlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:99;display:none}
-        #sbOverlay.show{display:block}
-
-        /* ===== الاستجابة ===== */
-        @media(max-width:768px){
-            #sidebar{transform:translateX(100%)}
-            #sidebar.open{transform:translateX(0)}
-            #mainArea{margin-right:0}
-            #menuBtn{display:block}
-            #contentArea{padding:16px}
-            .stats-row{grid-template-columns:repeat(2,1fr);gap:10px}
-            .stat-card{padding:14px;gap:10px}
-            .stat-icon{width:40px;height:40px;font-size:16px;border-radius:10px}
-            .stat-info .stat-val{font-size:18px}
-            .form-row{grid-template-columns:1fr}
-            .user-rev-grid{grid-template-columns:repeat(2,1fr)}
-        }
-        @media(max-width:480px){
-            .stats-row{grid-template-columns:1fr}
-            .user-rev-grid{grid-template-columns:1fr}
-        }
+        /* شريط تثبيت الآيفون */
+        #ios-prompt{z-index:10000}
     </style>
-  <div id="ios-prompt" style="display: none; position: fixed; bottom: 20px; left: 5%; width: 90%; background: white; color: black; padding: 15px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 9999; direction: rtl; font-family: sans-serif;">
-  <div style="display: flex; align-items: center; justify-content: space-between;">
-    <div style="display: flex; align-items: center;">
-      <img src="icon.png" style="width: 40px; height: 40px; border-radius: 8px; margin-left: 10px;">
-      <div>
-        <strong style="font-size: 14px;">تثبيت تطبيق كابتن مانجمنت</strong>
-        <div style="font-size: 11px; color: #666; margin-top: 3px;">اضغط على زر <img src="https://img.icons8.com/ios/50/000000/share-rounded.png" style="width:15px; display:inline; vertical-align:middle;"> ثم <b>"إضافة إلى الشاشة الرئيسية"</b></div>
+    
+   <div id="ios-prompt" style="display: none; position: fixed; bottom: 80px; left: 5%; width: 90%; background: white; color: black; padding: 15px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 9999; direction: rtl; font-family: sans-serif;">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; align-items: center;">
+          <img src="icon.png" style="width: 40px; height: 40px; border-radius: 8px; margin-left: 10px;">
+          <div>
+            <strong style="font-size: 14px;">تثبيت تطبيق كابتن مانجمنت</strong>
+            <div style="font-size: 11px; color: #666; margin-top: 3px;">اضغط على زر <img src="https://img.icons8.com/ios/50/000000/share-rounded.png" style="width:15px; display:inline; vertical-align:middle;"> ثم <b>"إضافة إلى الشاشة الرئيسية"</b></div>
+          </div>
+        </div>
+        <button onclick="closeIosPrompt()" style="background:none; border:none; font-size: 18px; color: #999; cursor:pointer;">×</button>
       </div>
     </div>
-    <!-- لاحظ إضافة دالة الإغلاق الذكي هنا -->
-    <button onclick="closeIosPrompt()" style="background:none; border:none; font-size: 18px; color: #999; cursor:pointer;">×</button>
-  </div>
-</div>
 
 <script>
-  // 1. التعامل مع الأندرويد
   let deferredPrompt;
-  
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-  });
-
-  // 2. معرفة هل التطبيق مفتوح كتطبيق مستقل (مُنزل مسبقاً)؟
+  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; });
   const isAppInstalled = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-
-  // 3. التعامل مع الآيفون (iOS)
-  function isIos() {
-    const userAgent = window.navigator.userAgent.toLowerCase();
-    return /iphone|ipad|ipod/.test(userAgent);
-  }
-
-  function isSafari() {
-    const userAgent = window.navigator.userAgent.toLowerCase();
-    return userAgent.includes('safari') && !userAgent.includes('chrome') && !userAgent.includes('crios');
-  }
-
-  // دالة إغلاق شريط الآيفون مع حفظ الاختيار في الذاكرة
-  function closeIosPrompt() {
-    document.getElementById('ios-prompt').style.display = 'none';
-    localStorage.setItem('iosPromptDismissed', 'true'); // حفظ الحالة
-  }
-
-  // تشغيل المنطق عند تحميل الصفحة
+  function isIos() { return /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase()); }
+  function isSafari() { const ua = window.navigator.userAgent.toLowerCase(); return ua.includes('safari') && !ua.includes('chrome') && !ua.includes('crios'); }
+  function closeIosPrompt() { document.getElementById('ios-prompt').style.display = 'none'; localStorage.setItem('iosPromptDismissed', 'true'); }
   window.addEventListener('load', () => {
-    // تسجيل الـ Service Worker
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js');
-    }
-
-    // التحقق من شريط الآيفون
-    const iosDismissed = localStorage.getItem('iosPromptDismissed');
-    
-    // إذا كان آيفون + سفاري + التطبيق غير مثبت + ولم يقم بإغلاق الشريط مسبقاً
-    if (isIos() && isSafari() && !isAppInstalled && !iosDismissed) {
-      document.getElementById('ios-prompt').style.display = 'block';
-    }
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+    if (isIos() && isSafari() && !isAppInstalled && !localStorage.getItem('iosPromptDismissed')) document.getElementById('ios-prompt').style.display = 'block';
   });
 </script>
 </head>
 <body>
 
-<!-- إشعارات Toast -->
 <div id="toastWrap"></div>
 
-<!-- نافذة التأكيد -->
 <div id="confirmOverlay">
     <div class="confirm-box">
         <div class="cb-icon"><i class="fas fa-exclamation-triangle"></i></div>
@@ -273,181 +159,135 @@
     </div>
 </div>
 
-<!-- غطاء الشريط الجانبي للموبايل -->
-<div id="sbOverlay"></div>
+<!-- الشريط العلوي -->
+<header class="top-bar">
+    <span class="tb-title" id="pageTitle">قسم الأجهزة</span>
+    <div class="status-chip off" id="sysStatus">
+        <span class="dot"></span>
+        <span id="statusText">غير متصل</span>
+    </div>
+</header>
 
-<!-- الشريط الجانبي -->
-<aside id="sidebar">
-    <div class="sb-head">
-        <div class="sb-logo">🛡️</div>
-        <div class="sb-name" id="restName">لوحة التحكم</div>
-        <div class="sb-sub">إدارة النظام المركزية</div>
-    </div>
-    <div class="sb-nav">
-        <button class="sb-item active" data-tab="devices"><i class="fas fa-mobile-alt"></i> قسم الأجهزة</button>
-        <button class="sb-item nav-restricted" data-tab="users" disabled><i class="fas fa-users"></i> قسم اليوزرات</button>
-        <button class="sb-item nav-restricted" data-tab="sales" disabled><i class="fas fa-chart-line"></i> قسم المبيعات</button>
-        <button class="sb-item nav-restricted" data-tab="orders" disabled><i class="fas fa-box"></i> قسم المنتجات</button>
-    </div>
-    <div class="sb-foot">
-        <div class="sb-status"><span class="sb-dot off" id="statusDot"></span><span id="statusText">جاري الفحص...</span></div>
-        <div class="sb-session" id="sessionInfo" style="display:none"></div>
-    </div>
-</aside>
-
-<!-- المحتوى الرئيسي -->
-<div id="mainArea">
-    <div id="topBar">
-        <button id="menuBtn"><i class="fas fa-bars"></i></button>
-        <span class="tb-title" id="pageTitle">قسم الأجهزة</span>
-        <span class="tb-badge err" id="sysBadge">غير متصل</span>
-        <span class="tb-time" id="clockDisplay"></span>
+<!-- المحتوى -->
+<div class="content-area">
+    <!-- الإحصائيات -->
+    <div class="stats-grid">
+        <div class="stat-card"><div class="stat-ico amber"><i class="fas fa-mobile-alt"></i></div><div class="stat-info"><h4>الأجهزة</h4><div class="stat-val" id="stDevices">0</div></div></div>
+        <div class="stat-card"><div class="stat-ico blue"><i class="fas fa-users"></i></div><div class="stat-info"><h4>اليوزرات</h4><div class="stat-val" id="stUsers">0</div></div></div>
+        <div class="stat-card"><div class="stat-ico green"><i class="fas fa-chair"></i></div><div class="stat-info"><h4>الطاولات</h4><div class="stat-val" id="stTables">0</div></div></div>
+        <div class="stat-card"><div class="stat-ico rose"><i class="fas fa-receipt"></i></div><div class="stat-info"><h4>المبيعات</h4><div class="stat-val" id="stRevenue">0</div></div></div>
     </div>
 
-    <div id="contentArea">
-        <!-- بطاقات الإحصائيات -->
-        <div class="stats-row" id="statsRow">
-            <div class="stat-card"><div class="stat-icon amber"><i class="fas fa-mobile-alt"></i></div><div class="stat-info"><h4>الأجهزة المسجلة</h4><div class="stat-val" id="stDevices">0</div></div></div>
-            <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-users"></i></div><div class="stat-info"><h4>اليوزرات</h4><div class="stat-val" id="stUsers">0</div></div></div>
-            <div class="stat-card"><div class="stat-icon green"><i class="fas fa-chair"></i></div><div class="stat-info"><h4>الطاولات النشطة</h4><div class="stat-val" id="stTables">0</div></div></div>
-            <div class="stat-card"><div class="stat-icon rose"><i class="fas fa-receipt"></i></div><div class="stat-info"><h4>إجمالي المبيعات</h4><div class="stat-val" id="stRevenue">0</div></div></div>
+    <!-- ===== قسم الأجهزة ===== -->
+    <div id="tab-devices" class="tab-panel active">
+        <div class="sec-head"><h2>إدارة الأجهزة</h2><p>تسجيل الأجهزة ومطابقة الإصدارات</p></div>
+        <button class="btn btn-accent btn-block" onclick="toggleForm('deviceVerifyForm')"><i class="fas fa-plus"></i> إضافة جهاز جديد</button>
+
+        <div id="deviceVerifyForm" class="card" style="display:none;margin-top:14px">
+            <div class="card-head"><h3><i class="fas fa-search" style="margin-left:6px;color:var(--info)"></i>خطوة 1: فحص الإصدار</h3></div>
+            <div class="card-body">
+                <div class="form-group"><label>رقم إصدار النظام</label><input type="text" class="form-input" id="inputVersionCheck" placeholder="مثال: 1.1.1"></div>
+                <button class="btn btn-primary btn-block" onclick="verifyVersionFromCobes()"><i class="fas fa-search"></i> فحص</button>
+                <div id="verifyMsg"></div>
+            </div>
         </div>
 
-        <!-- ===== قسم الأجهزة ===== -->
-        <div id="tab-devices" class="tab-panel active">
-            <div class="section-head">
-                <h2>إدارة الأجهزة ومطابقة الإصدارات</h2>
-                <p>تسجيل الأجهزة المعتمدة والتحقق من إصداراتها في جدول cobes السحابي</p>
+        <div id="deviceSaveForm" class="card" style="display:none">
+            <div class="card-head"><h3><i class="fas fa-save" style="margin-left:6px;color:var(--success)"></i>خطوة 2: تسمية الجهاز</h3></div>
+            <div class="card-body">
+                <div class="form-group"><label>اسم مميز للجهاز</label><input type="text" class="form-input" id="inputDeviceName" placeholder="مثال: جهاز الكاشير"></div>
+                <button class="btn btn-success btn-block" onclick="saveDeviceToAdmines()"><i class="fas fa-save"></i> حفظ وتثبيت</button>
             </div>
-            <button class="btn btn-accent" onclick="toggleForm('deviceVerifyForm')"><i class="fas fa-plus"></i> إضافة جهاز جديد</button>
+        </div>
 
-            <div id="deviceVerifyForm" class="card" style="display:none;margin-top:16px">
-                <div class="card-head"><h3><i class="fas fa-search" style="margin-left:8px;color:var(--info)"></i>خطوة 1: فحص الإصدار</h3></div>
-                <div class="card-body">
-                    <div class="form-group">
-                        <label>رقم إصدار النظام (version_number)</label>
-                        <input type="text" class="form-input" id="inputVersionCheck" placeholder="مثال: 1.1.1">
-                    </div>
-                    <button class="btn btn-primary" onclick="verifyVersionFromCobes()"><i class="fas fa-search"></i> فحص ومطابقة</button>
-                    <div id="verifyMsg"></div>
-                </div>
+        <div class="card">
+            <div class="card-head"><h3>الأجهزة المسجلة</h3><span class="badge badge-amber" id="devCount">0</span></div>
+            <div class="card-body" style="padding:10px">
+                <div class="mobile-list" id="devicesList"><div class="empty-state" style="padding:20px;text-align:center;color:var(--text-muted)"><i class="fas fa-spinner fa-spin"></i><p>جاري التحميل...</p></div></div>
             </div>
+        </div>
+    </div>
 
-            <div id="deviceSaveForm" class="card" style="display:none">
-                <div class="card-head"><h3><i class="fas fa-save" style="margin-left:8px;color:var(--success)"></i>خطوة 2: تسمية وحفظ الجهاز</h3></div>
-                <div class="card-body">
-                    <div class="form-group">
-                        <label>اسم مميز للجهاز</label>
-                        <input type="text" class="form-input" id="inputDeviceName" placeholder="مثال: جهاز الكاشير الرئيسي">
-                    </div>
-                    <button class="btn btn-success" onclick="saveDeviceToAdmines()"><i class="fas fa-save"></i> حفظ وتثبيت</button>
-                </div>
-            </div>
+    <!-- ===== قسم اليوزرات ===== -->
+    <div id="tab-users" class="tab-panel">
+        <div class="sec-head"><h2>إدارة اليوزرات</h2><p>إنشاء وتعديل حسابات الموظفين</p></div>
+        <button class="btn btn-accent btn-block" onclick="openUserForm(false)"><i class="fas fa-user-plus"></i> يوزر جديد</button>
 
-            <div class="card">
-                <div class="card-head"><h3>قائمة الأجهزة المسجلة</h3><span class="badge badge-amber" id="devCount">0</span></div>
-                <div class="table-wrap">
-                    <table>
-                        <thead><tr><th>المعرف</th><th>اسم الجهاز</th><th>الإصدار</th><th>تاريخ التسجيل</th><th>إجراء</th></tr></thead>
-                        <tbody id="devicesTableBody"><tr><td colspan="5" class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>جاري التحميل...</p></td></tr></tbody>
-                    </table>
+        <div id="userFormBox" class="card" style="display:none;margin-top:14px">
+            <div class="card-head"><h3 id="userFormTitle">إنشاء حساب</h3></div>
+            <div class="card-body">
+                <input type="hidden" id="editUserKey">
+                <div class="form-group"><label>اسم المستخدم</label><input type="text" class="form-input" id="inputUsername"></div>
+                <div class="form-group"><label>كلمة المرور</label><input type="password" class="form-input" id="inputPassword"></div>
+                <div style="display:flex;gap:8px">
+                    <button class="btn btn-success" style="flex:1" id="btnUserSubmit" onclick="submitUserForm()"><i class="fas fa-save"></i> حفظ</button>
+                    <button class="btn btn-ghost" onclick="toggleForm('userFormBox')"><i class="fas fa-times"></i></button>
                 </div>
             </div>
         </div>
 
-        <!-- ===== قسم اليوزرات ===== -->
-        <div id="tab-users" class="tab-panel">
-            <div class="section-head">
-                <h2>إدارة يوزرات النظام</h2>
-                <p>إنشاء وتعديل وحذف حسابات الموظفين</p>
+        <div class="card">
+            <div class="card-head"><h3>قائمة اليوزرات</h3><span class="badge badge-blue" id="usrCount">0</span></div>
+            <div class="card-body" style="padding:10px">
+                <div class="mobile-list" id="usersList"><div class="empty-state" style="padding:20px;text-align:center;color:var(--text-muted)"><p>لا توجد يوزرات</p></div></div>
             </div>
-            <button class="btn btn-accent" onclick="openUserForm(false)"><i class="fas fa-user-plus"></i> إضافة يوزر جديد</button>
+        </div>
+    </div>
 
-            <div id="userFormBox" class="card" style="display:none;margin-top:16px">
-                <div class="card-head"><h3 id="userFormTitle">إنشاء حساب جديد</h3></div>
-                <div class="card-body">
-                    <input type="hidden" id="editUserKey">
-                    <div class="form-group"><label>اسم المستخدم</label><input type="text" class="form-input" id="inputUsername" placeholder="اسم المستخدم"></div>
-                    <div class="form-group"><label>كلمة المرور</label><input type="password" class="form-input" id="inputPassword" placeholder="كلمة المرور"></div>
-                    <div class="form-actions">
-                        <button class="btn btn-success" id="btnUserSubmit" onclick="submitUserForm()"><i class="fas fa-save"></i> إنشاء وحفظ</button>
-                        <button class="btn btn-ghost" onclick="toggleForm('userFormBox')"><i class="fas fa-times"></i> إلغاء</button>
-                    </div>
-                </div>
-            </div>
+    <!-- ===== قسم المبيعات ===== -->
+    <div id="tab-sales" class="tab-panel">
+        <div class="sec-head"><h2>تقارير المبيعات</h2><p>فلترة حسب اليوزر والفترة الزمنية</p></div>
 
-            <div class="card">
-                <div class="card-head"><h3>قائمة اليوزرات</h3><span class="badge badge-blue" id="usrCount">0</span></div>
-                <div class="table-wrap">
-                    <table>
-                        <thead><tr><th>اسم المستخدم</th><th>كلمة المرور</th><th>إجراء</th></tr></thead>
-                        <tbody id="usersTableBody"><tr><td colspan="3" class="empty-state"><p>لا توجد يوزرات</p></td></tr></tbody>
-                    </table>
+        <div class="card">
+            <div class="card-head"><h3><i class="fas fa-filter" style="margin-left:6px;color:var(--info)"></i>الفلاتر</h3></div>
+            <div class="card-body">
+                <div class="form-group"><label>اليوزر المسؤول</label><select class="form-input" id="selectSalesUser"><option value="">-- الكل --</option></select></div>
+                <div class="form-group"><label>من تاريخ</label><input type="datetime-local" class="form-input" id="salesStartDate"></div>
+                <div class="form-group"><label>إلى تاريخ</label><input type="datetime-local" class="form-input" id="salesEndDate"></div>
+                <button class="btn btn-primary btn-block" onclick="loadSalesStatistics()" style="margin-bottom:8px"><i class="fas fa-chart-bar"></i> عرض النتائج</button>
+                <div style="display:flex;gap:8px">
+                    <button class="btn btn-danger" style="flex:1" onclick="deleteSalesByPeriod()"><i class="fas fa-trash"></i> حذف</button>
+                    <button class="btn btn-accent" style="flex:1" onclick="calculateTotalRevenueAllUsers()"><i class="fas fa-gem"></i> إيرادات الكل</button>
                 </div>
             </div>
         </div>
 
-        <!-- ===== قسم المبيعات ===== -->
-        <div id="tab-sales" class="tab-panel">
-            <div class="section-head">
-                <h2>إحصائيات وتقارير المبيعات</h2>
-                <p>فلترة المبيعات حسب اليوزر والفترة الزمنية مع ربط دقيق بالمسؤول عن كل عملية</p>
-            </div>
-
-            <div class="card">
-                <div class="card-head"><h3><i class="fas fa-filter" style="margin-left:8px;color:var(--info)"></i>محرك الفلترة</h3></div>
-                <div class="card-body">
-                    <div class="form-row">
-                        <div class="form-group"><label>اليوزر المسؤول</label><select class="form-input" id="selectSalesUser"><option value="">-- كل اليوزرات --</option></select></div>
-                        <div class="form-group"><label>من تاريخ</label><input type="datetime-local" class="form-input" id="salesStartDate"></div>
-                        <div class="form-group"><label>إلى تاريخ</label><input type="datetime-local" class="form-input" id="salesEndDate"></div>
-                    </div>
-                    <div class="form-actions">
-                        <button class="btn btn-primary" onclick="loadSalesStatistics()"><i class="fas fa-chart-bar"></i> عرض النتائج</button>
-                        <button class="btn btn-danger" onclick="deleteSalesByPeriod()"><i class="fas fa-trash"></i> حذف الفترة</button>
-                        <button class="btn btn-accent" onclick="calculateTotalRevenueAllUsers()"><i class="fas fa-gem"></i> إيرادات كل اليوزر</button>
-                    </div>
-                </div>
-            </div>
-
-            <div id="totalSalesCard" class="card" style="display:none;border-right:4px solid var(--accent)">
-                <div class="card-body" id="totalSalesBody"></div>
-            </div>
-
-            <div id="userRevSection" style="display:none">
-                <h3 style="font-size:16px;font-weight:700;margin:20px 0 12px"><i class="fas fa-users" style="margin-left:8px;color:var(--accent)"></i>توزيع الإيرادات حسب اليوزر</h3>
-                <div class="user-rev-grid" id="userRevGrid"></div>
-            </div>
-
-            <div class="card">
-                <div class="card-head"><h3>تفاصيل فواتير الأرشيف</h3><span class="badge badge-green" id="salesCount">0</span></div>
-                <div class="table-wrap">
-                    <table>
-                        <thead><tr><th>الطاولة</th><th>المادة</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th><th>المسؤول</th><th>التاريخ</th></tr></thead>
-                        <tbody id="salesTableBody"><tr><td colspan="7" class="empty-state"><i class="fas fa-filter"></i><p>حدد الفلاتر واضغط عرض النتائج</p></td></tr></tbody>
-                    </table>
-                </div>
-            </div>
+        <div id="totalSalesCard" class="card" style="display:none;border-right:4px solid var(--accent)">
+            <div class="card-body" id="totalSalesBody"></div>
         </div>
 
-        <!-- ===== قسم المنتجات ===== -->
-        <div id="tab-orders" class="tab-panel">
-            <div class="section-head">
-                <h2>حركة المنتجات والمبيعات</h2>
-                <p>دمج بين منتجات المنيو وكمياتها المباعة من الأرشيف الفعلي</p>
+        <div id="userRevSection" style="display:none">
+            <h3 style="font-size:15px;font-weight:700;margin:14px 0 8px"><i class="fas fa-users" style="margin-left:6px;color:var(--accent)"></i>توزيع الإيرادات</h3>
+            <div class="user-rev-grid" id="userRevGrid"></div>
+        </div>
+
+        <div class="card">
+            <div class="card-head"><h3>تفاصيل الأرشيف</h3><span class="badge badge-green" id="salesCount">0</span></div>
+            <div class="card-body" style="padding:10px">
+                <div class="mobile-list" id="salesList"><div class="empty-state" style="padding:20px;text-align:center;color:var(--text-muted)"><i class="fas fa-filter"></i><p>حدد الفلاتر واضغط عرض</p></div></div>
             </div>
-            <div class="card">
-                <div class="card-head"><h3>المنتجات والإحصائيات</h3><span class="badge badge-amber" id="prodCount">0</span></div>
-                <div class="table-wrap">
-                    <table>
-                        <thead><tr><th>القسم</th><th>المنتج</th><th>السعر</th><th>الكميات المباعة</th><th>العوائد</th></tr></thead>
-                        <tbody id="ordersTableBody"><tr><td colspan="5" class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>جاري المعالجة...</p></td></tr></tbody>
-                    </table>
-                </div>
+        </div>
+    </div>
+
+    <!-- ===== قسم المنتجات ===== -->
+    <div id="tab-orders" class="tab-panel">
+        <div class="sec-head"><h2>حركة المنتجات</h2><p>كميات المباعة من الأرشيف الفعلي</p></div>
+        <div class="card">
+            <div class="card-head"><h3>المنتجات والإحصائيات</h3><span class="badge badge-amber" id="prodCount">0</span></div>
+            <div class="card-body" style="padding:10px">
+                <div class="mobile-list" id="ordersList"><div class="empty-state" style="padding:20px;text-align:center;color:var(--text-muted)"><i class="fas fa-spinner fa-spin"></i><p>جاري المعالجة...</p></div></div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- الشريط السفلي -->
+<nav class="bottom-nav">
+    <button class="bnav-item active" data-tab="devices"><i class="fas fa-mobile-alt"></i><span>الأجهزة</span></button>
+    <button class="bnav-item nav-restricted" data-tab="users" disabled><i class="fas fa-users"></i><span>اليوزرات</span></button>
+    <button class="bnav-item nav-restricted" data-tab="sales" disabled><i class="fas fa-chart-line"></i><span>المبيعات</span></button>
+    <button class="bnav-item nav-restricted" data-tab="orders" disabled><i class="fas fa-box"></i><span>المنتجات</span></button>
+</nav>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -460,24 +300,12 @@
         projectId: "game1-bb93e"
     }));
 
-    /* ===== متغيرات الحالة ===== */
     let allDevices = {}, allUsers = {}, allArchive = {}, allMenu = {}, allTables = {};
-    let isDeviceActive = false, appSettings = {};
 
-    /* ===== أدوات مساعدة ===== */
     function fmt(n) { return Number(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
 
-    /* ===== ساعة حية ===== */
-    function updateClock() {
-        var d = new Date();
-        document.getElementById('clockDisplay').textContent = d.toLocaleTimeString('ar-IQ', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
-    }
-    setInterval(updateClock, 1000);
-    updateClock();
-
     /* ===== نظام Toast ===== */
-    function toast(msg, type) {
-        type = type || 'info';
+    function toast(msg, type='info') {
         var wrap = document.getElementById('toastWrap');
         var icons = {success:'fa-check-circle', error:'fa-times-circle', info:'fa-info-circle'};
         var el = document.createElement('div');
@@ -487,7 +315,7 @@
         setTimeout(function(){ el.classList.add('out'); setTimeout(function(){ el.remove(); }, 300); }, 3000);
     }
 
-    /* ===== نظام التأكيد المخصص ===== */
+    /* ===== نظام التأكيد ===== */
     var confirmResolver = null;
     function showConfirm(msg) {
         return new Promise(function(resolve) {
@@ -505,39 +333,24 @@
         if (confirmResolver) confirmResolver(false);
     });
 
-    /* ===== إظهار/إخفاء النماذج ===== */
     window.toggleForm = function(id) {
         var el = document.getElementById(id);
         el.style.display = (el.style.display === 'none') ? 'block' : 'none';
     };
 
-    /* ===== التنقل بين التبويبات ===== */
-    var tabTitles = {devices:'قسم الأجهزة', users:'قسم اليوزرات', sales:'قسم المبيعات', orders:'قسم المنتجات'};
+    /* ===== التنقل السفلي ===== */
+    var tabTitles = {devices:'الأجهزة', users:'اليوزرات', sales:'المبيعات', orders:'المنتجات'};
     function switchTab(tabId) {
         document.querySelectorAll('.tab-panel').forEach(function(el){ el.classList.remove('active'); });
-        document.querySelectorAll('.sb-item').forEach(function(el){ el.classList.remove('active'); });
+        document.querySelectorAll('.bnav-item').forEach(function(el){ el.classList.remove('active'); });
         document.getElementById('tab-' + tabId).classList.add('active');
-        var btn = document.querySelector('.sb-item[data-tab="'+tabId+'"]');
+        var btn = document.querySelector('.bnav-item[data-tab="'+tabId+'"]');
         if (btn) btn.classList.add('active');
         document.getElementById('pageTitle').textContent = tabTitles[tabId] || '';
-        // إغلاق الشريط الجانبي على الموبايل
-        document.getElementById('sidebar').classList.remove('open');
-        document.getElementById('sbOverlay').classList.remove('show');
+        window.scrollTo({top: 0, behavior: 'smooth'});
     }
-    document.querySelectorAll('.sb-item[data-tab]').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            if (!this.disabled) switchTab(this.getAttribute('data-tab'));
-        });
-    });
-
-    /* ===== قائمة الموبايل ===== */
-    document.getElementById('menuBtn').addEventListener('click', function() {
-        document.getElementById('sidebar').classList.toggle('open');
-        document.getElementById('sbOverlay').classList.toggle('show');
-    });
-    document.getElementById('sbOverlay').addEventListener('click', function() {
-        document.getElementById('sidebar').classList.remove('open');
-        this.classList.remove('show');
+    document.querySelectorAll('.bnav-item[data-tab]').forEach(function(btn) {
+        btn.addEventListener('click', function() { if (!this.disabled) switchTab(this.getAttribute('data-tab')); });
     });
 
     /* ===== تحديث الإحصائيات ===== */
@@ -550,77 +363,43 @@
         document.getElementById('stRevenue').textContent = fmt(total);
     }
 
-    /* ===== جلب بيانات إعدادات التطبيق ===== */
-    onValue(ref(db, 'app_settings'), function(s) {
-        appSettings = s.val() || {};
-        if (appSettings.restaurantName) {
-            document.getElementById('restName').textContent = appSettings.restaurantName;
-            document.title = appSettings.restaurantName + ' — لوحة التحكم';
-        }
-    });
-
-    /* ===== جلب بيانات الجلسات النشطة ===== */
-    onValue(ref(db, 'active_sessions'), function(s) {
-        var data = s.val() || {};
-        var keys = Object.keys(data);
-        var infoEl = document.getElementById('sessionInfo');
-        if (keys.length > 0) {
-            infoEl.style.display = 'block';
-            var last = data[keys[keys.length - 1]];
-            infoEl.innerHTML = 'المستخدم: <b>' + (last.username || '—') + '</b><br>الإصدار: <b>' + (last.device_version || '—') + '</b>';
-        } else {
-            infoEl.style.display = 'none';
-        }
-    });
-
     /* ===== البدء الرئيسي ===== */
     function initSystemCore() {
-        // الأجهزة
         onValue(ref(db, 'admines'), function(snap) {
             allDevices = snap.val() || {};
-            renderDevicesTable();
+            renderDevicesList();
             updateStats();
-
+            var statusEl = document.getElementById('sysStatus');
             if (Object.keys(allDevices).length > 0) {
-                isDeviceActive = true;
-                document.getElementById('statusDot').className = 'sb-dot on';
-                document.getElementById('statusText').textContent = 'متصل وموثق';
-                document.getElementById('sysBadge').className = 'tb-badge';
-                document.getElementById('sysBadge').textContent = 'متصل';
+                statusEl.className = 'status-chip on';
+                document.getElementById('statusText').textContent = 'متصل';
                 document.querySelectorAll('.nav-restricted').forEach(function(b){ b.disabled = false; });
             } else {
-                isDeviceActive = false;
-                document.getElementById('statusDot').className = 'sb-dot off';
-                document.getElementById('statusText').textContent = 'غير موثق';
-                document.getElementById('sysBadge').className = 'tb-badge err';
-                document.getElementById('sysBadge').textContent = 'غير متصل';
+                statusEl.className = 'status-chip off';
+                document.getElementById('statusText').textContent = 'غير متصل';
                 document.querySelectorAll('.nav-restricted').forEach(function(b){ b.disabled = true; });
                 switchTab('devices');
             }
         });
 
-        // اليوزرات
         onValue(ref(db, 'users'), function(snap) {
             allUsers = snap.val() || {};
-            renderUsersTable();
+            renderUsersList();
             updateSalesUsersDropdown();
             updateStats();
         });
 
-        // أرشيف المبيعات
         onValue(ref(db, 'tablesD/archive_orders'), function(snap) {
             allArchive = snap.val() || {};
-            renderOrdersStatsTable();
+            renderOrdersStatsList();
             updateStats();
         });
 
-        // منتجات المنيو
         onValue(ref(db, 'orders'), function(snap) {
             allMenu = snap.val() || {};
-            renderOrdersStatsTable();
+            renderOrdersStatsList();
         });
 
-        // الطاولات
         onValue(ref(db, 'tablesA'), function(snap) {
             allTables = snap.val() || {};
             updateStats();
@@ -633,80 +412,55 @@
     window.verifyVersionFromCobes = function() {
         var inputVer = document.getElementById('inputVersionCheck').value.trim();
         var msgEl = document.getElementById('verifyMsg');
-
-        if (!inputVer) {
-            msgEl.innerHTML = '<div class="alert alert-error"><i class="fas fa-exclamation-circle"></i> أدخل رقم الإصدار أولاً</div>';
-            return;
-        }
-
+        if (!inputVer) { msgEl.innerHTML = '<div class="alert alert-error"><i class="fas fa-exclamation-circle"></i> أدخل رقم الإصدار</div>'; return; }
         msgEl.innerHTML = '<div class="alert alert-info"><i class="fas fa-spinner fa-spin"></i> جاري الفحص...</div>';
-
         get(ref(db, 'cobes')).then(function(snap) {
-            if (!snap.exists()) {
-                msgEl.innerHTML = '<div class="alert alert-error"><i class="fas fa-times-circle"></i> لم يتم العثور على جدول cobes</div>';
-                return;
-            }
-            var cobesData = snap.val();
+            if (!snap.exists()) { msgEl.innerHTML = '<div class="alert alert-error"><i class="fas fa-times-circle"></i> جدول cobes غير موجود</div>'; return; }
             var found = false;
-            for (var key in cobesData) {
-                if (cobesData[key].version_number === inputVer) { found = true; break; }
-            }
+            var cobesData = snap.val();
+            for (var key in cobesData) { if (cobesData[key].version_number === inputVer) { found = true; break; } }
             if (found) {
-                msgEl.innerHTML = '<div class="alert alert-success"><i class="fas fa-check-circle"></i> تم مطابقة الإصدار بنجاح! انتقل للخطوة التالية.</div>';
+                msgEl.innerHTML = '<div class="alert alert-success"><i class="fas fa-check-circle"></i> تم المطابقة! انتقل للخطوة التالية.</div>';
                 document.getElementById('deviceSaveForm').style.display = 'block';
             } else {
-                msgEl.innerHTML = '<div class="alert alert-error"><i class="fas fa-times-circle"></i> الإصدار غير مطابق لأي إصدار في cobes</div>';
+                msgEl.innerHTML = '<div class="alert alert-error"><i class="fas fa-times-circle"></i> الإصدار غير مطابق</div>';
                 document.getElementById('deviceSaveForm').style.display = 'none';
             }
-        }).catch(function() {
-            msgEl.innerHTML = '<div class="alert alert-error"><i class="fas fa-times-circle"></i> خطأ في الاتصال</div>';
         });
     };
 
     window.saveDeviceToAdmines = function() {
         var name = document.getElementById('inputDeviceName').value.trim();
         var ver = document.getElementById('inputVersionCheck').value.trim();
-        if (!name) { toast('اكتب اسم الجهاز أولاً', 'error'); return; }
-
-        push(ref(db, 'admines'), {
-            device_name: name,
-            version_number: ver,
-            created_at: new Date().toISOString()
-        }).then(function() {
-            toast('تم حفظ الجهاز وتفعيل الأقسام بنجاح', 'success');
+        if (!name) { toast('اكتب اسم الجهاز', 'error'); return; }
+        push(ref(db, 'admines'), { device_name: name, version_number: ver, created_at: new Date().toISOString() }).then(function() {
+            toast('تم حفظ الجهاز بنجاح', 'success');
             document.getElementById('inputDeviceName').value = '';
             document.getElementById('inputVersionCheck').value = '';
             document.getElementById('deviceVerifyForm').style.display = 'none';
             document.getElementById('deviceSaveForm').style.display = 'none';
-        }).catch(function() { toast('حدث خطأ أثناء الحفظ', 'error'); });
+        });
     };
 
     window.deleteDevice = async function(key) {
-        var ok = await showConfirm('هل أنت متأكد من حذف هذا الجهاز؟ سيُغلق النظام إذا لم يبقَ أي جهاز.');
-        if (ok) {
-            remove(ref(db, 'admines/' + key)).then(function() { toast('تم حذف الجهاز', 'success'); });
-        }
+        var ok = await showConfirm('هل أنت متأكد من حذف الجهاز؟ سيُغلق النظام إذا لم يبقَ أجهزة.');
+        if (ok) remove(ref(db, 'admines/' + key)).then(function() { toast('تم الحذف', 'success'); });
     };
 
-    function renderDevicesTable() {
-        var tbody = document.getElementById('devicesTableBody');
+    function renderDevicesList() {
+        var list = document.getElementById('devicesList');
         var keys = Object.keys(allDevices);
         document.getElementById('devCount').textContent = keys.length;
-        tbody.innerHTML = '';
-
-        if (keys.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="empty-state"><i class="fas fa-mobile-alt"></i><p>لا توجد أجهزة مسجلة — الأقسام الأخرى مقفلة</p></td></tr>';
-            return;
-        }
+        list.innerHTML = '';
+        if (keys.length === 0) { list.innerHTML = '<div class="empty-state" style="padding:20px;text-align:center;color:var(--text-muted)"><i class="fas fa-mobile-alt"></i><p>لا أجهزة مسجلة</p></div>'; return; }
         keys.forEach(function(key) {
             var d = allDevices[key];
-            var tr = document.createElement('tr');
-            tr.innerHTML = '<td><code style="font-size:11px;color:var(--text-muted)">' + key.substring(0,16) + '...</code></td>' +
-                '<td><b>' + d.device_name + '</b></td>' +
-                '<td><span class="badge badge-amber">' + d.version_number + '</span></td>' +
-                '<td style="font-size:12px;color:var(--text-secondary)">' + new Date(d.created_at).toLocaleString('ar-IQ') + '</td>' +
-                '<td><button class="btn btn-danger btn-sm" onclick="deleteDevice(\'' + key + '\')"><i class="fas fa-trash"></i> حذف</button></td>';
-            tbody.appendChild(tr);
+            var el = document.createElement('div'); el.className = 'm-card';
+            el.innerHTML = '<div class="m-row"><span class="m-label">الجهاز</span><span class="m-val"><b>' + d.device_name + '</b></span></div>' +
+                '<div class="m-row"><span class="m-label">الإصدار</span><span class="badge badge-amber">' + d.version_number + '</span></div>' +
+                '<div class="m-row"><span class="m-label">التسجيل</span><span class="m-val" style="font-size:11px;color:var(--text-secondary)">' + new Date(d.created_at).toLocaleDateString('ar-IQ') + '</span></div>' +
+                '<div class="m-actions"><button class="btn btn-danger btn-sm btn-block" onclick="deleteDevice(\'' + key + '\')"><i class="fas fa-trash"></i> حذف الجهاز</button></div>';
+            list.appendChild(el);
         });
     }
 
@@ -714,20 +468,17 @@
        👥 قسم اليوزرات
        ========================================= */
     window.openUserForm = function(isEdit, key, username, password) {
-        var box = document.getElementById('userFormBox');
-        box.style.display = 'block';
+        var box = document.getElementById('userFormBox'); box.style.display = 'block';
         if (isEdit) {
-            document.getElementById('userFormTitle').textContent = 'تعديل بيانات المستخدم';
+            document.getElementById('userFormTitle').textContent = 'تعديل الحساب';
             document.getElementById('editUserKey').value = key;
             document.getElementById('inputUsername').value = username;
             document.getElementById('inputPassword').value = password;
-            document.getElementById('btnUserSubmit').innerHTML = '<i class="fas fa-edit"></i> تحديث';
         } else {
-            document.getElementById('userFormTitle').textContent = 'إنشاء حساب جديد';
+            document.getElementById('userFormTitle').textContent = 'إنشاء حساب';
             document.getElementById('editUserKey').value = '';
             document.getElementById('inputUsername').value = '';
             document.getElementById('inputPassword').value = '';
-            document.getElementById('btnUserSubmit').innerHTML = '<i class="fas fa-save"></i> إنشاء وحفظ';
         }
     };
 
@@ -736,272 +487,152 @@
         var user = document.getElementById('inputUsername').value.trim();
         var pass = document.getElementById('inputPassword').value.trim();
         if (!user || !pass) { toast('املأ جميع الحقول', 'error'); return; }
-
         if (key) {
-            set(ref(db, 'users/' + key), {username: user, password: pass}).then(function() {
-                toast('تم تحديث بيانات اليوزر', 'success');
-                document.getElementById('userFormBox').style.display = 'none';
-            });
+            set(ref(db, 'users/' + key), {username: user, password: pass}).then(function() { toast('تم التحديث', 'success'); document.getElementById('userFormBox').style.display = 'none'; });
         } else {
-            push(ref(db, 'users'), {username: user, password: pass}).then(function() {
-                toast('تم إنشاء اليوزر بنجاح', 'success');
-                document.getElementById('userFormBox').style.display = 'none';
-            });
+            push(ref(db, 'users'), {username: user, password: pass}).then(function() { toast('تم الإنشاء', 'success'); document.getElementById('userFormBox').style.display = 'none'; });
         }
     };
 
     window.deleteUser = async function(key) {
-        var ok = await showConfirm('هل أنت متأكد من حذف هذا المستخدم نهائياً؟');
-        if (ok) {
-            remove(ref(db, 'users/' + key)).then(function() { toast('تم حذف المستخدم', 'success'); });
-        }
+        var ok = await showConfirm('هل أنت متأكد من حذف هذا المستخدم؟');
+        if (ok) remove(ref(db, 'users/' + key)).then(function() { toast('تم الحذف', 'success'); });
     };
 
-    function renderUsersTable() {
-        var tbody = document.getElementById('usersTableBody');
+    function renderUsersList() {
+        var list = document.getElementById('usersList');
         var keys = Object.keys(allUsers);
         document.getElementById('usrCount').textContent = keys.length;
-        tbody.innerHTML = '';
-
-        if (keys.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="3" class="empty-state"><i class="fas fa-user-slash"></i><p>لا توجد يوزرات مسجلة</p></td></tr>';
-            return;
-        }
+        list.innerHTML = '';
+        if (keys.length === 0) { list.innerHTML = '<div class="empty-state" style="padding:20px;text-align:center;color:var(--text-muted)"><p>لا يوزرات</p></div>'; return; }
         keys.forEach(function(key) {
             var u = allUsers[key];
-            var tr = document.createElement('tr');
-            tr.innerHTML = '<td><b>' + u.username + '</b></td>' +
-                '<td><code style="color:var(--text-muted);font-size:12px">' + u.password + '</code></td>' +
-                '<td>' +
-                    '<button class="btn btn-primary btn-sm" onclick="openUserForm(true,\'' + key + '\',\'' + u.username + '\',\'' + u.password + '\')"><i class="fas fa-edit"></i> تعديل</button> ' +
-                    '<button class="btn btn-danger btn-sm" onclick="deleteUser(\'' + key + '\')"><i class="fas fa-trash"></i> حذف</button>' +
-                '</td>';
-            tbody.appendChild(tr);
+            var el = document.createElement('div'); el.className = 'm-card';
+            el.innerHTML = '<div class="m-row"><span class="m-label">المستخدم</span><span class="m-val"><b>' + u.username + '</b></span></div>' +
+                '<div class="m-row"><span class="m-label">كلمة المرور</span><span class="m-val" style="color:var(--text-muted);font-size:12px;font-family:monospace">' + u.password + '</span></div>' +
+                '<div class="m-actions"><button class="btn btn-primary btn-sm" style="flex:1" onclick="openUserForm(true,\'' + key + '\',\'' + u.username + '\',\'' + u.password + '\')"><i class="fas fa-edit"></i> تعديل</button><button class="btn btn-danger btn-sm" style="flex:1" onclick="deleteUser(\'' + key + '\')"><i class="fas fa-trash"></i> حذف</button></div>';
+            list.appendChild(el);
         });
     }
 
     function updateSalesUsersDropdown() {
         var sel = document.getElementById('selectSalesUser');
-        sel.innerHTML = '<option value="">-- كل اليوزرات --</option>';
-        // جمع كل اليوزرات من جدول users
+        sel.innerHTML = '<option value="">-- الكل --</option>';
         var userSet = {};
-        for (var k in allUsers) { userSet[allUsers[k].username] = true; }
-        // جمع أيضاً من settled_by في الأرشيف
-        for (var a in allArchive) {
-            if (allArchive[a].settled_by) userSet[allArchive[a].settled_by] = true;
-        }
-        Object.keys(userSet).sort().forEach(function(name) {
-            sel.innerHTML += '<option value="' + name + '">' + name + '</option>';
-        });
+        for (var k in allUsers) userSet[allUsers[k].username] = true;
+        for (var a in allArchive) { if (allArchive[a].settled_by) userSet[allArchive[a].settled_by] = true; }
+        Object.keys(userSet).sort().forEach(function(name) { sel.innerHTML += '<option value="' + name + '">' + name + '</option>'; });
     }
 
     /* =========================================
-       💰 قسم المبيعات — مرتبط باليوزرات بدقة
+       💰 قسم المبيعات
        ========================================= */
     function filterArchiveData() {
         var selectedUser = document.getElementById('selectSalesUser').value;
         var startVal = document.getElementById('salesStartDate').value;
         var endVal = document.getElementById('salesEndDate').value;
         var filtered = [];
-
         for (var key in allArchive) {
             var item = allArchive[key];
             var itemTime = new Date(item.settled_at).getTime();
             var matchUser = true, matchDate = true;
-
-            // الفلترة باليوزر عبر حقل settled_by الدقيق
             if (selectedUser && item.settled_by !== selectedUser) matchUser = false;
-
-            // الفلترة بالتاريخ
             if (startVal && itemTime < new Date(startVal).getTime()) matchDate = false;
             if (endVal && itemTime > new Date(endVal).getTime()) matchDate = false;
-
             if (matchUser && matchDate) filtered.push({key: key, ...item});
         }
         return filtered;
     }
 
     window.loadSalesStatistics = function() {
-        var tbody = document.getElementById('salesTableBody');
+        var list = document.getElementById('salesList');
         var card = document.getElementById('totalSalesCard');
         var revSection = document.getElementById('userRevSection');
-        tbody.innerHTML = '';
-        card.style.display = 'none';
-        revSection.style.display = 'none';
-
+        list.innerHTML = ''; card.style.display = 'none'; revSection.style.display = 'none';
         var results = filterArchiveData();
         document.getElementById('salesCount').textContent = results.length;
-
-        if (results.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" class="empty-state"><i class="fas fa-search"></i><p>لم يتم العثور على مبيعات بالمعايير المحددة</p></td></tr>';
-            return;
-        }
-
+        if (results.length === 0) { list.innerHTML = '<div class="empty-state" style="padding:20px;text-align:center;color:var(--text-muted)"><p>لا توجد نتائج</p></div>'; return; }
         var totalSum = 0;
         results.forEach(function(order) {
-            var sum = Number(order.price) * Number(order.quantity);
-            totalSum += sum;
-            var tr = document.createElement('tr');
-            tr.innerHTML =
-                '<td><span class="badge badge-blue">طاولة ' + order.table_number + '</span></td>' +
-                '<td><b>' + order.name + '</b></td>' +
-                '<td>' + order.quantity + '</td>' +
-                '<td>' + fmt(order.price) + ' د.ع</td>' +
-                '<td style="color:var(--success);font-weight:700">' + fmt(sum) + ' د.ع</td>' +
-                '<td><span class="badge badge-amber"><i class="fas fa-user" style="margin-left:4px;font-size:10px"></i>' + (order.settled_by || '—') + '</span></td>' +
-                '<td style="font-size:12px;color:var(--text-secondary)">' + new Date(order.settled_at).toLocaleString('ar-IQ') + '</td>';
-            tbody.appendChild(tr);
+            var sum = Number(order.price) * Number(order.quantity); totalSum += sum;
+            var el = document.createElement('div'); el.className = 'm-card';
+            el.innerHTML = '<div class="m-row"><span class="m-label">المادة</span><span class="m-val"><b>' + order.name + '</b></span></div>' +
+                '<div class="m-row"><span class="m-label">طاولة</span><span class="badge badge-blue">طاولة ' + order.table_number + '</span></div>' +
+                '<div class="m-row"><span class="m-label">الإجمالي</span><span class="m-val" style="color:var(--success)">' + fmt(sum) + ' د.ع</span></div>' +
+                '<div class="m-row"><span class="m-label">بواسطة</span><span class="badge badge-amber">' + (order.settled_by || '—') + '</span></div>' +
+                '<div class="m-row"><span class="m-label">التاريخ</span><span class="m-val" style="font-size:10px;color:var(--text-secondary)">' + new Date(order.settled_at).toLocaleString('ar-IQ') + '</span></div>';
+            list.appendChild(el);
         });
-
         card.style.display = 'block';
-        document.getElementById('totalSalesBody').innerHTML =
-            '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">' +
-                '<div><span style="color:var(--text-secondary);font-size:13px">إجمالي الفترة المحددة</span><div style="font-size:26px;font-weight:900;color:var(--danger);margin-top:4px">' + fmt(totalSum) + ' <span style="font-size:14px;color:var(--text-muted)">د.ع</span></div></div>' +
-                '<div style="text-align:left"><span style="color:var(--text-secondary);font-size:13px">عدد السجلات</span><div style="font-size:22px;font-weight:800;color:var(--text-primary);margin-top:4px">' + results.length + '</div></div>' +
-            '</div>';
+        document.getElementById('totalSalesBody').innerHTML = '<div style="text-align:center"><span style="color:var(--text-secondary);font-size:12px">إجمالي الفترة</span><div style="font-size:24px;font-weight:900;color:var(--danger);margin-top:4px">' + fmt(totalSum) + ' د.ع</div></div>';
     };
 
     window.deleteSalesByPeriod = async function() {
         var results = filterArchiveData();
-        if (results.length === 0) { toast('لا توجد سجلات في الفترة المحددة', 'error'); return; }
-
-        var ok = await showConfirm('تحذير: أنت على وشك حذف (' + results.length + ') سجل مبيعات نهائياً! هل تريد المتابعة؟');
+        if (results.length === 0) { toast('لا سجلات بالفترة المحددة', 'error'); return; }
+        var ok = await showConfirm('تحذير: حذف (' + results.length + ') سجل نهائياً؟');
         if (!ok) return;
-
         var promises = results.map(function(item) { return remove(ref(db, 'tablesD/archive_orders/' + item.key)); });
-        Promise.all(promises).then(function() {
-            toast('تم حذف ' + results.length + ' سجل بنجاح', 'success');
-            document.getElementById('totalSalesCard').style.display = 'none';
-            document.getElementById('userRevSection').style.display = 'none';
-        });
+        Promise.all(promises).then(function() { toast('تم الحذف', 'success'); document.getElementById('totalSalesCard').style.display = 'none'; });
     };
 
     window.calculateTotalRevenueAllUsers = function() {
         var startVal = document.getElementById('salesStartDate').value;
         var endVal = document.getElementById('salesEndDate').value;
-
-        // تجميع حسب اليوزر
-        var userMap = {};
-        var grandTotal = 0, grandCount = 0;
-
+        var userMap = {}; var grandTotal = 0, grandCount = 0;
         for (var key in allArchive) {
-            var item = allArchive[key];
-            var itemTime = new Date(item.settled_at).getTime();
-            var matchDate = true;
+            var item = allArchive[key]; var itemTime = new Date(item.settled_at).getTime(); var matchDate = true;
             if (startVal && itemTime < new Date(startVal).getTime()) matchDate = false;
             if (endVal && itemTime > new Date(endVal).getTime()) matchDate = false;
             if (!matchDate) continue;
-
-            var user = item.settled_by || 'غير محدد';
-            var sum = Number(item.price) * Number(item.quantity);
-            grandTotal += sum;
-            grandCount++;
-
+            var user = item.settled_by || 'غير محدد'; var sum = Number(item.price) * Number(item.quantity);
+            grandTotal += sum; grandCount++;
             if (!userMap[user]) userMap[user] = {total: 0, count: 0};
-            userMap[user].total += sum;
-            userMap[user].count++;
+            userMap[user].total += sum; userMap[user].count++;
         }
-
-        // عرض بطاقة الإجمالي
-        var card = document.getElementById('totalSalesCard');
-        card.style.display = 'block';
-        document.getElementById('totalSalesBody').innerHTML =
-            '<div style="text-align:center"><span style="color:var(--text-secondary);font-size:13px">صافي العوائد الكلية لكافة اليوزرات</span>' +
-            '<div style="font-size:32px;font-weight:900;color:var(--success);margin:8px 0">' + fmt(grandTotal) + ' <span style="font-size:14px;color:var(--text-muted)">د.ع</span></div>' +
-            '<span style="font-size:12px;color:var(--text-muted)">إجمالي الفواتير: ' + grandCount + '</span></div>';
-
-        // عرض بطاقات كل يوزر
-        var section = document.getElementById('userRevSection');
-        var grid = document.getElementById('userRevGrid');
-        section.style.display = 'block';
-        grid.innerHTML = '';
-
-        var maxRev = 0;
-        for (var u in userMap) { if (userMap[u].total > maxRev) maxRev = userMap[u].total; }
-
-        if (Object.keys(userMap).length === 0) {
-            grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><p>لا توجد بيانات</p></div>';
-            return;
-        }
-
+        var card = document.getElementById('totalSalesCard'); card.style.display = 'block';
+        document.getElementById('totalSalesBody').innerHTML = '<div style="text-align:center"><span style="color:var(--text-secondary);font-size:12px">صافي العوائد الكلية</span><div style="font-size:28px;font-weight:900;color:var(--success);margin:6px 0">' + fmt(grandTotal) + ' د.ع</div><span style="font-size:11px;color:var(--text-muted)">إجمالي الفواتير: ' + grandCount + '</span></div>';
+        
+        var section = document.getElementById('userRevSection'); var grid = document.getElementById('userRevGrid');
+        section.style.display = 'block'; grid.innerHTML = '';
+        var maxRev = 0; for (var u in userMap) { if (userMap[u].total > maxRev) maxRev = userMap[u].total; }
         for (var uname in userMap) {
-            var ud = userMap[uname];
-            var pct = maxRev > 0 ? Math.round((ud.total / maxRev) * 100) : 0;
+            var ud = userMap[uname]; var pct = maxRev > 0 ? Math.round((ud.total / maxRev) * 100) : 0;
             var initials = uname.substring(0, 2).toUpperCase();
-
-            var cardEl = document.createElement('div');
-            cardEl.className = 'user-rev-card';
-            cardEl.innerHTML =
-                '<div class="ur-avatar">' + initials + '</div>' +
-                '<div class="ur-name">' + uname + '</div>' +
-                '<div class="ur-total">' + fmt(ud.total) + ' د.ع</div>' +
-                '<div class="ur-count">' + ud.count + ' عملية</div>' +
-                '<div class="ur-bar"><div class="ur-bar-fill" style="width:0%"></div></div>';
-
-            // عند الضغط يختار اليوزر في الفلتر ويُظهر تفاصيله
-            cardEl.addEventListener('click', function() {
-                document.getElementById('selectSalesUser').value = uname;
-                loadSalesStatistics();
-                window.scrollTo({top: 0, behavior: 'smooth'});
-            });
-
+            var cardEl = document.createElement('div'); cardEl.className = 'user-rev-card';
+            cardEl.innerHTML = '<div class="ur-avatar">' + initials + '</div><div class="ur-name">' + uname + '</div><div class="ur-total">' + fmt(ud.total) + '</div><div class="ur-count">' + ud.count + ' عملية</div><div class="ur-bar"><div class="ur-bar-fill" style="width:0%"></div></div>';
+            cardEl.addEventListener('click', function() { document.getElementById('selectSalesUser').value = uname; loadSalesStatistics(); window.scrollTo({top: 0, behavior: 'smooth'}); });
             grid.appendChild(cardEl);
-
-            // أنيميشن الشريط
-            setTimeout(function(fillEl, percent) {
-                fillEl.style.width = percent + '%';
-            }.bind(null, cardEl.querySelector('.ur-bar-fill'), pct), 100);
+            setTimeout(function(fillEl, percent) { fillEl.style.width = percent + '%'; }.bind(null, cardEl.querySelector('.ur-bar-fill'), pct), 100);
         }
     };
 
     /* =========================================
-       📦 قسم المنتجات المدمج
+       📦 قسم المنتجات
        ========================================= */
-    function renderOrdersStatsTable() {
-        var tbody = document.getElementById('ordersTableBody');
-        tbody.innerHTML = '';
-
-        // تجميع كميات الأرشيف حسب اسم المنتج
+    function renderOrdersStatsList() {
+        var list = document.getElementById('ordersList'); list.innerHTML = '';
         var archiveQty = {};
-        for (var id in allArchive) {
-            var item = allArchive[id];
-            if (!archiveQty[item.name]) archiveQty[item.name] = {qty: 0, money: 0};
-            archiveQty[item.name].qty += Number(item.quantity);
-            archiveQty[item.name].money += (Number(item.price) * Number(item.quantity));
-        }
-
-        var totalProducts = 0;
-        var hasData = false;
-
+        for (var id in allArchive) { var item = allArchive[id]; if (!archiveQty[item.name]) archiveQty[item.name] = {qty: 0, money: 0}; archiveQty[item.name].qty += Number(item.quantity); archiveQty[item.name].money += (Number(item.price) * Number(item.quantity)); }
+        var totalProducts = 0; var hasData = false;
         for (var catKey in allMenu) {
-            var category = allMenu[catKey];
-            var items = category.items || {};
-
+            var category = allMenu[catKey]; var items = category.items || {};
             for (var itemKey in items) {
-                hasData = true;
-                totalProducts++;
-                var product = items[itemKey];
-                var sold = archiveQty[product.name] || {qty: 0, money: 0};
-
-                var tr = document.createElement('tr');
-                tr.innerHTML =
-                    '<td><span style="color:var(--text-secondary);font-weight:600;font-size:12px"><i class="fas fa-folder" style="margin-left:4px"></i>' + (category.name || '—') + '</span></td>' +
-                    '<td><b>' + product.name + '</b></td>' +
-                    '<td>' + fmt(product.price) + ' د.ع</td>' +
-                    '<td style="text-align:center;font-weight:700;' + (sold.qty > 0 ? 'color:var(--info)' : 'color:var(--text-muted)') + '">' + sold.qty + ' <span style="font-size:11px;font-weight:400">قطعة</span></td>' +
-                    '<td style="color:var(--success);font-weight:700">' + fmt(sold.money) + ' د.ع</td>';
-                tbody.appendChild(tr);
+                hasData = true; totalProducts++; var product = items[itemKey]; var sold = archiveQty[product.name] || {qty: 0, money: 0};
+                var el = document.createElement('div'); el.className = 'm-card';
+                el.innerHTML = '<div class="m-row"><span class="m-label">المنتج</span><span class="m-val"><b>' + product.name + '</b></span></div>' +
+                    '<div class="m-row"><span class="m-label">القسم</span><span class="m-val" style="color:var(--text-muted);font-size:11px">' + (category.name || '—') + '</span></div>' +
+                    '<div style="display:flex;justify-content:space-between;gap:10px">' +
+                    '<div style="flex:1;text-align:center;background:var(--info-bg);padding:6px;border-radius:6px"><div style="font-size:10px;color:var(--info)">الكمية المباعة</div><div style="font-weight:800;color:var(--info)">' + sold.qty + '</div></div>' +
+                    '<div style="flex:1;text-align:center;background:var(--success-bg);padding:6px;border-radius:6px"><div style="font-size:10px;color:var(--success)">العوائد</div><div style="font-weight:800;color:var(--success)">' + fmt(sold.money) + '</div></div>' +
+                    '</div>';
+                list.appendChild(el);
             }
         }
-
         document.getElementById('prodCount').textContent = totalProducts;
-
-        if (!hasData) {
-            tbody.innerHTML = '<tr><td colspan="5" class="empty-state"><i class="fas fa-box-open"></i><p>لا توجد منتجات في المنيو حالياً</p></td></tr>';
-        }
+        if (!hasData) list.innerHTML = '<div class="empty-state" style="padding:20px;text-align:center;color:var(--text-muted)"><p>لا منتجات</p></div>';
     }
 
-    /* ===== انطلاق النظام ===== */
     initSystemCore();
 </script>
 </body>

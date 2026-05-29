@@ -237,6 +237,74 @@
             .form-panel { flex: none; position: static; max-width: 500px; margin: 0 auto; }
         }
     </style>
+    <div id="ios-prompt" style="display: none; position: fixed; bottom: 20px; left: 5%; width: 90%; background: white; color: black; padding: 15px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 9999; direction: rtl; font-family: sans-serif;">
+  <div style="display: flex; align-items: center; justify-content: space-between;">
+    <div style="display: flex; align-items: center;">
+      <img src="icon.png" style="width: 40px; height: 40px; border-radius: 8px; margin-left: 10px;">
+      <div>
+        <strong style="font-size: 14px;">تثبيت تطبيق كابتن مانجمنت</strong>
+        <div style="font-size: 11px; color: #666; margin-top: 3px;">اضغط على زر <img src="https://img.icons8.com/ios/50/000000/share-rounded.png" style="width:15px; display:inline; vertical-align:middle;"> ثم <b>"إضافة إلى الشاشة الرئيسية"</b></div>
+      </div>
+    </div>
+    <button onclick="document.getElementById('ios-prompt').style.display='none'" style="background:none; border:none; font-size: 18px; color: #999; cursor:pointer;">×</button>
+  </div>
+</div>
+
+<script>
+  // 1. التعامل مع الأندرويد (ومنع التكرار والتحكم بالظهور)
+  let deferredPrompt;
+  
+  window.addEventListener('beforeinstallprompt', (e) => {
+    // منع المتصفح من إظهار الشريط الافتراضي فوراً
+    e.preventDefault();
+    deferredPrompt = e;
+    
+    // هنا يمكنك إظهار زر تثبيت خاص بك في الموقع إذا أردت
+    console.log("الأندرويد جاهز للتثبيت، تم حفظ الطلب لمنع التكرار.");
+  });
+
+  // كود يتم استدعاؤه إذا ضغط المستخدم على زر التثبيت الخاص بك (للأندرويد)
+  function triggerAndroidInstall() {
+    if (deferredPrompt) {
+      deferredPrompt.prompt(); // إظهار نافذة التثبيت
+      deferredPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === 'accepted') {
+          console.log('المستخدم وافق على التثبيت');
+          // بمجرد القبول، المتصفح لن يظهر النافذة مجدداً تلقائياً
+        }
+        deferredPrompt = null;
+      });
+    }
+  }
+
+  // معرفة هل التطبيق مفتوح حالياً كتطبيق مستقل (مُنزل مسبقاً)؟
+  const isAppInstalled = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+  // 2. التعامل مع الآيفون (iOS)
+  function isIos() {
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    return /iphone|ipad|ipod/.test(userAgent);
+  }
+
+  function isSafari() {
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    return userAgent.includes('safari') && !userAgent.includes('chrome') && !userAgent.includes('crios');
+  }
+
+  // تشغيل المنطق عند تحميل الصفحة
+  window.addEventListener('load', () => {
+    // تسجيل الـ Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js');
+    }
+
+    // إذا كان الجهاز آيفون، والمتصفح سفاري، والتطبيق لـيـس مثبتاً بعد
+    if (isIos() && isSafari() && !isAppInstalled) {
+      // أظهر شريط الإرشادات الذكي للآيفون
+      document.getElementById('ios-prompt').style.display = 'block';
+    }
+  });
+</script>
 </head>
 <body>
 

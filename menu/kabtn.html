@@ -77,9 +77,65 @@
         .table-option.active { color: #fff; background: var(--olive); }
 
         .mute-icon { display: none !important; }
+
+        /* شريط التنبيه العلوي */
+        .cashier-alert-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 9999999; /* فوق كل شيء */
+            background: linear-gradient(135deg, #C9A96E, #A68B4B);
+            color: #2C3E2D;
+            padding: 14px 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            display: none; /* مخفي افتراضياً */
+            justify-content: center;
+            align-items: center;
+            animation: dropDown 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        @keyframes dropDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+        
+        .alert-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 15px;
+            font-family: 'Noto Kufi Arabic', sans-serif;
+        }
+        .alert-content i { font-size: 20px; animation: bellRing 1s infinite; }
+        @keyframes bellRing { 0% { transform: rotate(0); } 20% { transform: rotate(15deg); } 40% { transform: rotate(-15deg); } 60% { transform: rotate(8deg); } 80% { transform: rotate(-8deg); } 100% { transform: rotate(0); } }
+        
+        #dismissAlertBtn {
+            position: absolute;
+            left: 15px;
+            background: rgba(255,255,255,0.3);
+            border: none;
+            color: #2C3E2D;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        #dismissAlertBtn:active { background: rgba(255,255,255,0.5); }
     </style>
 </head>
 <body>
+
+<!-- شريط التنبيه العلوي -->
+<div id="cashierAlertBanner" class="cashier-alert-banner">
+    <div class="alert-content">
+        <i class="fas fa-bell"></i>
+        <span>لديك رسالة من الكاشير يرجى الرد</span>
+    </div>
+    <button id="dismissAlertBtn">&times;</button>
+</div>
 
 <div class="table-dropdown" id="tableDropdown"></div>
 <div class="tw" id="tw"></div>
@@ -188,6 +244,8 @@
 
     let captainChatsCache = {}; 
     let currentCashierMsgCount = 0; 
+    
+    let alertTimeout = null; // متغير لتخزين مؤقت التنبيه
 
     function getReadCount() { return parseInt(localStorage.getItem('kabtnReadMsgCount') || '0'); }
     function setReadCount(count) { localStorage.setItem('kabtnReadMsgCount', String(count)); }
@@ -207,7 +265,6 @@
         } catch (e) {}
     }
 
-    // دالة حذف الرسائل الأقدم من 24 ساعة من جدول captain_chats
     function cleanOldMessages(cache, path) {
         const now = Date.now();
         const twentyFourHours = 24 * 60 * 60 * 1000;
@@ -219,6 +276,23 @@
                 }
             }
         }
+    }
+
+    /* === دوال شريط التنبيه العلوي === */
+    function showCashierAlert() {
+        // يظهر فقط إذا كانت هناك رسائل غير مقروءة والدردشة مغلقة
+        if (unreadN > 0 && !chatOn) {
+            document.getElementById('cashierAlertBanner').style.display = 'flex';
+        }
+    }
+
+    function dismissCashierAlert() {
+        document.getElementById('cashierAlertBanner').style.display = 'none';
+        // إخفاء التنبيه وإعادة إظهاره بعد دقيقة إذا لم تُقرأ الرسالة
+        clearTimeout(alertTimeout);
+        alertTimeout = setTimeout(function() {
+            showCashierAlert();
+        }, 60000); // 60,000 مللي ثانية = دقيقة واحدة
     }
 
     async function loadTablesFromDB() {
@@ -326,6 +400,9 @@
         document.getElementById("chatInput").addEventListener("keydown", function(e) { if (e.key === "Enter") sendCh(); });
         document.getElementById("imgModalClose").addEventListener("click", closeImgModal);
         document.getElementById("imgModal").addEventListener("click", function(e) { if (e.target.id === "imgModal") closeImgModal(); });
+        
+        // زر إغلاق شريط التنبيه
+        document.getElementById("dismissAlertBtn").addEventListener("click", dismissCashierAlert);
     }
 
     function dismissSplash() { document.getElementById("splashScreen").classList.add("hide"); setTimeout(function() { document.getElementById("splashScreen").style.display = "none"; document.getElementById("blockScreen").style.display = "flex"; updateHeader(); setTimeout(function() { initGeo(); }, 100); }, 600); }
@@ -377,49 +454,35 @@
     function sendOrd() { if (!Object.keys(orders).length) { toast("لا توجد طلبات لإرسالها", "error"); return; } if (!navigator.onLine) { toast("لا يوجد اتصال بالإنترنت.", "error"); return; } var dist = curDist || 0; var sr = ref(db, "tablesB/table_" + TBL + "/sent_orders"); for (var k in orders) { var it = orders[k]; set(push(sr), { name: it.name, price: it.price, quantity: it.quantity, settled_by: "captain", settled_at: new Date().toISOString(), sent_distance: Math.round(dist) }); } remove(ref(db, "tablesA/table_" + TBL + "/current_orders")).then(function() { toast("تم إرسال طلباتك بنجاح", "success"); closeInv(); }).catch(function() { toast("حدث خطأ أثناء الإرسال.", "error"); }); }
     function closeInv() { document.getElementById("invoiceModal").style.display = "none"; }
 
-    /* === نظام محادثة الكابتن (captain_chats) === */
     function listenCh() {
-        // الاستماع لمسار الكاشير
         onValue(ref(db, "captain_chats/admin5"), function(snap) {
             var prevCount = currentCashierMsgCount;
             captainChatsCache = snap.val() || {};
             
-            // حساب رسائل الكاشير فقط للإشعارات
             var cashierMsgs = 0;
             for (var k in captainChatsCache) {
                 if (captainChatsCache[k].sender === 'cashier') cashierMsgs++;
             }
             currentCashierMsgCount = cashierMsgs;
 
-            // تشغيل صوت إذا وردت رسالة جديدة والمحادثة مغلقة
             if (currentCashierMsgCount > prevCount && !chatOn && prevCount >= 0) {
                 msgSnd();
+                showCashierAlert(); // إظهار شريط التنبيه فور وصول رسالة
             }
 
-            // حذف الرسائل الأقدم من 24 ساعة
             cleanOldMessages(captainChatsCache, "captain_chats/admin5/");
-            
-            updateBadge(); 
-            renderChat();  
+            updateBadge(); renderChat();  
         });
     }
 
     function renderChat() {
         if (!chatOn) return; 
         var box = document.getElementById("chatMsgs"); box.innerHTML = ""; var msgs = [];
-        
-        for (var k in captainChatsCache) {
-            var m = captainChatsCache[k];
-            m.src = (m.sender === 'captain') ? "client" : "cashier";
-            msgs.push(m);
-        }
-        
+        for (var k in captainChatsCache) { var m = captainChatsCache[k]; m.src = (m.sender === 'captain') ? "client" : "cashier"; msgs.push(m); }
         msgs.sort(function(a, b) { return new Date(a.timestamp) - new Date(b.timestamp); });
         if (!msgs.length) { box.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px;font-size:13px;">ابدأ المحادثة مع الكاشير.</p>'; return; }
-        
         for (var j = 0; j < msgs.length; j++) {
-            var msg = msgs[j]; 
-            var t2 = new Date(msg.timestamp).toLocaleTimeString("ar-IQ", { hour: "2-digit", minute: "2-digit" });
+            var msg = msgs[j]; var t2 = new Date(msg.timestamp).toLocaleTimeString("ar-IQ", { hour: "2-digit", minute: "2-digit" });
             box.innerHTML += '<div class="cm ' + (msg.src === "client" ? "cm-cl" : "cm-ca") + '">' + msg.text + '<div class="cm-t">' + t2 + '</div></div>';
         }
         box.scrollTop = box.scrollHeight;
@@ -427,18 +490,25 @@
 
     function updateBadge() { var cachedReadCount = getReadCount(); var unreadCount = chatOn ? 0 : Math.max(0, currentCashierMsgCount - cachedReadCount); showUnread(unreadCount); }
     function showUnread(c) { var dot = document.getElementById("msgDot"); if (c > 0) { dot.style.display = "flex"; dot.textContent = c > 9 ? "9+" : String(c); } else { dot.style.display = "none"; } unreadN = c; }
-    function openCh() { chatOn = true; setReadCount(currentCashierMsgCount); updateBadge(); document.getElementById("chatModal").style.display = "flex"; renderChat(); }
+    
+    function openCh() {
+        chatOn = true;
+        setReadCount(currentCashierMsgCount);
+        updateBadge(); 
+        
+        // عند فتح الدردشة، إخفاء شريط التنبيه وإيقاف المؤقت
+        document.getElementById('cashierAlertBanner').style.display = 'none';
+        clearTimeout(alertTimeout);
+        
+        document.getElementById("chatModal").style.display = "flex";
+        renderChat(); 
+    }
+
     function closeCh() { chatOn = false; document.getElementById("chatModal").style.display = "none"; }
 
     function sendCh() {
         var inp = document.getElementById("chatInput"); var txt = inp.value.trim(); if (!txt) return;
-        // إرسال رسالة الكابتن في نفس المسار الذي يستمع إليه الكاشير
-        set(push(ref(db, "captain_chats/admin5")), { 
-            text: txt, 
-            timestamp: new Date().toISOString(), 
-            sender: "captain",
-            sender_name: "كابتن"
-        }); 
+        set(push(ref(db, "captain_chats/admin5")), { text: txt, timestamp: new Date().toISOString(), sender: "captain", sender_name: "كابتن" }); 
         inp.value = "";
     }
 

@@ -4,19 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>إدارة النسخ والنطاقات الجغرافية</title>
+    
+    <!-- ===== أكواد تحويل التطبيق PWA (ضرورية جداً هنا) ===== -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="الكابتن">
+    <link rel="apple-touch-icon" href="icon.png">
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <!-- منع تحديد النصوص ليعمل كتطبيق أصلي -->
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
             min-height: 100vh;
-            /* تعديل الحواف لتتناسب مع الهاتف */
             padding: 15px 10px 30px 10px; 
             color: #e2e8f0;
-            overflow-x: hidden; /* منع التمرير الأفقي */
-            -webkit-user-select: none; /* منع تحديد النصوص */
+            overflow-x: hidden;
+            -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
@@ -32,7 +38,6 @@
             margin: 0 auto; align-items: stretch;
         }
 
-        /* ===== تبويبات الهاتف (النموذج / القائمة) ===== */
         .mobile-tabs {
             display: flex; background: #1e293b; border-radius: 12px;
             border: 1px solid #334155; overflow: hidden; margin-bottom: 5px;
@@ -50,7 +55,6 @@
         .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* ===== قسم النموذج ===== */
         .form-panel {
             background: #1e293b; border: 1px solid #334155;
             border-radius: 16px; padding: 20px 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
@@ -102,10 +106,7 @@
             padding: 12px; display: flex; align-items: center; justify-content: space-between;
             border-bottom: 1px solid #1e293b;
         }
-        .accuracy-big {
-            font-size: 28px; font-weight: 900; direction: ltr; line-height: 1;
-            transition: color 0.3s;
-        }
+        .accuracy-big { font-size: 28px; font-weight: 900; direction: ltr; line-height: 1; transition: color 0.3s; }
         .accuracy-big .unit { font-size: 12px; font-weight: 600; color: #64748b; margin-right: 4px; }
         .accuracy-quality { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
         .quality-label { font-size: 12px; font-weight: 700; transition: color 0.3s; }
@@ -118,10 +119,7 @@
         .acc-bar.filled.medium { background: #f59e0b; }
         .acc-bar.filled.poor { background: #ef4444; }
 
-        .accuracy-details {
-            padding: 8px 12px; font-size: 11px; color: #64748b;
-            border-top: 1px solid #1e293b; line-height: 1.7;
-        }
+        .accuracy-details { padding: 8px 12px; font-size: 11px; color: #64748b; border-top: 1px solid #1e293b; line-height: 1.7; }
         .accuracy-details span { direction: ltr; display: inline-block; color: #94a3b8; }
 
         .saved-location {
@@ -129,10 +127,7 @@
             border-radius: 12px; padding: 12px; display: none;
         }
         .saved-location.visible { display: block; }
-        .saved-location .saved-header {
-            display: flex; align-items: center; gap: 6px; margin-bottom: 6px;
-            font-size: 13px; font-weight: 700; color: #34d399;
-        }
+        .saved-location .saved-header { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: #34d399; }
         .saved-location .saved-coords { font-size: 12px; color: #6ee7b7; direction: ltr; text-align: right; line-height: 1.6; }
         .saved-location .saved-restart {
             margin-top: 8px; background: transparent; border: 1px solid #065f46;
@@ -159,11 +154,7 @@
         .btn-cancel-edit.visible { display: block; }
         .btn-cancel-edit:active { border-color: #ef4444; color: #f87171; }
 
-        /* ===== قسم القائمة ===== */
-        .list-panel h2 {
-            font-size: 17px; color: #f8fafc; margin-bottom: 12px;
-            display: flex; align-items: center; gap: 8px;
-        }
+        .list-panel h2 { font-size: 17px; color: #f8fafc; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
         .list-panel h2 i { color: #22c55e; }
         .list-count { background: #334155; color: #94a3b8; font-size: 12px; padding: 2px 10px; border-radius: 20px; font-weight: 700; }
 
@@ -182,8 +173,7 @@
         .btn-icon {
             width: 40px; height: 40px; border-radius: 10px; border: 1px solid #334155;
             background: #0f172a; color: #94a3b8; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 14px; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; font-size: 14px; transition: all 0.2s;
         }
         .btn-icon:active { transform: scale(0.9); }
         .btn-icon.edit:active { border-color: #f59e0b; color: #f59e0b; background: rgba(245,158,11,0.08); }
@@ -203,7 +193,6 @@
         .empty-state i { font-size: 40px; margin-bottom: 12px; display: block; }
         .empty-state p { font-size: 14px; }
 
-        /* ===== Toast ===== */
         .toast-container { position: fixed; top: 15px; left: 50%; transform: translateX(-50%); z-index: 999999; display: flex; flex-direction: column; gap: 8px; width: 90%; }
         .toast {
             background: #1e293b; border: 1px solid #334155; border-radius: 12px;
@@ -218,7 +207,6 @@
         @keyframes toastIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes toastOut { from { opacity: 1; } to { opacity: 0; transform: translateY(-20px); } }
 
-        /* ===== تأكيد الحذف ===== */
         .confirm-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 99998;
             display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); padding: 20px;
@@ -243,8 +231,7 @@
         .btn-confirm-cancel { background: #334155; color: #cbd5e1; }
         .btn-confirm-cancel:active { background: #475569; }
 
-        /* شريط تثبيت الآيفون */
-        #ios-prompt { direction: rtl; font-family: sans-serif; }
+        #ios-prompt { direction: rtl; font-family: sans-serif; z-index: 100000; }
     </style>
 </head>
 <body>
@@ -263,117 +250,74 @@
     </div>
 </div>
 
+<!-- شريط تثبيت الآيفون (تم نقطة هنا في الأعلى ليكون جاهزاً) -->
+<div id="ios-prompt" style="display: none; position: fixed; bottom: 80px; left: 5%; width: 90%; background: white; color: black; padding: 15px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); direction: rtl; font-family: sans-serif;">
+  <div style="display: flex; align-items: center; justify-content: space-between;">
+    <div style="display: flex; align-items: center;">
+      <img src="icon.png" style="width: 40px; height: 40px; border-radius: 8px; margin-left: 10px;">
+      <div>
+        <strong style="font-size: 14px;">تثبيت تطبيق كابتن مانجمنت</strong>
+        <div style="font-size: 11px; color: #666; margin-top: 3px;">اضغط على زر <img src="https://img.icons8.com/ios/50/000000/share-rounded.png" style="width:15px; display:inline; vertical-align:middle;"> ثم <b>"إضافة إلى الشاشة الرئيسية"</b></div>
+      </div>
+    </div>
+    <button onclick="closeIosPrompt()" style="background:none; border:none; font-size: 18px; color: #999; cursor:pointer;">×</button>
+  </div>
+</div>
+
 <div class="page-header">
     <h1><i class="fas fa-globe"></i> إدارة النسخ والنطاقات</h1>
     <p>تحديد المواقع المرخصة ونطاقاتها الجغرافية</p>
 </div>
 
 <div class="main-layout">
-    
-    <!-- تبويبات الهاتف -->
     <div class="mobile-tabs">
-        <button class="mobile-tab active" id="tabForm" onclick="switchTab('form')">
-            <i class="fas fa-plus-circle"></i> إضافة / تعديل
-        </button>
-        <button class="mobile-tab" id="tabList" onclick="switchTab('list')">
-            <i class="fas fa-list-check"></i> النطاقات المحفوظة
-        </button>
+        <button class="mobile-tab active" id="tabForm" onclick="switchTab('form')"><i class="fas fa-plus-circle"></i> إضافة / تعديل</button>
+        <button class="mobile-tab" id="tabList" onclick="switchTab('list')"><i class="fas fa-list-check"></i> النطاقات المحفوظة</button>
     </div>
 
-    <!-- محتوى النموذج -->
     <div class="tab-content active" id="contentForm">
         <div class="form-panel">
-            <h2>
-                <i class="fas fa-plus-circle"></i>
-                <span id="formTitle">إضافة نسخة جديدة</span>
-                <span class="edit-badge" id="editBadge">وضع التحرير</span>
-            </h2>
+            <h2><i class="fas fa-plus-circle"></i><span id="formTitle">إضافة نسخة جديدة</span><span class="edit-badge" id="editBadge">وضع التحرير</span></h2>
             <form id="dataForm">
                 <div class="form-group">
                     <label for="versionNumber"><i class="fas fa-hashtag" style="margin-left:5px; color:#f59e0b;"></i>رقم النسخة</label>
                     <input type="text" id="versionNumber" required placeholder="مثال: 1.0.2">
                 </div>
-
                 <div class="form-group">
                     <label><i class="fas fa-map-pin" style="margin-left:5px; color:#3b82f6;"></i>مركز النطاق الجغرافي</label>
-
                     <div class="location-btns">
-                        <button type="button" class="btn-location btn-start-scan" id="startScanBtn">
-                            <i class="fas fa-satellite-dish"></i>
-                            <span id="startScanText">بدء البحث عن أعلى دقة</span>
-                        </button>
-                        <button type="button" class="btn-location btn-stop-scan" id="stopScanBtn" style="display:none;">
-                            <i class="fas fa-hand"></i>
-                            إيقاف
-                        </button>
+                        <button type="button" class="btn-location btn-start-scan" id="startScanBtn"><i class="fas fa-satellite-dish"></i><span id="startScanText">بدء البحث عن أعلى دقة</span></button>
+                        <button type="button" class="btn-location btn-stop-scan" id="stopScanBtn" style="display:none;"><i class="fas fa-hand"></i> إيقاف</button>
                     </div>
-
                     <div class="accuracy-panel" id="accuracyPanel">
                         <div class="accuracy-main">
-                            <div class="accuracy-big" id="accuracyBig">
-                                --<span class="unit">متر</span>
-                            </div>
-                            <div class="accuracy-quality">
-                                <span class="quality-label" id="qualityLabel">جاري البحث...</span>
-                                <span class="quality-hint" id="qualityHint">انتظر حتى تتحسن الدقة</span>
-                            </div>
+                            <div class="accuracy-big" id="accuracyBig">--<span class="unit">متر</span></div>
+                            <div class="accuracy-quality"><span class="quality-label" id="qualityLabel">جاري البحث...</span><span class="quality-hint" id="qualityHint">انتظر حتى تتحسن الدقة</span></div>
                         </div>
-                        <div class="accuracy-bars" id="accuracyBars">
-                            <div class="acc-bar"></div><div class="acc-bar"></div><div class="acc-bar"></div>
-                            <div class="acc-bar"></div><div class="acc-bar"></div><div class="acc-bar"></div>
-                            <div class="acc-bar"></div><div class="acc-bar"></div><div class="acc-bar"></div>
-                            <div class="acc-bar"></div>
-                        </div>
-                        <div class="accuracy-details" id="accuracyDetails">
-                            القراءات: <span id="readingsCount">0</span> &nbsp;|&nbsp;
-                            أفضل دقة: <span id="bestAccuracy">--</span> &nbsp;|&nbsp;
-                            خط العرض: <span id="liveLat">--</span><br>
-                            خط الطول: <span id="liveLng">--</span>
-                        </div>
+                        <div class="accuracy-bars" id="accuracyBars"><div class="acc-bar"></div><div class="acc-bar"></div><div class="acc-bar"></div><div class="acc-bar"></div><div class="acc-bar"></div><div class="acc-bar"></div><div class="acc-bar"></div><div class="acc-bar"></div><div class="acc-bar"></div><div class="acc-bar"></div></div>
+                        <div class="accuracy-details" id="accuracyDetails">القراءات: <span id="readingsCount">0</span> &nbsp;|&nbsp; أفضل دقة: <span id="bestAccuracy">--</span> &nbsp;|&nbsp; خط العرض: <span id="liveLat">--</span><br>خط الطول: <span id="liveLng">--</span></div>
                     </div>
-
                     <div class="saved-location" id="savedLocation">
-                        <div class="saved-header">
-                            <i class="fas fa-circle-check"></i>
-                            تم حفظ الموقع بنجاح — الدقة المختارة
-                        </div>
+                        <div class="saved-header"><i class="fas fa-circle-check"></i> تم حفظ الموقع بنجاح — الدقة المختارة</div>
                         <div class="saved-coords" id="savedCoords"></div>
-                        <button type="button" class="saved-restart" id="restartScanBtn">
-                            <i class="fas fa-rotate"></i>&nbsp; إعادة البحث عن دقة أفضل
-                        </button>
+                        <button type="button" class="saved-restart" id="restartScanBtn"><i class="fas fa-rotate"></i>&nbsp; إعادة البحث عن دقة أفضل</button>
                     </div>
                 </div>
-
-                <button type="submit" class="btn-submit" id="submitBtn" disabled>
-                    <i class="fas fa-save"></i>
-                    <span id="submitBtnText">حفظ البيانات في Firebase</span>
-                </button>
-                <button type="button" class="btn-cancel-edit" id="cancelEditBtn" onclick="cancelEdit()">
-                    <i class="fas fa-arrow-right-from-bracket"></i> إلغاء التحرير
-                </button>
+                <button type="submit" class="btn-submit" id="submitBtn" disabled><i class="fas fa-save"></i><span id="submitBtnText">حفظ البيانات في Firebase</span></button>
+                <button type="button" class="btn-cancel-edit" id="cancelEditBtn" onclick="cancelEdit()"><i class="fas fa-arrow-right-from-bracket"></i> إلغاء التحرير</button>
             </form>
         </div>
     </div>
 
-    <!-- محتوى القائمة -->
     <div class="tab-content" id="contentList">
         <div class="list-panel">
-            <h2>
-                <i class="fas fa-list-check"></i>
-                النطاقات المحفوظة
-                <span class="list-count" id="listCount">0</span>
-            </h2>
-            <div id="cobeList">
-                <div class="empty-state">
-                    <i class="fas fa-map-location-dot"></i>
-                    <p>لا توجد نطاقات محفوظة بعد.<br>أضف نسخة جديدة من تبويب الإضافة.</p>
-                </div>
-            </div>
+            <h2><i class="fas fa-list-check"></i> النطاقات المحفوظة <span class="list-count" id="listCount">0</span></h2>
+            <div id="cobeList"><div class="empty-state"><i class="fas fa-map-location-dot"></i><p>لا توجد نطاقات محفوظة بعد.<br>أضف نسخة جديدة من تبويب الإضافة.</p></div></div>
         </div>
     </div>
-
 </div>
 
+<!-- ===== جميع الأكواد البرمجية مجموعة هنا قبل إغلاق الـ Body ===== -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getDatabase, ref, push, set, remove, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
@@ -391,81 +335,36 @@
     const app = initializeApp(firebaseConfig);
     const database = getDatabase(app);
 
-    /* ===== متغيرات الحالة ===== */
-    let centerLatitude = null;
-    let centerLongitude = null;
-    let locationAccuracy = null;
-    let editingId = null;
-    let allCobes = {};
-    let pendingDeleteId = null;
+    let centerLatitude = null, centerLongitude = null, locationAccuracy = null, editingId = null, allCobes = {}, pendingDeleteId = null;
+    let watchId = null, isScanning = false, readingsCount = 0, bestAccuracy = Infinity, bestLat = null, bestLng = null;
 
-    let watchId = null;
-    let isScanning = false;
-    let readingsCount = 0;
-    let bestAccuracy = Infinity;
-    let bestLat = null;
-    let bestLng = null;
-
-    /* ===== عناصر DOM ===== */
-    const startScanBtn = document.getElementById('startScanBtn');
-    const startScanText = document.getElementById('startScanText');
-    const stopScanBtn = document.getElementById('stopScanBtn');
-    const accuracyPanel = document.getElementById('accuracyPanel');
-    const accuracyBig = document.getElementById('accuracyBig');
-    const qualityLabel = document.getElementById('qualityLabel');
-    const qualityHint = document.getElementById('qualityHint');
-    const accuracyBars = document.getElementById('accuracyBars');
-    const accuracyDetails = document.getElementById('accuracyDetails');
-    const readingsCountEl = document.getElementById('readingsCount');
-    const bestAccuracyEl = document.getElementById('bestAccuracy');
-    const liveLat = document.getElementById('liveLat');
-    const liveLng = document.getElementById('liveLng');
-    const savedLocation = document.getElementById('savedLocation');
-    const savedCoords = document.getElementById('savedCoords');
-    const restartScanBtn = document.getElementById('restartScanBtn');
-    const submitBtn = document.getElementById('submitBtn');
-    const submitBtnText = document.getElementById('submitBtnText');
-    const dataForm = document.getElementById('dataForm');
-    const formTitle = document.getElementById('formTitle');
-    const editBadge = document.getElementById('editBadge');
-    const cancelEditBtn = document.getElementById('cancelEditBtn');
-    const cobeList = document.getElementById('cobeList');
-    const listCount = document.getElementById('listCount');
-    const versionInput = document.getElementById('versionNumber');
+    const startScanBtn = document.getElementById('startScanBtn'), startScanText = document.getElementById('startScanText'), stopScanBtn = document.getElementById('stopScanBtn');
+    const accuracyPanel = document.getElementById('accuracyPanel'), accuracyBig = document.getElementById('accuracyBig');
+    const qualityLabel = document.getElementById('qualityLabel'), qualityHint = document.getElementById('qualityHint');
+    const accuracyBars = document.getElementById('accuracyBars'), readingsCountEl = document.getElementById('readingsCount');
+    const bestAccuracyEl = document.getElementById('bestAccuracy'), liveLat = document.getElementById('liveLat'), liveLng = document.getElementById('liveLng');
+    const savedLocation = document.getElementById('savedLocation'), savedCoords = document.getElementById('savedCoords'), restartScanBtn = document.getElementById('restartScanBtn');
+    const submitBtn = document.getElementById('submitBtn'), submitBtnText = document.getElementById('submitBtnText'), dataForm = document.getElementById('dataForm');
+    const formTitle = document.getElementById('formTitle'), editBadge = document.getElementById('editBadge'), cancelEditBtn = document.getElementById('cancelEditBtn');
+    const cobeList = document.getElementById('cobeList'), listCount = document.getElementById('listCount'), versionInput = document.getElementById('versionNumber');
     const bars = accuracyBars.querySelectorAll('.acc-bar');
 
-    /* ===== التبويبات ===== */
     window.switchTab = (tab) => {
-        document.getElementById('tabForm').classList.remove('active');
-        document.getElementById('tabList').classList.remove('active');
-        document.getElementById('contentForm').classList.remove('active');
-        document.getElementById('contentList').classList.remove('active');
-
-        if (tab === 'form') {
-            document.getElementById('tabForm').classList.add('active');
-            document.getElementById('contentForm').classList.add('active');
-        } else {
-            document.getElementById('tabList').classList.add('active');
-            document.getElementById('contentList').classList.add('active');
-        }
+        document.getElementById('tabForm').classList.remove('active'); document.getElementById('tabList').classList.remove('active');
+        document.getElementById('contentForm').classList.remove('active'); document.getElementById('contentList').classList.remove('active');
+        if (tab === 'form') { document.getElementById('tabForm').classList.add('active'); document.getElementById('contentForm').classList.add('active'); }
+        else { document.getElementById('tabList').classList.add('active'); document.getElementById('contentList').classList.add('active'); }
     };
 
-    /* ===== أدوات مساعدة ===== */
     function showToast(message, type = 'info') {
         const container = document.getElementById('toastContainer');
         const icons = { success: 'fa-circle-check', error: 'fa-circle-xmark', info: 'fa-circle-info' };
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
+        const toast = document.createElement('div'); toast.className = `toast ${type}`;
         toast.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i> ${message}`;
-        container.appendChild(toast);
-        setTimeout(() => { if (toast.parentNode) toast.remove(); }, 3200);
+        container.appendChild(toast); setTimeout(() => { if (toast.parentNode) toast.remove(); }, 3200);
     }
 
-    function formatDate(isoStr) {
-        if (!isoStr) return '-';
-        const d = new Date(isoStr);
-        return d.toLocaleDateString('ar-IQ', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-    }
+    function formatDate(isoStr) { if (!isoStr) return '-'; const d = new Date(isoStr); return d.toLocaleDateString('ar-IQ', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }); }
 
     function getAccuracyQuality(accuracy) {
         if (accuracy <= 3) return { label: 'دقة ممتازة', hint: 'مثالي لتسجيل النقاط المهمة', color: '#22c55e', barClass: 'good', bars: 10 };
@@ -479,233 +378,98 @@
     }
 
     function updateAccuracyUI(accuracy, lat, lng) {
-        const q = getAccuracyQuality(accuracy);
-        accuracyBig.innerHTML = `${accuracy.toFixed(1)}<span class="unit">متر</span>`;
-        accuracyBig.style.color = q.color;
-        qualityLabel.textContent = q.label;
-        qualityLabel.style.color = q.color;
-        qualityHint.textContent = q.hint;
-
-        bars.forEach((bar, i) => {
-            bar.className = 'acc-bar';
-            if (i < q.bars) {
-                bar.classList.add('filled', q.barClass);
-                bar.style.transitionDelay = `${i * 0.05}s`;
-            } else {
-                bar.style.transitionDelay = '0s';
-            }
-        });
-
-        readingsCountEl.textContent = readingsCount;
-        bestAccuracyEl.textContent = bestAccuracy === Infinity ? '--' : `${bestAccuracy.toFixed(1)} م`;
-        liveLat.textContent = lat.toFixed(7);
-        liveLng.textContent = lng.toFixed(7);
+        const q = getAccuracyQuality(accuracy); accuracyBig.innerHTML = `${accuracy.toFixed(1)}<span class="unit">متر</span>`;
+        accuracyBig.style.color = q.color; qualityLabel.textContent = q.label; qualityLabel.style.color = q.color; qualityHint.textContent = q.hint;
+        bars.forEach((bar, i) => { bar.className = 'acc-bar'; if (i < q.bars) { bar.classList.add('filled', q.barClass); bar.style.transitionDelay = `${i * 0.05}s`; } else { bar.style.transitionDelay = '0s'; } });
+        readingsCountEl.textContent = readingsCount; bestAccuracyEl.textContent = bestAccuracy === Infinity ? '--' : `${bestAccuracy.toFixed(1)} م`; liveLat.textContent = lat.toFixed(7); liveLng.textContent = lng.toFixed(7);
     }
 
-    /* ===== بدء المسح ===== */
     startScanBtn.addEventListener('click', () => {
         if (!navigator.geolocation) { showToast('المتصفح لا يدعم تحديد المواقع', 'error'); return; }
         readingsCount = 0; bestAccuracy = Infinity; bestLat = null; bestLng = null; isScanning = true;
-        startScanBtn.style.display = 'none'; stopScanBtn.style.display = 'flex';
-        stopScanBtn.classList.add('scanning'); accuracyPanel.classList.add('visible');
-        savedLocation.classList.remove('visible'); submitBtn.disabled = true;
-        updateAccuracyUI(999, 0, 0);
+        startScanBtn.style.display = 'none'; stopScanBtn.style.display = 'flex'; stopScanBtn.classList.add('scanning');
+        accuracyPanel.classList.add('visible'); savedLocation.classList.remove('visible'); submitBtn.disabled = true; updateAccuracyUI(999, 0, 0);
         watchId = navigator.geolocation.watchPosition(onScanUpdate, onScanError, { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
     });
 
-    function onScanUpdate(position) {
-        const lat = position.coords.latitude; const lng = position.coords.longitude; const acc = position.coords.accuracy;
-        readingsCount++;
-        if (acc < bestAccuracy) { bestAccuracy = acc; bestLat = lat; bestLng = lng; }
-        updateAccuracyUI(acc, lat, lng);
-    }
+    function onScanUpdate(position) { const lat = position.coords.latitude; const lng = position.coords.longitude; const acc = position.coords.accuracy; readingsCount++; if (acc < bestAccuracy) { bestAccuracy = acc; bestLat = lat; bestLng = lng; } updateAccuracyUI(acc, lat, lng); }
+    function onScanError(error) { stopScanning(); const msgs = { [error.PERMISSION_DENIED]: 'يرجى السماح بالوصول للموقع.', [error.POSITION_UNAVAILABLE]: 'معلومات الموقع غير متوفرة.', [error.TIMEOUT]: 'انتهت مهلة القراءة.' }; showToast(msgs[error.code] || 'حدث خطأ في تحديد الموقع', 'error'); }
 
-    function onScanError(error) {
-        stopScanning();
-        const msgs = { [error.PERMISSION_DENIED]: 'يرجى السماح بالوصول للموقع.', [error.POSITION_UNAVAILABLE]: 'معلومات الموقع غير متوفرة.', [error.TIMEOUT]: 'انتهت مهلة القراءة.' };
-        showToast(msgs[error.code] || 'حدث خطأ في تحديد الموقع', 'error');
-    }
-
-    /* ===== إيقاف المسح ===== */
     stopScanBtn.addEventListener('click', () => {
         if (readingsCount === 0) { showToast('لم يتم الحصول على أي قراءة بعد', 'error'); return; }
-        stopScanning();
-        centerLatitude = bestLat; centerLongitude = bestLng; locationAccuracy = bestAccuracy;
+        stopScanning(); centerLatitude = bestLat; centerLongitude = bestLng; locationAccuracy = bestAccuracy;
         const q = getAccuracyQuality(bestAccuracy);
         savedCoords.innerHTML = `خط العرض: ${bestLat.toFixed(7)}<br>خط الطول: ${bestLng.toFixed(7)}<br><span style="color:${q.color}; font-weight:700;">الدقة المحفوظة: +/- ${bestAccuracy.toFixed(1)} متر — ${q.label}</span>`;
-        savedLocation.classList.add('visible'); submitBtn.disabled = false;
-        showToast(`تم حفظ الموقع بأفضل دقة: ${bestAccuracy.toFixed(1)} متر`, 'success');
+        savedLocation.classList.add('visible'); submitBtn.disabled = false; showToast(`تم حفظ الموقع بأفضل دقة: ${bestAccuracy.toFixed(1)} متر`, 'success');
     });
 
-    function stopScanning() {
-        isScanning = false;
-        if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
-        stopScanBtn.style.display = 'none'; stopScanBtn.classList.remove('scanning');
-        startScanBtn.style.display = 'flex'; startScanText.textContent = 'إعادة البحث عن دقة أفضل';
-    }
-
+    function stopScanning() { isScanning = false; if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; } stopScanBtn.style.display = 'none'; stopScanBtn.classList.remove('scanning'); startScanBtn.style.display = 'flex'; startScanText.textContent = 'إعادة البحث عن دقة أفضل'; }
     restartScanBtn.addEventListener('click', () => { savedLocation.classList.remove('visible'); submitBtn.disabled = true; startScanBtn.click(); });
 
-    /* ===== إرسال النموذج ===== */
     dataForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const version = versionInput.value.trim();
+        e.preventDefault(); const version = versionInput.value.trim();
         if (!version) { showToast('الرجاء إدخال رقم النسخة', 'error'); return; }
         if (centerLatitude === null) { showToast('الرجاء تحديد الموقع الجغرافي أولاً', 'error'); return; }
-
-        const data = {
-            version_number: version,
-            geo_zone: { center_latitude: centerLatitude, center_longitude: centerLongitude, radius_meters: 100, accuracy_registered: locationAccuracy },
-            updated_at: new Date().toISOString()
-        };
-
-        if (editingId) {
-            update(ref(database, `cobes/${editingId}`), data)
-                .then(() => { showToast(`تم تحديث بيانات النسخة "${version}" بنجاح`, 'success'); resetForm(); switchTab('list'); })
-                .catch(() => showToast('حدث خطأ أثناء التحديث', 'error'));
-        } else {
-            data.created_at = data.updated_at;
-            const newRef = push(ref(database, 'cobes'));
-            set(newRef, data)
-                .then(() => { showToast(`تم حفظ النسخة "${version}" والنطاق الجغرافي بنجاح`, 'success'); resetForm(); switchTab('list'); })
-                .catch(() => showToast('حدث خطأ أثناء الحفظ', 'error'));
-        }
+        const data = { version_number: version, geo_zone: { center_latitude: centerLatitude, center_longitude: centerLongitude, radius_meters: 100, accuracy_registered: locationAccuracy }, updated_at: new Date().toISOString() };
+        if (editingId) { update(ref(database, `cobes/${editingId}`), data).then(() => { showToast(`تم تحديث بيانات النسخة "${version}" بنجاح`, 'success'); resetForm(); switchTab('list'); }).catch(() => showToast('حدث خطأ أثناء التحديث', 'error')); }
+        else { data.created_at = data.updated_at; const newRef = push(ref(database, 'cobes')); set(newRef, data).then(() => { showToast(`تم حفظ النسخة "${version}" والنطاق الجغرافي بنجاح`, 'success'); resetForm(); switchTab('list'); }).catch(() => showToast('حدث خطأ أثناء الحفظ', 'error')); }
     });
 
-    /* ===== عرض القائمة ===== */
     onValue(ref(database, 'cobes'), (snap) => { allCobes = snap.val() || {}; renderCobesList(); });
 
     function renderCobesList() {
         const keys = Object.keys(allCobes); listCount.textContent = keys.length;
-        if (keys.length === 0) {
-            cobeList.innerHTML = `<div class="empty-state"><i class="fas fa-map-location-dot"></i><p>لا توجد نطاقات محفوظة بعد.<br>أضف نسخة جديدة من تبويب الإضافة.</p></div>`;
-            return;
-        }
+        if (keys.length === 0) { cobeList.innerHTML = `<div class="empty-state"><i class="fas fa-map-location-dot"></i><p>لا توجد نطاقات محفوظة بعد.</p></div>`; return; }
         keys.sort((a, b) => { const dA = allCobes[a].updated_at || allCobes[a].created_at || ''; const dB = allCobes[b].updated_at || allCobes[b].created_at || ''; return new Date(dB) - new Date(dA); });
         let html = '';
         keys.forEach(id => {
             const c = allCobes[id]; const geo = c.geo_zone || {}; const isEditing = id === editingId;
             const acc = geo.accuracy_registered || 0; const aq = getAccuracyQuality(acc);
             const dateLabel = c.updated_at && c.updated_at !== c.created_at ? `آخر تحديث: ${formatDate(c.updated_at)}` : `تاريخ الإنشاء: ${formatDate(c.created_at)}`;
-            html += `
-                <div class="cobe-card" style="${isEditing ? 'border-color:#f59e0b; box-shadow:0 0 20px rgba(245,158,11,0.15);' : ''}">
-                    <div class="cobe-card-header">
-                        <div>
-                            <div class="cobe-version"><i class="fas fa-code-branch"></i> v${c.version_number} ${isEditing ? '<span style="font-size:10px; background:#f59e0b; color:#0f172a; padding:2px 6px; border-radius:10px;">قيد التعديل</span>' : ''}</div>
-                            <div class="cobe-date">${dateLabel}</div>
-                        </div>
-                        <div class="cobe-card-actions">
-                            <button class="btn-icon edit" title="تعديل" onclick="startEdit('${id}')"><i class="fas fa-pen-to-square"></i></button>
-                            <button class="btn-icon delete" title="حذف" onclick="confirmDelete('${id}', '${c.version_number}')"><i class="fas fa-trash-can"></i></button>
-                        </div>
-                    </div>
-                    <div class="cobe-geo">
-                        <div class="geo-item"><span class="geo-label">خط العرض</span><span class="geo-value">${(geo.center_latitude || 0).toFixed(7)}</span></div>
-                        <div class="geo-item"><span class="geo-label">خط الطول</span><span class="geo-value">${(geo.center_longitude || 0).toFixed(7)}</span></div>
-                        <div class="geo-item"><span class="geo-label">نصف القطر</span><span class="geo-value radius-val">${geo.radius_meters || 100} متر</span></div>
-                        <div class="geo-item"><span class="geo-label">دقة التسجيل</span><span class="geo-value" style="color:${aq.color};">+/- ${acc.toFixed(1)} م</span></div>
-                    </div>
-                </div>`;
+            html += `<div class="cobe-card" style="${isEditing ? 'border-color:#f59e0b; box-shadow:0 0 20px rgba(245,158,11,0.15);' : ''}"><div class="cobe-card-header"><div><div class="cobe-version"><i class="fas fa-code-branch"></i> v${c.version_number} ${isEditing ? '<span style="font-size:10px; background:#f59e0b; color:#0f172a; padding:2px 6px; border-radius:10px;">قيد التعديل</span>' : ''}</div><div class="cobe-date">${dateLabel}</div></div><div class="cobe-card-actions"><button class="btn-icon edit" title="تعديل" onclick="startEdit('${id}')"><i class="fas fa-pen-to-square"></i></button><button class="btn-icon delete" title="حذف" onclick="confirmDelete('${id}', '${c.version_number}')"><i class="fas fa-trash-can"></i></button></div></div><div class="cobe-geo"><div class="geo-item"><span class="geo-label">خط العرض</span><span class="geo-value">${(geo.center_latitude || 0).toFixed(7)}</span></div><div class="geo-item"><span class="geo-label">خط الطول</span><span class="geo-value">${(geo.center_longitude || 0).toFixed(7)}</span></div><div class="geo-item"><span class="geo-label">نصف القطر</span><span class="geo-value radius-val">${geo.radius_meters || 100} متر</span></div><div class="geo-item"><span class="geo-label">دقة التسجيل</span><span class="geo-value" style="color:${aq.color};">+/- ${acc.toFixed(1)} م</span></div></div></div>`;
         });
         cobeList.innerHTML = html;
     }
 
-    /* ===== تعديل ===== */
     window.startEdit = (id) => {
-        const c = allCobes[id]; if (!c) return;
-        if (isScanning) stopScanning();
+        const c = allCobes[id]; if (!c) return; if (isScanning) stopScanning();
         editingId = id; versionInput.value = c.version_number || '';
         centerLatitude = c.geo_zone?.center_latitude || null; centerLongitude = c.geo_zone?.center_longitude || null; locationAccuracy = c.geo_zone?.accuracy_registered || null;
-        if (centerLatitude !== null) {
-            const aq = getAccuracyQuality(locationAccuracy);
-            savedCoords.innerHTML = `خط العرض: ${centerLatitude.toFixed(7)}<br>خط الطول: ${centerLongitude.toFixed(7)}<br><span style="color:${aq.color}; font-weight:700;">الدقة المحفوظة: +/- ${locationAccuracy.toFixed(1)} متر — ${aq.label}</span>`;
-            savedLocation.classList.add('visible'); accuracyPanel.classList.remove('visible'); submitBtn.disabled = false;
-        }
-        formTitle.textContent = `تعديل النسخة: v${c.version_number}`; editBadge.classList.add('visible');
-        submitBtnText.textContent = 'حفظ التعديلات'; cancelEditBtn.classList.add('visible');
-        startScanText.textContent = 'إعادة البحث عن دقة أفضل';
-        switchTab('form'); // الرجوع لتبويب النموذج تلقائياً
-        renderCobesList();
-        showToast('تم تحميل بيانات النسخة — يمكنك إعادة المسح أو الحفظ مباشرة', 'info');
+        if (centerLatitude !== null) { const aq = getAccuracyQuality(locationAccuracy); savedCoords.innerHTML = `خط العرض: ${centerLatitude.toFixed(7)}<br>خط الطول: ${centerLongitude.toFixed(7)}<br><span style="color:${aq.color}; font-weight:700;">الدقة المحفوظة: +/- ${locationAccuracy.toFixed(1)} متر — ${aq.label}</span>`; savedLocation.classList.add('visible'); accuracyPanel.classList.remove('visible'); submitBtn.disabled = false; }
+        formTitle.textContent = `تعديل النسخة: v${c.version_number}`; editBadge.classList.add('visible'); submitBtnText.textContent = 'حفظ التعديلات'; cancelEditBtn.classList.add('visible'); startScanText.textContent = 'إعادة البحث عن دقة أفضل'; switchTab('form'); renderCobesList(); showToast('تم تحميل بيانات النسخة', 'info');
     };
 
     window.cancelEdit = () => { resetForm(); showToast('تم إلغاء وضع التحرير', 'info'); };
 
     function resetForm() {
-        if (isScanning) stopScanning(); editingId = null; versionInput.value = '';
-        centerLatitude = null; centerLongitude = null; locationAccuracy = null;
-        readingsCount = 0; bestAccuracy = Infinity; bestLat = null; bestLng = null;
-        accuracyPanel.classList.remove('visible'); savedLocation.classList.remove('visible'); submitBtn.disabled = true;
-        formTitle.textContent = 'إضافة نسخة جديدة'; editBadge.classList.remove('visible');
-        submitBtnText.textContent = 'حفظ البيانات في Firebase'; cancelEditBtn.classList.remove('visible');
-        startScanText.textContent = 'بدء البحث عن أعلى دقة'; dataForm.reset(); renderCobesList();
+        if (isScanning) stopScanning(); editingId = null; versionInput.value = ''; centerLatitude = null; centerLongitude = null; locationAccuracy = null;
+        readingsCount = 0; bestAccuracy = Infinity; bestLat = null; bestLng = null; accuracyPanel.classList.remove('visible'); savedLocation.classList.remove('visible'); submitBtn.disabled = true;
+        formTitle.textContent = 'إضافة نسخة جديدة'; editBadge.classList.remove('visible'); submitBtnText.textContent = 'حفظ البيانات في Firebase'; cancelEditBtn.classList.remove('visible'); startScanText.textContent = 'بدء البحث عن أعلى دقة'; dataForm.reset(); renderCobesList();
     }
 
-    /* ===== حذف ===== */
-    window.confirmDelete = (id, version) => {
-        pendingDeleteId = id;
-        document.getElementById('confirmText').textContent = `هل أنت متأكد من حذف النطاق الجغرافي للنسخة "v${version}"؟ سيتم حذف جميع بيانات الموقع ولا يمكن التراجع.`;
-        document.getElementById('confirmOverlay').classList.add('active');
-    };
-
+    window.confirmDelete = (id, version) => { pendingDeleteId = id; document.getElementById('confirmText').textContent = `هل أنت متأكد من حذف النطاق الجغرافي للنسخة "v${version}"؟`; document.getElementById('confirmOverlay').classList.add('active'); };
     window.closeConfirm = () => { pendingDeleteId = null; document.getElementById('confirmOverlay').classList.remove('active'); };
 
     document.getElementById('btnConfirmDelete').addEventListener('click', () => {
         if (!pendingDeleteId) return; const idToDelete = pendingDeleteId; closeConfirm();
         if (editingId === idToDelete) resetForm();
-        remove(ref(database, `cobes/${idToDelete}`))
-            .then(() => showToast('تم حذف النطاق الجغرافي بنجاح', 'success'))
-            .catch(() => showToast('حدث خطأ أثناء الحذف', 'error'));
+        remove(ref(database, `cobes/${idToDelete}`)).then(() => showToast('تم الحذف بنجاح', 'success')).catch(() => showToast('خطأ أثناء الحذف', 'error'));
     });
-
     document.getElementById('confirmOverlay').addEventListener('click', (e) => { if (e.target === document.getElementById('confirmOverlay')) closeConfirm(); });
-</script>
-  <div id="ios-prompt" style="display: none; position: fixed; bottom: 20px; left: 5%; width: 90%; background: white; color: black; padding: 15px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 9999; direction: rtl; font-family: sans-serif;">
-      <div style="display: flex; align-items: center; justify-content: space-between;">
-        <div style="display: flex; align-items: center;">
-          <img src="icon.png" style="width: 40px; height: 40px; border-radius: 8px; margin-left: 10px;">
-          <div>
-            <strong style="font-size: 14px;">تثبيت تطبيق كابتن مانجمنت</strong>
-            <div style="font-size: 11px; color: #666; margin-top: 3px;">اضغط على زر <img src="https://img.icons8.com/ios/50/000000/share-rounded.png" style="width:15px; display:inline; vertical-align:middle;"> ثم <b>"إضافة إلى الشاشة الرئيسية"</b></div>
-          </div>
-        </div>
-        <button onclick="closeIosPrompt()" style="background:none; border:none; font-size: 18px; color: #999; cursor:pointer;">×</button>
-      </div>
-    </div>
 
-<script>
-  let deferredPrompt;
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-  });
-
-  const isAppInstalled = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-
-  function isIos() {
-    const userAgent = window.navigator.userAgent.toLowerCase();
-    return /iphone|ipad|ipod/.test(userAgent);
-  }
-
-  function isSafari() {
-    const userAgent = window.navigator.userAgent.toLowerCase();
-    return userAgent.includes('safari') && !userAgent.includes('chrome') && !userAgent.includes('crios');
-  }
-
-  function closeIosPrompt() {
-    document.getElementById('ios-prompt').style.display = 'none';
-    localStorage.setItem('iosPromptDismissed', 'true');
-  }
-
-  window.addEventListener('load', () => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js');
+    /* ===== سكربت تثبيت الـ PWA (مدمج هنا ليكون مع باقي السكربتات) ===== */
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; });
+    const isAppInstalled = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    function isIos() { return /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase()); }
+    function isSafari() { const ua = window.navigator.userAgent.toLowerCase(); return ua.includes('safari') && !ua.includes('chrome') && !ua.includes('crios'); }
+    window.closeIosPrompt = function() { 
+        document.getElementById('ios-prompt').style.display = 'none'; 
+        localStorage.setItem('iosPromptDismissed', 'true'); 
     }
-    const iosDismissed = localStorage.getItem('iosPromptDismissed');
-    if (isIos() && isSafari() && !isAppInstalled && !iosDismissed) {
-      document.getElementById('ios-prompt').style.display = 'block';
-    }
-  });
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').then(reg => console.log('PWA Ready!')); }
+    if (isIos() && isSafari() && !isAppInstalled && !localStorage.getItem('iosPromptDismissed')) { document.getElementById('ios-prompt').style.display = 'block'; }
+
 </script>
 </body>
 </html>

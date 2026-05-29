@@ -117,32 +117,6 @@
         /* شريط تثبيت الآيفون */
         #ios-prompt{z-index:10000}
     </style>
-    
-   <div id="ios-prompt" style="display: none; position: fixed; bottom: 80px; left: 5%; width: 90%; background: white; color: black; padding: 15px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 9999; direction: rtl; font-family: sans-serif;">
-      <div style="display: flex; align-items: center; justify-content: space-between;">
-        <div style="display: flex; align-items: center;">
-          <img src="icon.png" style="width: 40px; height: 40px; border-radius: 8px; margin-left: 10px;">
-          <div>
-            <strong style="font-size: 14px;">تثبيت تطبيق كابتن مانجمنت</strong>
-            <div style="font-size: 11px; color: #666; margin-top: 3px;">اضغط على زر <img src="https://img.icons8.com/ios/50/000000/share-rounded.png" style="width:15px; display:inline; vertical-align:middle;"> ثم <b>"إضافة إلى الشاشة الرئيسية"</b></div>
-          </div>
-        </div>
-        <button onclick="closeIosPrompt()" style="background:none; border:none; font-size: 18px; color: #999; cursor:pointer;">×</button>
-      </div>
-    </div>
-
-<script>
-  let deferredPrompt;
-  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; });
-  const isAppInstalled = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-  function isIos() { return /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase()); }
-  function isSafari() { const ua = window.navigator.userAgent.toLowerCase(); return ua.includes('safari') && !ua.includes('chrome') && !ua.includes('crios'); }
-  function closeIosPrompt() { document.getElementById('ios-prompt').style.display = 'none'; localStorage.setItem('iosPromptDismissed', 'true'); }
-  window.addEventListener('load', () => {
-    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
-    if (isIos() && isSafari() && !isAppInstalled && !localStorage.getItem('iosPromptDismissed')) document.getElementById('ios-prompt').style.display = 'block';
-  });
-</script>
 </head>
 <body>
 
@@ -634,6 +608,31 @@
     }
 
     initSystemCore();
+</script>
+     <div id="ios-prompt" style="display: none; position: fixed; bottom: 80px; left: 5%; width: 90%; background: white; color: black; padding: 15px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 9999; direction: rtl; font-family: sans-serif;">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; align-items: center;">
+          <img src="icon.png" style="width: 40px; height: 40px; border-radius: 8px; margin-left: 10px;">
+          <div>
+            <strong style="font-size: 14px;">تثبيت تطبيق كابتن مانجمنت</strong>
+            <div style="font-size: 11px; color: #666; margin-top: 3px;">اضغط على زر <img src="https://img.icons8.com/ios/50/000000/share-rounded.png" style="width:15px; display:inline; vertical-align:middle;"> ثم <b>"إضافة إلى الشاشة الرئيسية"</b></div>
+          </div>
+        </div>
+        <button onclick="closeIosPrompt()" style="background:none; border:none; font-size: 18px; color: #999; cursor:pointer;">×</button>
+      </div>
+    </div>
+
+<script>
+  let deferredPrompt;
+  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; });
+  const isAppInstalled = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  function isIos() { return /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase()); }
+  function isSafari() { const ua = window.navigator.userAgent.toLowerCase(); return ua.includes('safari') && !ua.includes('chrome') && !ua.includes('crios'); }
+  function closeIosPrompt() { document.getElementById('ios-prompt').style.display = 'none'; localStorage.setItem('iosPromptDismissed', 'true'); }
+  window.addEventListener('load', () => {
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+    if (isIos() && isSafari() && !isAppInstalled && !localStorage.getItem('iosPromptDismissed')) document.getElementById('ios-prompt').style.display = 'block';
+  });
 </script>
 </body>
 </html>

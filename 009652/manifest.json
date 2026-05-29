@@ -1,5 +1,5 @@
 {
-  "short_name": "captain-A",
+  "short_name": "Captain",
   "name": "إدارة الكابتن - Captain Management",
   "icons": [
     {
@@ -9,9 +9,9 @@
       "purpose": "any maskable"
     }
   ],
-  "start_url": "index.html",
-  "background_color": "#ffffff",
-  "theme_color": "#007fff",
+  "start_url": ".",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
   "display": "standalone",
   "orientation": "portrait"
 }

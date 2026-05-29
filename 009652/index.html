@@ -196,6 +196,22 @@
             .user-rev-grid{grid-template-columns:1fr}
         }
     </style>
+    <link rel="manifest" href="manifest.json">
+  
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="الكابتن">
+  <link rel="apple-touch-icon" href="icon.png">
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => console.log('تطبيق الكابتن جاهز ويعمل بنجاح!'))
+          .catch(err => console.log('هناك خطأ في تحميل التطبيق:', err));
+      });
+    }
+  </script>
 </head>
 <body>
 

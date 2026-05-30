@@ -143,13 +143,8 @@ export const App = {
     
     togglePassword() { 
         const inp = document.getElementById('inPass'), ico = document.getElementById('togglePass').querySelector('i'); 
-        if (inp.type === 'password') { 
-            inp.type = 'text'; 
-            ico.className = 'fas fa-eye-slash'; 
-        } else { 
-            inp.type = 'password'; 
-            ico.className = 'fas fa-eye'; 
-        } 
+        if (inp.type === 'password') { inp.type = 'text'; ico.className = 'fas fa-eye-slash'; } 
+        else { inp.type = 'password'; ico.className = 'fas fa-eye'; } 
     },
     
     startListeners() {
@@ -160,7 +155,41 @@ export const App = {
         DB.listenReadCounters(data => { state.dRead = data; this.render(); });
         DB.listenArchiveOrders(data => { state.dD = data; Ops.updateSales(); });
         DB.listenDirectOrders(() => Ops.updateSales());
-        DB.listenSessions(data => { state.dSessions = data; this.renderChips(); if (state.mySid && !state.dSessions[state.mySid]) { localStorage.removeItem('ops_session'); toast('تم تسجيل خروجك من جهاز آخر', 'te'); setTimeout(() => location.reload(), 2000); } });
+        
+        DB.listenSessions(data => { 
+            state.dSessions = data || {}; 
+            this.renderChips(); 
+            
+            if (state.mySid && !state.dSessions[state.mySid]) { 
+                localStorage.removeItem('ops_session'); 
+                toast('تم تسجيل خروجك من جهاز آخر', 'te'); 
+                setTimeout(() => location.reload(), 2000); 
+            } 
+            
+            if (state.myUser) {
+                const userStillValid = Object.values(state.dUsers).some(u => u.username === state.myUser);
+                if (!userStillValid && state.mySid) {
+                    DB.removeData('active_sessions/' + state.mySid);
+                    localStorage.removeItem('ops_session');
+                    toast('تم إلغاء صلاحياتك وتسجيل خروجك', 'te');
+                    setTimeout(() => location.reload(), 2000);
+                }
+            }
+        });
+
+        DB.listenUsers(data => { 
+            state.dUsers = data || {}; 
+            Others.syncStatsUsers(); 
+            
+            for (let sid in state.dSessions) {
+                const sessionUser = state.dSessions[sid].username;
+                const userExists = Object.values(state.dUsers).some(u => u.username === sessionUser);
+                if (!userExists) {
+                    DB.removeData('active_sessions/' + sid);
+                }
+            }
+        });
+
         DB.listenRouting(data => { if (data) state.routing = data; Others.syncPrinterSelects(); });
         DB.listenPrinters(data => { 
             state.dPrinters = data; 
@@ -173,14 +202,12 @@ export const App = {
                 state.settings = { ...state.settings, ...data }; 
                 document.getElementById('brandName').textContent = state.settings.restaurantName || 'المطعم'; 
                 Others.syncLogoDisplay(state.settings.restaurantLogo || ''); 
-                // تحميل إعدادات أزرار الطابعات من قاعدة البيانات عند التغيير
                 if (state.settings.printerButtons) {
                     this.printerSettings = state.settings.printerButtons;
                     this.updatePrinterTags();
                 }
             } 
         });
-        DB.listenUsers(data => { state.dUsers = data; Others.syncStatsUsers(); });
         DB.listenVersions(data => { state.dVersions = data; Others.loadQRVersions(); });
         DB.listenOrders(data => { state.directMenuData = data || {}; Others.renderDirectGrid(); Menu.renderMenuStructure(); });
         Others.initCaptainChat();
@@ -197,6 +224,7 @@ export const App = {
     renderChips() { 
         const c = document.getElementById('userChips'); 
         c.innerHTML = ''; 
+        if (!state.dSessions) return;
         for (let id in state.dSessions) { 
             const d = document.createElement('div'); 
             d.className = 'u-chip'; 
@@ -211,15 +239,15 @@ export const App = {
         kitchen: [],
         cashier: [],
         direct: [],
-        stats: []
+        stats: [],
+        qr: []
     },
     
     loadPrinterSettings() {
-        // جلب الإعدادات من Firebase المحفوظة مسبقاً
         if (state.settings.printerButtons) {
             this.printerSettings = state.settings.printerButtons;
+            if (!this.printerSettings.qr) this.printerSettings.qr = [];
         } else {
-            // احتياط لو كانت محفوظة محلياً من الإصدارات السابقة
             const saved = localStorage.getItem('printer_buttons_settings');
             if (saved) {
                 try { this.printerSettings = JSON.parse(saved); } catch(e) {}
@@ -229,20 +257,18 @@ export const App = {
     },
     
     savePrinterSettings() {
-        // حفظ الإعدادات في Firebase بشكل دائم
         DB.updateData('app_settings', { printerButtons: this.printerSettings }).then(() => {
             this.updatePrinterTags();
             toast('تم حفظ إعدادات الطابعات في قاعدة البيانات', 'ts');
         }).catch(() => {
-            // احتياط لو الفايربيس مغلوق
             localStorage.setItem('printer_buttons_settings', JSON.stringify(this.printerSettings));
             this.updatePrinterTags();
-            toast('تم الحفظ محلياً (لا يوجد اتصال)', 'ti');
+            toast('تم الحفظ محلياً', 'ti');
         });
     },
     
     updatePrinterTags() {
-        const buttons = ['kitchen', 'cashier', 'direct', 'stats'];
+        const buttons = ['kitchen', 'cashier', 'direct', 'stats', 'qr'];
         buttons.forEach(btn => {
             const container = document.getElementById(`${btn}Printers`);
             if (!container) return;
@@ -273,7 +299,8 @@ export const App = {
             kitchen: 'طابعات زر طباعة المطبخ',
             cashier: 'طابعات زر تسديد الحساب',
             direct: 'طابعات زر التسوق المباشر',
-            stats: 'طابعات زر الإحصائيات'
+            stats: 'طابعات زر الإحصائيات',
+            qr: 'طابعات زر الباركودات'
         };
         
         document.getElementById('printerSelectorTitle').textContent = titleMap[buttonName];
@@ -303,7 +330,7 @@ export const App = {
         }
         
         if (Object.keys(state.dPrinters).length === 0) {
-            container.innerHTML = '<p style="text-align:center;padding:20px;color:var(--text-muted);">لا توجد طابعات مضافة. قم بإضافة طابعات أولاً.</p>';
+            container.innerHTML = '<p style="text-align:center;padding:20px;color:var(--text-muted);">لا توجد طابعات مضافة.</p>';
         }
         
         document.getElementById('printerSelectorModal').classList.add('active');
@@ -313,18 +340,12 @@ export const App = {
         if (!this.currentPrinterButton) return;
         
         const checkboxes = document.querySelectorAll('#printerSelectorList input[type="checkbox"]');
-        const selectedIds = Array.from(checkboxes)
-            .filter(cb => cb.checked)
-            .map(cb => cb.value);
+        const selectedIds = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
         
         const selectedPrinters = [];
         for (let id of selectedIds) {
             if (state.dPrinters[id]) {
-                selectedPrinters.push({
-                    id: id,
-                    name: state.dPrinters[id].name,
-                    ip: state.dPrinters[id].ip
-                });
+                selectedPrinters.push({ id: id, name: state.dPrinters[id].name, ip: state.dPrinters[id].ip });
             }
         }
         
@@ -353,18 +374,13 @@ export const App = {
     },
     
     playPreview(type) {
-        if (type === 'click') {
-            playClickSnd();
-        } else {
+        if (type === 'click') { playClickSnd(); } 
+        else {
             let sound = null;
             if (type === 'order') sound = state.settings.orderSound;
             else if (type === 'msg') sound = state.settings.msgSound;
             else if (type === 'print') sound = state.settings.printSound;
-            
-            if (sound && sound !== 'off') {
-                const audio = new Audio(sound);
-                audio.play().catch(() => {});
-            }
+            if (sound && sound !== 'off') { const audio = new Audio(sound); audio.play().catch(() => {}); }
         }
     },
     
@@ -374,39 +390,28 @@ export const App = {
     sendAdminReply: Ops.sendAdminReply,
     printToKitchen: Ops.printToKitchen,
     settleInvoice: Ops.settleInvoice,
-    rePrintKitchenOrder: Ops.rePrintKitchenOrder, // دالة إعادة الطباعة الجديدة
+    rePrintKitchenOrder: Ops.rePrintKitchenOrder,
     changeSentOrderQty: Ops.changeSentOrderQty,
     deleteSentOrder: Ops.deleteSentOrder,
     
-    saveCat: Menu.saveCat,
-    editCat: Menu.editCat,
-    delCat: Menu.delCat,
-    saveItem: Menu.saveItem,
-    editItem: Menu.editItem,
-    delItem: Menu.delItem,
+    saveCat: Menu.saveCat, editCat: Menu.editCat, delCat: Menu.delCat,
+    saveItem: Menu.saveItem, editItem: Menu.editItem, delItem: Menu.delItem,
     
     generateQRCodes: Others.generateQRCodes,
     updateQRPreview: Others.updateQRPreview,
     refreshQRCards: Others.refreshQRCards,
     printQR: Others.printQR,
+    printSingleQR: Others.printSingleQR,
+    updateCaptainQR: Others.updateCaptainQR,
+    generateCaptainQR: Others.generateCaptainQR,
     
-    filterDirect: Others.filterDirect,
-    directToggle: Others.directToggle,
-    directQtyChange: Others.directQtyChange,
-    clearDirectCart: Others.clearDirectCart,
-    payDirectOrder: Others.payDirectOrder,
+    filterDirect: Others.filterDirect, directToggle: Others.directToggle, directQtyChange: Others.directQtyChange,
+    clearDirectCart: Others.clearDirectCart, payDirectOrder: Others.payDirectOrder,
     
-    addPrinter: Others.addPrinter,
-    pingP: Others.pingP,
-    delP: Others.delP,
-    previewLogo: Others.previewLogo,
-    removeLogo: Others.removeLogo,
-    saveSettings: Others.saveSettings,
+    addPrinter: Others.addPrinter, pingP: Others.pingP, delP: Others.delP,
+    previewLogo: Others.previewLogo, removeLogo: Others.removeLogo, saveSettings: Others.saveSettings,
     
-    searchStats: Others.searchStats,
-    clearStats: Others.clearStats,
-    printStatsReport: Others.printStatsReport,
-    
+    searchStats: Others.searchStats, clearStats: Others.clearStats, printStatsReport: Others.printStatsReport,
     sendCaptain: Others.sendCaptain
 };
 

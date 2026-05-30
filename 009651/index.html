@@ -94,6 +94,27 @@
         <!-- تبويب الباركود -->
         <div class="tab-panel" id="panelQR">
             <div class="section-card"><div class="sc-title"><i class="fas fa-sliders"></i> إعدادات التوليد</div><div class="form-row"><div class="fg" style="flex:2;"><label><i class="fas fa-link" style="color:var(--blue);"></i> رابط المنيو</label><input type="url" class="fi ltr" id="qrUrl" value="https://exam26p.github.io/kap/index2.html" oninput="App.updateQRPreview()"></div><div class="fg"><label><i class="fas fa-hashtag" style="color:var(--accent);"></i> الإصدار</label><select class="fi" id="qrVer"><option value="">-- اختر --</option></select></div></div><div class="qr-preview-box"><span class="qp-label"><i class="fas fa-eye"></i> معاينة:</span><span class="qp-url" id="qrPreviewUrl">-</span></div><div class="form-row"><div class="fg"><label><i class="fas fa-arrow-right-to-bracket" style="color:var(--purple);"></i> من طاولة</label><input type="number" class="fi" id="qrFrom" value="1" min="1" oninput="App.updateQRPreview()"></div><div class="fg"><label><i class="fas fa-arrow-right-from-bracket" style="color:var(--purple);"></i> إلى طاولة</label><input type="number" class="fi" id="qrTo" value="200" min="1" oninput="App.updateQRPreview()"></div><div class="fg" style="flex:0 0 auto;"><label>&nbsp;</label><div style="display:flex;gap:6px;align-items:center;"><input type="checkbox" id="qrShowVer" checked style="accent-color:var(--accent);width:16px;height:16px;cursor:pointer;" onchange="App.updateQRPreview()"><label for="qrShowVer" style="margin:0;font-size:12px;white-space:nowrap;">الإصدار</label></div></div><div class="fg" style="flex:0 0 auto;"><label>&nbsp;</label><div style="display:flex;gap:6px;align-items:center;"><input type="checkbox" id="qrShowHint" checked style="accent-color:var(--accent);width:16px;height:16px;cursor:pointer;"><label for="qrShowHint" style="margin:0;font-size:12px;white-space:nowrap;">نص المسح</label></div></div><div class="fg" style="flex:0 0 auto;min-width:70px;"><label>الأعمدة</label><input type="number" class="fi" id="qrCols" value="4" min="2" max="6"></div></div><div class="progress-wrap" id="qrProgress"><div class="progress-info"><span id="qrProgText">جاري المعالجة...</span><span id="qrProgPct">0%</span></div><div class="progress-track"><div class="progress-fill" id="qrProgFill"></div></div></div><button class="btn-primary" id="qrGenBtn" onclick="App.generateQRCodes()" style="margin-top:12px;width:100%;justify-content:center;"><i class="fas fa-bolt"></i> إنشاء الباركودات</button></div>
+            
+            <!-- === الإضافة الجديدة: حقل باركود الكابتن === -->
+            <div class="section-card" style="margin-top:18px;">
+                <div class="sc-title"><i class="fas fa-headset" style="color:var(--purple);"></i> باركود الكابتن</div>
+                <div class="form-row" style="align-items:flex-end;">
+                    <div class="fg" style="flex:2;">
+                        <label><i class="fas fa-user-tie" style="color:var(--purple);"></i> رابط صفحة الكابتن</label>
+                        <input type="url" class="fi ltr" id="qrCaptainUrl" placeholder="https://example.com/captain" oninput="App.updateCaptainQR()">
+                    </div>
+                    <div style="padding-bottom:2px;">
+                        <button class="btn-primary" style="background:var(--purple);justify-content:center;white-space:nowrap;" onclick="App.generateCaptainQR()"><i class="fas fa-qrcode"></i> توليد باركود الكابتن</button>
+                    </div>
+                </div>
+                <div class="qr-preview-box">
+                    <span class="qp-label"><i class="fas fa-eye"></i> معاينة:</span>
+                    <span class="qp-url" id="qrCaptainPreviewUrl">-</span>
+                </div>
+            </div>
+            <div id="captainQrContainer" class="qrs-grid c1" style="margin-top:20px; justify-content:center;"></div>
+            <!-- ========================================= -->
+
             <div class="qr-tools" id="qrTools" style="display:none;margin-bottom:18px;gap:10px;justify-content:center;flex-wrap:wrap;"><button class="btn-primary btn-green" onclick="App.printQR()"><i class="fas fa-print"></i> طباعة</button><button class="btn-secondary" onclick="App.refreshQRCards()"><i class="fas fa-arrows-rotate"></i> تحديث</button></div>
             <div class="qrs-grid c4" id="qrsGrid"></div>
         </div>
@@ -197,6 +218,17 @@
                                 </button>
                             </div>
                             <div class="selected-printers" id="statsPrinters"></div>
+                        </div>
+
+                        <div class="print-button-config" data-button="qr">
+                            <div class="config-header">
+                                <i class="fas fa-qrcode"></i>
+                                <span>زر الباركودات</span>
+                                <button type="button" class="btn-secondary btn-sm" onclick="App.openPrinterSelector('qr')">
+                                    <i class="fas fa-plus"></i> تعيين الطابعات
+                                </button>
+                            </div>
+                            <div class="selected-printers" id="qrPrinters"></div>
                         </div>
                     </div>
                 </div>

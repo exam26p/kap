@@ -412,7 +412,9 @@ export const App = {
     previewLogo: Others.previewLogo, removeLogo: Others.removeLogo, saveSettings: Others.saveSettings,
     
     searchStats: Others.searchStats, clearStats: Others.clearStats, printStatsReport: Others.printStatsReport,
-    sendCaptain: Others.sendCaptain
+    sendCaptain: Others.sendCaptain,
+    
+    loadWindowsPrinters: Others.loadWindowsPrinters
 };
-loadWindowsPrinters: Others.loadWindowsPrinters,
+
 window.App = App;

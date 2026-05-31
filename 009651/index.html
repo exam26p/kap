@@ -168,7 +168,12 @@
                 </div>
                 
                 <div class="setting-group"><div class="sg-title"><i class="fas fa-print"></i> الطابعات</div>
-                    <div class="form-row" style="margin-bottom:14px;"><div class="fg"><input type="text" class="fi" id="pName" placeholder="اسم الطابعة"></div><div class="fg"><input type="text" class="fi ltr" id="pIP" placeholder="عنوان IP"></div><div style="display:flex;align-items:flex-end;"><button class="btn-primary btn-sm btn-purple" onclick="App.addPrinter()"><i class="fas fa-plus"></i> إضافة</button></div></div>
+                    <div class="form-row" style="margin-bottom:14px;"><div class="fg"><input type="text" class="fi" id="pName" placeholder="اسم الطابعة"></div><div class="fg">
+    <label><i class="fas fa-print" style="color:var(--accent);"></i> اختر الطابعة</label>
+    <select class="fi ltr" id="pIP" style="direction:rtl; text-align:right;">
+        <option value="">جاري التحميل...</option>
+    </select>
+</div><div style="display:flex;align-items:flex-end;"><button class="btn-primary btn-sm btn-purple" onclick="App.addPrinter()"><i class="fas fa-plus"></i> إضافة</button></div></div>
                     <div id="printersList"></div>
                 </div>
                 

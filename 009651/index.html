@@ -357,7 +357,10 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script type="module">
-    import { App } from './app.js';
+    // إضافة ?v=2 لإجبار المتصفح على تحميل أحدث نسخة وتجاهل الكاش
+    import { App } from './app.js?v=2';
+    import './panelOps.js?v=2'; 
+    import './panelOthers.js?v=2';
     App.init();
     window.App = App;
 </script>

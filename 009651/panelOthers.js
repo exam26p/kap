@@ -287,10 +287,86 @@ export async function payDirectOrder() {
 // ===== الإعدادات =====
 export function syncPrinterSelects() { const selectIds = ['rKitchen', 'rCashier', 'stPrinter', 'directPrinter']; selectIds.forEach(sid => { const el = document.getElementById(sid); if (!el) return; const cv = el.value; el.innerHTML = '<option value="">-- اختر طابعة --</option>'; for (let id in state.dPrinters) { el.innerHTML += '<option value="' + state.dPrinters[id].ip + '">' + state.dPrinters[id].name + ' (' + state.dPrinters[id].ip + ')</option>'; } el.value = cv; }); if (document.getElementById('rKitchen')) document.getElementById('rKitchen').value = state.routing.kitchenPrinterIp; if (document.getElementById('rCashier')) document.getElementById('rCashier').value = state.routing.cashierPrinterIp; } 
 
-export function renderPrinters() { const c = document.getElementById('printersList'); if (!c) return; if (!Object.keys(state.dPrinters).length) { c.innerHTML = '<p style="color:var(--text-muted);font-size:12px;text-align:center;padding:12px;">لا توجد طابعات.</p>'; return; } c.innerHTML = ''; for (let id in state.dPrinters) { c.innerHTML += '<div class="printer-row">' + '<div style="color:var(--text-secondary);font-size:13px;">' + '<i class="fas fa-print" style="color:var(--accent);margin-left:8px;"></i>' + '<b>' + state.dPrinters[id].name + '</b> ' + '<span style="color:var(--text-muted);">(' + state.dPrinters[id].ip + ')</span>' + '</div>' + '<div style="display:flex;gap:8px;">' + '<button class="btn-secondary btn-sm" onclick="App.pingP(\'' + state.dPrinters[id].ip + '\')"><i class="fas fa-wifi"></i> فحص</button>' + '<button class="btn-secondary btn-sm btn-red" onclick="App.delP(\'' + id + '\')"><i class="fas fa-trash"></i></button>' + '</div>' + '</div>'; } } 
+export function renderPrinters() { 
+    const c = document.getElementById('printersList'); 
+    if (!c) return; 
+    if (!Object.keys(state.dPrinters).length) { 
+        c.innerHTML = '<p style="color:var(--text-muted);font-size:12px;text-align:center;padding:12px;">لا توجد طابعات.</p>'; 
+        return; 
+    } 
+    c.innerHTML = ''; 
+    for (let id in state.dPrinters) { 
+        // سنستخدم state.dPrinters[id].ip كـ "اسم الطابعة" لأننا حفظنا الاسم فيه مسبقاً
+        const pName = state.dPrinters[id].name;
+        const pIdentifier = state.dPrinters[id].ip; // هذا الآن يحتوي على اسم طابعة الويندوز
+        
+        c.innerHTML += '<div class="printer-row">' + 
+            '<div style="color:var(--text-secondary);font-size:13px;">' + 
+            '<i class="fas fa-print" style="color:var(--accent);margin-left:8px;"></i>' + 
+            '<b>' + pName + '</b> ' + 
+            '<span style="color:var(--text-muted);">(' + pIdentifier + ')</span>' + 
+            '</div>' + 
+            '<div style="display:flex;gap:8px;">' + 
+            '<button class="btn-secondary btn-sm" onclick="App.pingP(\'' + pIdentifier + '\')"><i class="fas fa-wifi"></i> فحص</button>' + 
+            '<button class="btn-secondary btn-sm btn-red" onclick="App.delP(\'' + id + '\')"><i class="fas fa-trash"></i></button>' + 
+            '</div>' + 
+            '</div>'; 
+    } 
+} 
+export function pingP(printerName) { 
+    fetch('http://localhost:5000/api/ping-printer', { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify({ printerName: printerName }) // نرسل اسم الطابعة بدل IP
+    }) 
+    .then(r => r.json()) 
+    .then(d => toast('[' + printerName + ']: ' + d.message, d.message.includes('متصل') || d.message.includes('جاهزة') ? 'ts' : 'te')) 
+    .catch(() => toast('تعذر الاتصال بسيرفر الطباعة', 'te')); 
+} 
+export async function addPrinter() { 
+    const n = document.getElementById('pName').value.trim();
+    const printerSelect = document.getElementById('pIP'); // سنستخدم نفس الحقل مؤقتاً كقائمة منسدلة
+    const selectedPrinter = printerSelect.value;
+    
+    if (!n || !selectedPrinter) { 
+        toast('أدخل اسم الطابعة واختر الطابعة من القائمة', 'te'); 
+        return; 
+    } 
+    
+    // حفظ اسم الطابعة في قاعدة البيانات بدلاً من الـ IP
+    DB.pushData('printers_config', { name: n, ip: selectedPrinter, isWindowsPrinter: true }).then(() => { 
+        document.getElementById('pName').value = ''; 
+        toast('تمت إضافة الطابعة', 'ts'); 
+    }); 
+} 
 
-export function pingP(ip) { fetch('http://localhost:5000/api/ping-printer', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ip }) }).then(r => r.json()).then(d => toast('[' + ip + ']: ' + d.message, d.message.includes('متصل') ? 'ts' : 'te')).catch(() => toast('تعذر الاتصال بسيرفر الطباعة', 'te')); } 
-export function addPrinter() { const n = document.getElementById('pName').value.trim(), ip = document.getElementById('pIP').value.trim(); if (!n || !ip) { toast('أدخل اسم الطابعة والـ IP', 'te'); return; } DB.pushData('printers_config', { name: n, ip }).then(() => { document.getElementById('pName').value = ''; document.getElementById('pIP').value = ''; toast('تمت إضافة الطابعة', 'ts'); }); } 
+// دالة جديدة لجلب طابعات الويندوز عند فتح تبويب الإعدادات
+export async function loadWindowsPrinters() {
+    const select = document.getElementById('pIP');
+    if (!select) return;
+    
+    select.innerHTML = '<option value="">جاري تحميل الطابعات...</option>';
+    
+    try {
+        const response = await fetch('http://localhost:5000/api/get-printers');
+        const data = await response.json();
+        
+        if (data.status === 'success' && data.printers.length > 0) {
+            select.innerHTML = '<option value="">-- اختر طابعة --</option>';
+            data.printers.forEach(printer => {
+                const option = document.createElement('option');
+                option.value = printer;
+                option.textContent = printer;
+                select.appendChild(option);
+            });
+        } else {
+            select.innerHTML = '<option value="">لا توجد طابعات متاحة</option>';
+        }
+    } catch (err) {
+        console.error('خطأ في جلب الطابعات:', err);
+        select.innerHTML = '<option value="">خطأ في الاتصال بالسيرفر</option>';
+    }
+}
 export function delP(id) { if (confirm('حذف هذه الطابعة؟')) DB.removeData('printers_config/' + id); } 
 
 export function previewLogo(input) { if (!input.files || !input.files[0]) return; const file = input.files[0]; const reader = new FileReader(); reader.onload = e => { const img = new Image(); img.onload = () => { const cv = document.createElement('canvas'); const maxSize = 200; let w = img.width, h = img.height; if (w > maxSize || h > maxSize) { if (w > h) { h = Math.round(h * maxSize / w); w = maxSize; } else { w = Math.round(w * maxSize / h); h = maxSize; } } cv.width = w; cv.height = h; cv.getContext('2d').drawImage(img, 0, 0, w, h); state.pendingLogoData = cv.toDataURL('image/jpeg', 0.8); syncLogoDisplay(state.pendingLogoData); }; img.src = e.target.result; }; reader.readAsDataURL(file); } 
@@ -318,6 +394,8 @@ export function loadSettingsUI() {
         }
     }
     updateQRPreview();
+    
+    loadWindowsPrinters(); // جلب طابعات الويندوز لملء القائمة المنسدلة
 } 
 
 function generateCaptainQRAuto(url) { 

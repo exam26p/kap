@@ -1,557 +1,241 @@
 import { state } from './state.js';
 import * as DB from './db.js';
-import { fmt, playClickSnd, playOnce, toast, drawDash, inRange } from './utils.js';
-import * as Ops from './panelOps.js';
+import { fmt, sameDay, playClickSnd, playOnce, alarmOrder, alarmMsg, toast, drawDash } from './utils.js';
 
-// متغير لتتبع آخر رسالة وصولاً لمنع تكرار التنبيه
-let lastCaptainMsgKey = null;
-
-// ===== الباركود =====
-export function loadQRVersions() {
-    const sel = document.getElementById('qrVer'); 
-    if (!sel) return; 
-    const cv = sel.value; 
-    sel.innerHTML = '<option value="">-- اختر --</option>'; 
-    if (state.myVersion) { 
-        const o = document.createElement('option'); 
-        o.value = state.myVersion; 
-        o.textContent = 'v' + state.myVersion; 
-        sel.appendChild(o); 
-    } 
-    if (state.myVersion) sel.value = state.myVersion; 
-    updateQRPreview(); 
+export function renderGrid() {
+    const g = document.getElementById('tablesGrid'); g.innerHTML = '';
+    let occ = 0, cook = 0, unread = 0, po = false, pm = false, arr = [];
+    Object.keys(state.dA).forEach(k => {
+        const tn = state.dA[k].table_number;
+        const cB = state.dB[k] && state.dB[k].sent_orders ? Object.keys(state.dB[k].sent_orders).length : 0;
+        const cC = state.dC[k] && state.dC[k].processing_orders ? Object.keys(state.dC[k].processing_orders).length : 0;
+        const tm = state.dMsgA[k] ? Object.keys(state.dMsgA[k]).length : 0;
+        const lr = state.dRead[k] || 0; const um = tm > lr ? (tm - lr) : 0;
+        if (cB > 0) po = true; if (um > 0) pm = true; if ((cB + cC) > 0) occ++; cook += cC; unread += um;
+        arr.push({ k, tn, cB, cC, um, pri: (cB * 500) + (um * 200) + cC });
+    });
+    document.getElementById('qsOcc').innerText = occ; document.getElementById('qsCook').innerText = cook; document.getElementById('qsMsg').innerText = unread;
+    const badge = document.getElementById('badgeOps'); const total = occ + unread;
+    if (total > 0) { badge.textContent = total; badge.classList.add('show'); } else badge.classList.remove('show');
+    alarmOrder(po); alarmMsg(pm);
+    arr.sort((a, b) => b.pri - a.pri || parseInt(a.tn) - parseInt(b.tn));
+    arr.forEach(t => {
+        const c = document.createElement('div'); c.className = 't-card ' + ((t.cB + t.cC) > 0 ? 'occupied' : '');
+        c.onclick = () => openDetail(t.tn);
+        c.innerHTML = '<h3>طاولة ' + t.tn + '</h3><div class="t-badges">' +
+            (t.cB > 0 ? '<div class="t-badge b-b"><span>📥 وارد:</span><span>' + t.cB + '</span></div>' : '') +
+            (t.cC > 0 ? '<div class="t-badge b-c"><span>🍳 مطبخ:</span><span>' + t.cC + '</span></div>' : '') +
+            (t.um > 0 ? '<div class="t-badge b-m"><span>💬 رسالة:</span><span>' + t.um + '</span></div>' : '') + '</div>';
+        g.appendChild(c);
+    });
 }
 
-export function updateQRPreview() { 
-    const base = document.getElementById('qrUrl').value.trim(), 
-          ver = document.getElementById('qrVer').value, 
-          from = parseInt(document.getElementById('qrFrom').value) || 1, 
-          showV = document.getElementById('qrShowVer').checked, 
-          el = document.getElementById('qrPreviewUrl'); 
-    if (!base) { el.textContent = '-'; return; } 
-    let url = base + '?table=' + from; 
-    if (showV && ver) url += '&version=' + ver;  
-    el.textContent = url;  
-} 
+export function openDetail(tn) { playClickSnd(); state.activeTable = tn; document.getElementById('detailPanel').classList.add('show'); renderDetail(); listenChat(tn); markRead(tn); }
+export function closeDetail() { state.activeTable = null; document.getElementById('detailPanel').classList.remove('show'); }
 
-export function updateCaptainQR() { 
-    const captainUrl = document.getElementById('qrCaptainUrl').value.trim();
-    const captainPreviewUrl = document.getElementById('qrCaptainPreviewUrl');
-    
-    if (!captainUrl) { 
-        captainPreviewUrl.textContent = '-'; 
-        return; 
-    } 
-    captainPreviewUrl.textContent = captainUrl; 
-} 
+export function markRead(tn) { const k = 'table_' + tn, ct = state.dMsgA[k] ? Object.keys(state.dMsgA[k]).length : 0; if (ct !== (state.dRead[k] || 0)) DB.setData('read_counters/' + k, ct); }
 
-export async function generateCaptainQR() { 
-    playOnce('print'); 
-    const captainUrl = document.getElementById('qrCaptainUrl').value.trim();
+export function renderDetail() {
+    const tn = state.activeTable; if (!tn) return;
+    document.getElementById('dpTitle').innerHTML = '<i class="fas fa-file-invoice"></i> فاتورة طاولة [ ' + tn + ' ]';
+    const k = 'table_' + tn; let total = 0;
+
+    const bB = document.getElementById('dpBoxB'), oB = state.dB[k] && state.dB[k].sent_orders ? state.dB[k].sent_orders : null;
+    bB.innerHTML = ''; 
     
-    if (!captainUrl) { 
-        toast('أدخل رابط صفحة الكابتن', 'te'); 
-        return; 
-    } 
-    
-    try {
-        await DB.updateData('app_settings', { captainQrUrl: captainUrl });
-        state.settings.captainQrUrl = captainUrl;
-    } catch(e) {
-        toast('خطأ في حفظ رابط الكابتن', 'te');
-        return;
+    if (oB) { 
+        for (let id in oB) { 
+            const s = oB[id].price * oB[id].quantity; 
+            total += s; 
+            bB.innerHTML += `
+                <div class="inv-row" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px; padding:8px; background:var(--bg-input); border-radius:8px; border:1px solid var(--border);">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1;">
+                        <span style="font-weight:700;">${oB[id].name}</span>
+                        <div style="display:flex; align-items:center; gap:4px;">
+                            <button class="btn-secondary btn-sm" style="padding:2px 8px; font-size:14px;" onclick="App.changeSentOrderQty('${k}','${id}',-1)">−</button>
+                            <span style="font-weight:900; min-width:20px; text-align:center;">${oB[id].quantity}</span>
+                            <button class="btn-secondary btn-sm" style="padding:2px 8px; font-size:14px;" onclick="App.changeSentOrderQty('${k}','${id}',1)">+</button>
+                        </div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span style="color:var(--red); font-weight:700;">${fmt(s)} د.ع</span>
+                        <button class="btn-secondary btn-sm btn-red" onclick="App.deleteSentOrder('${k}','${id}')"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>`; 
+        } 
+    } else { 
+        bB.innerHTML = '<p>لا توجد طلبات جديدة.</p>'; 
     }
 
-    const grid = document.getElementById('captainQrContainer');
-    grid.innerHTML = ''; 
+    const bC = document.getElementById('dpBoxC'), oC = state.dC[k] && state.dC[k].processing_orders ? state.dC[k].processing_orders : null;
+    bC.innerHTML = ''; 
     
-    const c = document.createElement('div'); 
-    c.className = 'qr-card'; 
-    let h = '<div class="qn" style="background:var(--purple);">كابتن</div><div class="ql">الكابتن</div>'; 
-    h += '<div id="qr_captain"></div>'; 
-    h += '<div class="qh">امسح الباركود لإدارة الطاولات</div>'; 
-    h += `<div style="margin-top:8px;"><button class="btn-primary btn-sm" style="background:var(--purple);" onclick="App.printSingleQR('captain')"><i class="fas fa-print"></i> طباعة باركود الكابتن</button></div>`;
-    c.innerHTML = h; 
-    grid.appendChild(c); 
-    
-    new QRCode(document.getElementById('qr_captain'), { 
-        text: captainUrl, 
-        width: 160, 
-        height: 160, 
-        colorDark: '#000000', 
-        colorLight: '#ffffff', 
-        correctLevel: QRCode.CorrectLevel.H 
-    }); 
-    
-    toast('تم إنشاء باركود الكابتن وحفظ الرابط', 'ts'); 
+    if (oC) { 
+        for (let id in oC) { 
+            const s = oC[id].price * oC[id].quantity; 
+            total += s; 
+            bC.innerHTML += '<div class="inv-row"><span>' + oC[id].name + ' (x' + oC[id].quantity + ')</span><span style="color:var(--blue);">' + fmt(s) + ' د.ع</span></div>'; 
+        } 
+        bC.innerHTML += '<div style="margin-top:14px; text-align:center;"><button class="btn-secondary btn-sm" onclick="App.rePrintKitchenOrder()"><i class="fas fa-print"></i> إعادة طباعة بون المطبخ</button></div>';
+    } else { 
+        bC.innerHTML = '<p>لا توجد وجبات في المطبخ.</p>'; 
+    }
+
+    document.getElementById('dpTotal').textContent = 'الإجمالي: ' + fmt(total) + ' دينار';
 }
 
-export async function generateQRCodes() { 
-    playOnce('print'); 
-    const base = document.getElementById('qrUrl').value.trim(), ver = document.getElementById('qrVer').value; 
-    const from = parseInt(document.getElementById('qrFrom').value) || 1, to = parseInt(document.getElementById('qrTo').value) || from, showV = document.getElementById('qrShowVer').checked, showH = document.getElementById('qrShowHint').checked; 
-    if (!base) { toast('أدخل رابط المنيو', 'te'); return; }  
-    
-    try {
-        await DB.updateData('app_settings', { menuQrUrl: base });
-        state.settings.menuQrUrl = base;
-    } catch(e) {
-        console.error("خطأ في حفظ رابط المنيو:", e);
-    }
+function listenChat(tn) {
+    const box = document.getElementById('dpChatMsgs'), k = 'table_' + tn;
+    DB.listenTableChat(k, (dataA, dataB) => {
+        box.innerHTML = ''; let m = [];
+        if (dataA) Object.values(dataA).forEach(x => { x.src = 'client'; m.push(x); });
+        if (dataB) Object.values(dataB).forEach(x => { x.src = 'admin'; m.push(x); });
+        m.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+        if (!m.length) { box.innerHTML = '<p style="color:var(--text-muted);font-size:11px;text-align:center;padding:8px;">لا توجد رسائل.</p>'; return; }
+        m.forEach(x => { box.innerHTML += '<div class="cm ' + (x.src === 'client' ? 'from-client' : 'from-admin') + '">' + x.text + '</div>'; });
+        box.scrollTop = box.scrollHeight;
+    });
+}
 
-    const total = Math.max(0, to - from + 1), btn = document.getElementById('qrGenBtn');  
-    if (total <= 0 || total > 999) { toast('عدد الطاولات غير صحيح', 'te'); return; } 
-    btn.disabled = true;  
-    const pw = document.getElementById('qrProgress'); pw.classList.add('show'); 
-    const grid = document.getElementById('qrsGrid'); grid.innerHTML = ''; state.qrData = []; 
-    const lb = document.getElementById('loadBg'); lb.classList.add('open'); 
-    for (let i = 0; i < total; i++) {  
-        const tn = from + i, url = base + '?table=' + tn + (ver ? '&version=' + ver : '');  
-        try { 
-            await DB.setData('tablesA/table_' + tn, { table_number: tn, qr_link: url, version_number: ver || null, status: 'active', created_at: new Date().toISOString() }); 
-            state.qrData.push({ tn, url, ver, showV, showH }); makeQR(tn, url, ver, showV, showH); 
-        } catch (e) { } 
-        const pct = Math.round(((i + 1) / total) * 100); 
-        document.getElementById('qrProgFill').style.width = pct + '%'; 
-        document.getElementById('qrProgPct').textContent = pct + '%'; 
-        document.getElementById('qrProgText').textContent = 'تم ' + (i + 1) + ' من ' + total; 
-        document.getElementById('loadCount').textContent = (i + 1) + ' / ' + total; 
-        if ((i + 1) % 20 === 0) await new Promise(r => setTimeout(r, 50)); 
-    } 
-    lb.classList.remove('open'); document.getElementById('qrTools').style.display = 'flex'; btn.disabled = false; toast('تم إنشاء ' + total + ' باركود', 'ts'); 
-} 
+export function sendAdminReply() { const i = document.getElementById('dpChatIn'), t = i.value.trim(); if (!t || !state.activeTable) return; playClickSnd(); DB.pushData('msgB/table_' + state.activeTable, { text: t, timestamp: new Date().toISOString() }); i.value = ''; }
 
-function makeQR(tn, url, ver, showV, showH) { 
-    const c = document.createElement('div'); c.className = 'qr-card'; 
-    let h = '<div class="qn">' + tn + '</div><div class="ql">طاولة</div>'; 
-    if (showV && ver) h += '<div class="qv">v' + ver + '</div>'; 
-    h += '<div id="qr_' + tn + '"></div>'; 
-    if (showH) h += '<div class="qh">امسح الباركود للطلب</div>'; 
-    h += `<div style="margin-top:8px;"><button class="btn-primary btn-sm" onclick="App.printSingleQR('${tn}')"><i class="fas fa-print"></i> طباعة</button></div>`;
-    c.innerHTML = h; document.getElementById('qrsGrid').appendChild(c); 
-    new QRCode(document.getElementById('qr_' + tn), { text: url, width: 140, height: 140, colorDark: '#000000', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.H }); 
-} 
+function buildReceiptCanvas(cfg) {
+    const PW = 550, ML = 11; const hasLogo = !!(state.settings.restaurantLogo && state.settings.restaurantLogo.length > 20); const hasQR = !!(state.settings.invoiceQrUrl && state.settings.invoiceQrUrl.trim()) && cfg.final; const ti = cfg.items ? cfg.items.length : 0; const qrPx = 180, logoPx = 160; let y = ML * 3; if (hasLogo) y += logoPx + ML * 2; y += ML * 5.5 + ML * 4.5 + ML * 2 + ML * 4.5 + ML * 4 + ML * 2 + ML * 4 + ML * 2.5 + ti * (ML * 6.5); if (cfg.final) y += ML * 3 + ML * 6; y += ML * 4; if (hasQR) y += ML * 2 + qrPx + ML * 2; y += ML * 3; const cv = document.createElement('canvas'); cv.width = PW; cv.height = Math.max(y, ML * 20); const cx = cv.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, PW, cv.height); y = ML * 3; if (hasLogo) { try { const img = new Image(); img.src = state.settings.restaurantLogo; cx.drawImage(img, (PW - logoPx) / 2, y, logoPx, logoPx); y += logoPx + ML * 2; } catch (e) { } } cx.textBaseline = 'middle'; cx.textAlign = 'center'; cx.fillStyle = '#000'; cx.font = 'bold 32px "Segoe UI",Tahoma,sans-serif'; cx.fillText(state.settings.restaurantName || 'المطعم', PW / 2, y); y += ML * 5.5; cx.font = '18px "Segoe UI",Tahoma,sans-serif'; cx.fillStyle = '#444'; cx.fillText(cfg.welcome || 'شكراً لزيارتكم', PW / 2, y); y += ML * 4.5; drawDash(cx, ML * 3, PW - ML * 3, y); y += ML * 2; cx.font = 'bold 26px "Segoe UI",Tahoma,sans-serif'; cx.fillStyle = '#000'; cx.fillText(cfg.title, PW / 2, y); y += ML * 4.5; cx.font = '18px "Segoe UI",Tahoma,sans-serif'; cx.fillStyle = '#222'; cx.fillText('طاولة: [' + cfg.tableNum + ']   ' + cfg.dt + '   ' + cfg.cashier, PW / 2, y); y += ML * 4; drawDash(cx, ML * 3, PW - ML * 3, y); y += ML * 2; cx.font = 'bold 22px "Segoe UI",Tahoma,sans-serif'; cx.fillStyle = '#000'; cx.textAlign = 'right'; cx.fillText('المادة', PW - ML * 3, y); cx.textAlign = 'center'; cx.fillText('العدد', PW / 2 + 15, y); if (cfg.final) { cx.textAlign = 'left'; cx.fillText('السعر', ML * 3, y); } y += ML * 4; drawDash(cx, ML * 3, PW - ML * 3, y, 1); y += ML * 2.5; cx.font = '20px "Segoe UI",Tahoma,sans-serif'; cfg.items.forEach(i => { cx.textAlign = 'right'; cx.fillStyle = '#000'; let nm = i.name; let maxW = (cfg.final ? PW * 0.55 : PW * 0.75); if (cx.measureText(nm).width > maxW) { while (cx.measureText(nm + '…').width > maxW && nm.length > 1) { nm = nm.slice(0, -1); } nm += '…'; } cx.fillText(nm, PW - ML * 3, y); cx.textAlign = 'center'; cx.fillStyle = '#222'; cx.fillText('x' + i.qty, PW / 2 + 15, y); if (cfg.final) { cx.textAlign = 'left'; cx.fillStyle = '#000'; cx.fillText(fmt(i.price * i.qty), ML * 3, y); } y += ML * 3.5; cx.strokeStyle = '#eee'; cx.lineWidth = 0.5; cx.setLineDash([3, 3]); cx.beginPath(); cx.moveTo(ML * 3, y); cx.lineTo(PW - ML * 3, y); cx.stroke(); cx.setLineDash([]); y += ML * 3; }); if (cfg.final) { cx.strokeStyle = '#000'; cx.lineWidth = 2; cx.setLineDash([]); cx.beginPath(); cx.moveTo(ML * 3, y); cx.lineTo(PW - ML * 3, y); cx.stroke(); y += ML * 5; cx.font = 'bold 30px "Segoe UI",Tahoma,sans-serif'; cx.fillStyle = '#000'; cx.textAlign = 'right'; cx.fillText('المجموع:', PW - ML * 3, y); cx.textAlign = 'left'; cx.fillText(fmt(cfg.total) + ' دينار', ML * 3, y); y += ML * 6; } cx.strokeStyle = '#000'; cx.lineWidth = 1; cx.setLineDash([]); cx.beginPath(); cx.moveTo(ML * 3, y); cx.lineTo(PW - ML * 3, y); cx.stroke(); y += ML * 4; if (hasQR) { try { const qrDiv = document.createElement('div'); new QRCode(qrDiv, { text: state.settings.invoiceQrUrl, width: qrPx, height: qrPx, colorDark: '#000', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.M }); const qrC = qrDiv.querySelector('canvas'); if (qrC) { cx.drawImage(qrC, (PW - qrPx) / 2, y, qrPx, qrPx); y += qrPx + ML * 2; } } catch (e) { y += qrPx; } } return cv;
+}
 
-export function refreshQRCards() { 
-    const showV = document.getElementById('qrShowVer').checked, showH = document.getElementById('qrShowHint').checked, cols = parseInt(document.getElementById('qrCols').value) || 4; 
-    document.getElementById('qrsGrid').className = 'qrs-grid c' + Math.min(cols, 4); document.getElementById('qrsGrid').innerHTML = ''; state.qrData.forEach(d => makeQR(d.tn, d.url, d.ver, showV, showH)); toast('تم تحديث العرض', 'ts'); 
-} 
-
-export function printSingleQR(tn) {
-    playOnce('print');
-    
-    const printers = window.App.getButtonPrinters('qr');
-    if (printers.length === 0) {
-        toast('الرجاء تعيين طابعة لزر الباركودات في الإعدادات', 'te');
-        return;
-    }
-
-    let qrUrl = '';
-    let qvText = '';
-    let targetCard = null;
-
-    if (tn === 'captain') {
-        qrUrl = state.settings.captainQrUrl || '';
-        if (!qrUrl) { toast('لم يتم حفظ رابط الكابتن بعد', 'te'); return; }
-        targetCard = document.querySelector('#captainQrContainer .qr-card');
-    } else {
-        const allCards = document.querySelectorAll('#qrsGrid .qr-card');
-        allCards.forEach(c => {
-            if (c.querySelector('.qn')?.textContent === String(tn)) {
-                targetCard = c;
-            }
-        });
-        const qrUrlData = state.qrData.find(q => q.tn == tn);
-        qrUrl = qrUrlData ? qrUrlData.url : '';
-        qvText = targetCard?.querySelector('.qv')?.textContent || '';
-    }
-
-    if (!targetCard) { toast('لم يتم العثور على الباركود', 'te'); return; }
-
-    const PW = 550;
-    const cv = document.createElement('canvas');
-    const cx = cv.getContext('2d');
-    cv.width = PW;
-    cv.height = 600;
-
-    cx.fillStyle = '#ffffff';
-    cx.fillRect(0, 0, PW, cv.height);
-
-    cx.fillStyle = '#000000';
-    cx.font = 'bold 40px "Segoe UI",Tahoma,sans-serif';
-    cx.textAlign = 'center';
-    cx.textBaseline = 'middle';
-    
-    if (tn === 'captain') {
-        cx.fillText('الكابتن', PW / 2, 45);
-    } else {
-        cx.fillText('طاولة ' + tn, PW / 2, 45);
-    }
-
-    if (qvText) {
-        cx.font = '22px "Segoe UI",Tahoma,sans-serif';
-        cx.fillStyle = '#444444';
-        cx.fillText(qvText, PW / 2, 85);
-    }
-
-    if (qrUrl) {
-        const tempDiv = document.createElement('div');
+async function printToSelectedPrinters(printers, cfg) {
+    const cv = buildReceiptCanvas(cfg);
+    const imgData = cv.toDataURL('image/jpeg', 0.85);
+    let successCount = 0;
+    let failCount = 0;
+    toast(`جاري الطباعة على ${printers.length} طابعة...`, 'ti');
+    for (const printer of printers) {
         try {
-            new QRCode(tempDiv, {
-                text: qrUrl,
-                width: 350,
-                height: 350,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
+            const response = await fetch('http://127.0.0.1:5000/print-receipt', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ printerName: printer.ip, image: imgData }) 
             });
-            
-            const waitForQR = new Promise(resolve => {
-                setTimeout(() => {
-                    const tempCanvas = tempDiv.querySelector('canvas');
-                    if (tempCanvas) {
-                        const xQr = (PW - 350) / 2;
-                        cx.drawImage(tempCanvas, xQr, 100, 350, 350); 
-                    }
-                    resolve();
-                }, 150);
-            });
-
-            waitForQR.then(() => {
-                cx.fillStyle = '#000000';
-                cx.font = 'bold 22px "Segoe UI",Tahoma,sans-serif';
-                cx.textAlign = 'center';
-                
-                if (tn === 'captain') {
-                    cx.fillText('لإدارة طلبات الزبائن', PW / 2, cv.height - 30);
-                } else {
-                    cx.fillText('امسح الباركود للطلب', PW / 2, cv.height - 30);
-                }
-
-                const imgData = cv.toDataURL('image/jpeg', 0.95);
-                toast(`جاري طباعة باركود ${tn === 'captain' ? 'الكابتن' : 'طاولة '+tn}...`, 'ti');
-                
-                (async () => {
-                    let successCount = 0;
-                    for (const printer of printers) {
-                        try {
-                            const response = await fetch('http://localhost:5000/print-receipt', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ ip: printer.ip, image: imgData })
-                            });
-                            const data = await response.json();
-                            if (data.status === 'success') successCount++;
-                        } catch (err) {
-                            console.error("Print error:", err);
-                        }
-                    }
-                    if (successCount > 0) toast(`تم طباعة باركود ${tn === 'captain' ? 'الكابتن' : 'طاولة '+tn}`, 'ts');
-                    else toast('فشلت الطباعة', 'te');
-                })();
-            });
-
-        } catch(e) {
-            console.error("QR Generation error:", e);
-        }
-    }
-}
-
-// ===== التسوق المباشر =====
-export function renderDirectGrid() { 
-    const search = document.getElementById('directSearch').value.trim().toLowerCase(), catFilter = document.getElementById('directCatFilter').value, grid = document.getElementById('directGrid'); 
-    const filterSel = document.getElementById('directCatFilter'); const cv = filterSel.value; state.directAllItems = []; filterSel.innerHTML = '<option value="">جميع الأقسام</option>'; 
-    for (let catId in state.directMenuData) { filterSel.innerHTML += '<option value="' + catId + '">' + state.directMenuData[catId].name + '</option>'; if (state.directMenuData[catId].items) { for (let iid in state.directMenuData[catId].items) { const it = state.directMenuData[catId].items[iid]; state.directAllItems.push({ ...it, catId, catName: state.directMenuData[catId].name, _id: iid }); } } } filterSel.value = cv; 
-    let filtered = state.directAllItems; if (search) filtered = filtered.filter(i => i.name.toLowerCase().includes(search)); if (catFilter) filtered = filtered.filter(i => i.catId === catFilter); 
-    grid.innerHTML = ''; if (!filtered.length) { grid.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:30px;grid-column:1/-1;">لا توجد أصناف.</p>'; return; } 
-    filtered.forEach(it => { const imgSrc = it.image && it.image.length > 20 ? it.image : ''; const key = it.catId + '|' + it._id; const qty = state.directCart[key] ? state.directCart[key].quantity : 0; const div = document.createElement('div'); div.className = 'direct-item' + (qty > 0 ? ' selected' : ''); div.innerHTML = (imgSrc ? '<img src="' + imgSrc + '" alt="">' : '<div style="width:100%;height:90px;background:var(--bg-card);border-radius:8px;display:flex;align-items:center;justify-content:center;"><i class="fas fa-image" style="color:var(--text-muted);font-size:24px;"></i></div>') + '<h4>' + it.name + '</h4>' + '<div class="di-price">' + fmt(it.price) + ' د.ع</div>' + '<div class="di-details">' + (it.details || '') + '</div>' + '<div class="direct-qty">' + '<button class="dq-minus" onclick="App.directQtyChange(\'' + key + '\',-1,event)">−</button>' + '<span>' + (qty || 0) + '</span>' + '<button class="dq-plus" onclick="App.directQtyChange(\'' + key + '\',1,event)">+</button>' + '</div>'; div.addEventListener('click', function (e) { if (e.target.closest('.direct-qty')) return; App.directToggle(key); }); grid.appendChild(div); }); updateDirectBar(); 
-} 
-
-export function filterDirect() { playClickSnd(); renderDirectGrid(); } 
-export function directToggle(key) { if (state.directCart[key]) { delete state.directCart[key]; } else { state.directCart[key] = { quantity: 1 }; } updateDirectBar(); renderDirectGrid(); } 
-export function directQtyChange(key, delta, e) { e.stopPropagation(); if (!state.directCart[key]) state.directCart[key] = { quantity: 0 }; state.directCart[key].quantity = Math.max(0, state.directCart[key].quantity + delta); if (state.directCart[key].quantity === 0) delete state.directCart[key]; updateDirectBar(); renderDirectGrid(); } 
-
-function updateDirectBar() { const bar = document.getElementById('directBar'); let count = 0, total = 0; for (let k in state.directCart) { const parts = k.split('|'); const catId = parts[0]; const itemId = parts.slice(1).join('|'); let item = null; if (state.directMenuData[catId] && state.directMenuData[catId].items) { if (state.directMenuData[catId].items[itemId]) item = state.directMenuData[catId].items[itemId]; } if (item) { count += state.directCart[k].quantity; total += item.price * state.directCart[k].quantity; } } if (count > 0) { bar.style.display = 'flex'; } else { bar.style.display = 'none'; } document.getElementById('directCount').textContent = count + ' صنف'; document.getElementById('directTotal').textContent = fmt(total) + ' دينار'; } 
-
-export function clearDirectCart() { state.directCart = {}; updateDirectBar(); renderDirectGrid(); } 
-
-export async function payDirectOrder() { 
-    const keys = Object.keys(state.directCart); if (!keys.length) { toast('السلة فارغة', 'te'); return; } 
-    let items = [], total = 0; keys.forEach(k => { const parts = k.split('|'); const catId = parts[0]; const itemId = parts.slice(1).join('|'); const cat = state.directMenuData[catId]; if (cat && cat.items && cat.items[itemId]) { const it = cat.items[itemId]; const qty = state.directCart[k].quantity; const sub = it.price * qty; total += sub; items.push({ name: it.name, qty, price: it.price }); } }); 
-    if (typeof Ops.printDirectReceipt === 'function') { Ops.printDirectReceipt(items, total); } else { toast('خطأ: دالة الطباعة غير متوفرة', 'te'); return; } 
-    const sa = new Date().toISOString(); const ops = []; items.forEach(it => { ops.push(DB.pushData('tablesD/archive_orders', { table_number: 0, name: it.name, price: it.price, quantity: it.qty, settled_at: sa, settled_by: state.myUser })); }); 
-    const directOrdersArchive = JSON.parse(localStorage.getItem('direct_orders_archive') || '[]'); directOrdersArchive.push({ settled_by: state.myUser, settled_at: sa, total, items: items.length }); localStorage.setItem('direct_orders_archive', JSON.stringify(directOrdersArchive.slice(-500))); 
-    Promise.all(ops).then(() => { state.directCart = {}; updateDirectBar(); renderDirectGrid(); toast('تم الدفع والطباعة بنجاح', 'ts'); if (typeof Ops.updateSales === 'function') Ops.updateSales(); }).catch(() => toast('خطأ في الحفظ', 'te')); 
-} 
-
-// ===== الإعدادات =====
-export function syncPrinterSelects() { const selectIds = ['rKitchen', 'rCashier', 'stPrinter', 'directPrinter']; selectIds.forEach(sid => { const el = document.getElementById(sid); if (!el) return; const cv = el.value; el.innerHTML = '<option value="">-- اختر طابعة --</option>'; for (let id in state.dPrinters) { el.innerHTML += '<option value="' + state.dPrinters[id].ip + '">' + state.dPrinters[id].name + ' (' + state.dPrinters[id].ip + ')</option>'; } el.value = cv; }); if (document.getElementById('rKitchen')) document.getElementById('rKitchen').value = state.routing.kitchenPrinterIp; if (document.getElementById('rCashier')) document.getElementById('rCashier').value = state.routing.cashierPrinterIp; } 
-
-export function renderPrinters() { 
-    const c = document.getElementById('printersList'); 
-    if (!c) return; 
-    if (!Object.keys(state.dPrinters).length) { 
-        c.innerHTML = '<p style="color:var(--text-muted);font-size:12px;text-align:center;padding:12px;">لا توجد طابعات.</p>'; 
-        return; 
-    } 
-    c.innerHTML = ''; 
-    for (let id in state.dPrinters) { 
-        // سنستخدم state.dPrinters[id].ip كـ "اسم الطابعة" لأننا حفظنا الاسم فيه مسبقاً
-        const pName = state.dPrinters[id].name;
-        const pIdentifier = state.dPrinters[id].ip; // هذا الآن يحتوي على اسم طابعة الويندوز
-        
-        c.innerHTML += '<div class="printer-row">' + 
-            '<div style="color:var(--text-secondary);font-size:13px;">' + 
-            '<i class="fas fa-print" style="color:var(--accent);margin-left:8px;"></i>' + 
-            '<b>' + pName + '</b> ' + 
-            '<span style="color:var(--text-muted);">(' + pIdentifier + ')</span>' + 
-            '</div>' + 
-            '<div style="display:flex;gap:8px;">' + 
-            '<button class="btn-secondary btn-sm" onclick="App.pingP(\'' + pIdentifier + '\')"><i class="fas fa-wifi"></i> فحص</button>' + 
-            '<button class="btn-secondary btn-sm btn-red" onclick="App.delP(\'' + id + '\')"><i class="fas fa-trash"></i></button>' + 
-            '</div>' + 
-            '</div>'; 
-    } 
-} 
-export function pingP(printerName) { 
-    fetch('http://localhost:5000/api/ping-printer', { 
-        method: 'POST', 
-        headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify({ printerName: printerName }) // نرسل اسم الطابعة بدل IP
-    }) 
-    .then(r => r.json()) 
-    .then(d => toast('[' + printerName + ']: ' + d.message, d.message.includes('متصل') || d.message.includes('جاهزة') ? 'ts' : 'te')) 
-    .catch(() => toast('تعذر الاتصال بسيرفر الطباعة', 'te')); 
-} 
-export async function addPrinter() { 
-    const n = document.getElementById('pName').value.trim();
-    const printerSelect = document.getElementById('pIP'); // سنستخدم نفس الحقل مؤقتاً كقائمة منسدلة
-    const selectedPrinter = printerSelect.value;
-    
-    if (!n || !selectedPrinter) { 
-        toast('أدخل اسم الطابعة واختر الطابعة من القائمة', 'te'); 
-        return; 
-    } 
-    
-    // حفظ اسم الطابعة في قاعدة البيانات بدلاً من الـ IP
-    DB.pushData('printers_config', { name: n, ip: selectedPrinter, isWindowsPrinter: true }).then(() => { 
-        document.getElementById('pName').value = ''; 
-        toast('تمت إضافة الطابعة', 'ts'); 
-    }); 
-} 
-
-// دالة جديدة لجلب طابعات الويندوز عند فتح تبويب الإعدادات
-export async function loadWindowsPrinters() {
-    const select = document.getElementById('pIP');
-    if (!select) return;
-    
-    select.innerHTML = '<option value="">جاري تحميل الطابعات...</option>';
-    
-    try {
-        const response = await fetch('http://localhost:5000/api/get-printers');
-        const data = await response.json();
-        
-        if (data.status === 'success' && data.printers.length > 0) {
-            select.innerHTML = '<option value="">-- اختر طابعة --</option>';
-            data.printers.forEach(printer => {
-                const option = document.createElement('option');
-                option.value = printer;
-                option.textContent = printer;
-                select.appendChild(option);
-            });
-        } else {
-            select.innerHTML = '<option value="">لا توجد طابعات متاحة</option>';
-        }
-    } catch (err) {
-        console.error('خطأ في جلب الطابعات:', err);
-        select.innerHTML = '<option value="">خطأ في الاتصال بالسيرفر</option>';
-    }
-}
-export function delP(id) { if (confirm('حذف هذه الطابعة؟')) DB.removeData('printers_config/' + id); } 
-
-export function previewLogo(input) { if (!input.files || !input.files[0]) return; const file = input.files[0]; const reader = new FileReader(); reader.onload = e => { const img = new Image(); img.onload = () => { const cv = document.createElement('canvas'); const maxSize = 200; let w = img.width, h = img.height; if (w > maxSize || h > maxSize) { if (w > h) { h = Math.round(h * maxSize / w); w = maxSize; } else { w = Math.round(w * maxSize / h); h = maxSize; } } cv.width = w; cv.height = h; cv.getContext('2d').drawImage(img, 0, 0, w, h); state.pendingLogoData = cv.toDataURL('image/jpeg', 0.8); syncLogoDisplay(state.pendingLogoData); }; img.src = e.target.result; }; reader.readAsDataURL(file); } 
-export function removeLogo() { state.pendingLogoData = '__REMOVE__'; syncLogoDisplay(''); document.getElementById('logoInput').value = ''; } 
-export function syncLogoDisplay(dataUrl) { const img = document.getElementById('logoPreview'), ph = document.getElementById('logoPlaceholder'), hImg = document.getElementById('headerLogo'), hPh = document.getElementById('headerLogoPlaceholder'), rmBtn = document.getElementById('removeLogoBtn'); if (dataUrl && dataUrl.length > 10) { img.src = dataUrl; img.style.display = 'block'; ph.style.display = 'none'; hImg.src = dataUrl; hImg.style.display = 'block'; hPh.style.display = 'none'; if (rmBtn) rmBtn.style.display = 'inline-flex'; } else { img.style.display = 'none'; img.src = ''; ph.style.display = 'flex'; hImg.style.display = 'none'; hImg.src = ''; hPh.style.display = 'flex'; if (rmBtn) rmBtn.style.display = 'none'; } } 
-
-export function saveSettings() { const n = document.getElementById('sName').value.trim(), invUrl = document.getElementById('sInvoiceUrl').value.trim(), os = document.getElementById('sOrderSnd').value, ms = document.getElementById('sMsgSnd').value, ps = document.getElementById('sPrintSnd').value, cs = document.getElementById('sClickSnd').value, ki = document.getElementById('rKitchen') ? document.getElementById('rKitchen').value : '', ci = document.getElementById('rCashier') ? document.getElementById('rCashier').value : ''; const ns = { restaurantName: n || 'المطعم', orderSound: os, msgSound: ms, printSound: ps, clickSound: cs, invoiceQrUrl: invUrl }; if (state.pendingLogoData === '__REMOVE__') ns.restaurantLogo = ''; else if (state.pendingLogoData && state.pendingLogoData.length > 20) ns.restaurantLogo = state.pendingLogoData; Promise.all([DB.updateData('app_settings', ns), DB.setData('buttons_routing', { kitchenPrinterIp: ki, cashierPrinterIp: ci })]).then(() => { state.settings = { ...state.settings, ...ns }; state.routing = { kitchenPrinterIp: ki, cashierPrinterIp: ci }; document.getElementById('brandName').textContent = state.settings.restaurantName; state.pendingLogoData = null; toast('تم حفظ الإعدادات', 'ts'); }); } 
-
-export function loadSettingsUI() { 
-    if (document.getElementById('sName')) document.getElementById('sName').value = state.settings.restaurantName || ''; 
-    if (document.getElementById('sInvoiceUrl')) document.getElementById('sInvoiceUrl').value = state.settings.invoiceQrUrl || ''; 
-    if (document.getElementById('sOrderSnd')) document.getElementById('sOrderSnd').value = state.settings.orderSound || 'off'; 
-    if (document.getElementById('sMsgSnd')) document.getElementById('sMsgSnd').value = state.settings.msgSound || 'off'; 
-    if (document.getElementById('sPrintSnd')) document.getElementById('sPrintSnd').value = state.settings.printSound || 'off'; 
-    if (document.getElementById('sClickSnd')) document.getElementById('sClickSnd').value = state.settings.clickSound || 'off'; 
-    syncLogoDisplay(state.settings.restaurantLogo || ''); 
-    state.pendingLogoData = null; 
-    
-    if (document.getElementById('qrUrl')) document.getElementById('qrUrl').value = state.settings.menuQrUrl || 'https://exam26p.github.io/kap/index2.html';
-    if (document.getElementById('qrCaptainUrl')) {
-        document.getElementById('qrCaptainUrl').value = state.settings.captainQrUrl || '';
-        updateCaptainQR();
-        if (state.settings.captainQrUrl) {
-            generateCaptainQRAuto(state.settings.captainQrUrl);
-        }
-    }
-    updateQRPreview();
-    
-    loadWindowsPrinters(); // جلب طابعات الويندوز لملء القائمة المنسدلة
-} 
-
-function generateCaptainQRAuto(url) { 
-    const grid = document.getElementById('captainQrContainer');
-    if (!grid) return;
-    grid.innerHTML = ''; 
-    
-    const c = document.createElement('div'); 
-    c.className = 'qr-card'; 
-    let h = '<div class="qn" style="background:var(--purple);">كابتن</div><div class="ql">الكابتن</div>'; 
-    h += '<div id="qr_captain"></div>'; 
-    h += '<div class="qh">امسح الباركود لإدارة الطاولات</div>'; 
-    h += `<div style="margin-top:8px;"><button class="btn-primary btn-sm" style="background:var(--purple);" onclick="App.printSingleQR('captain')"><i class="fas fa-print"></i> طباعة باركود الكابتن</button></div>`;
-    c.innerHTML = h; 
-    grid.appendChild(c); 
-    
-    new QRCode(document.getElementById('qr_captain'), { 
-        text: url, 
-        width: 160, 
-        height: 160, 
-        colorDark: '#000000', 
-        colorLight: '#ffffff', 
-        correctLevel: QRCode.CorrectLevel.H 
-    }); 
-}
-
-// ===== الإحصائيات (تم إصلاح خطأ continue هنا) =====
-export function syncStatsUsers() { const s = document.getElementById('stUser'); if (!s) return; const cv = s.value; s.innerHTML = '<option value="">الكل</option>'; for (let id in state.dUsers) s.innerHTML += '<option value="' + state.dUsers[id].username + '">' + state.dUsers[id].username + '</option>'; s.value = cv; } 
-
-export function searchStats() { 
-    const user = document.getElementById('stUser').value, from = document.getElementById('stFrom').value, to = document.getElementById('stTo').value; 
-    if (!from && !to && !user) { toast('حدد فلتر واحد على الأقل', 'te'); return; } 
-    
-    let invMap = {}, itemsSum = {}, grand = 0; 
-    
-    for (let id in state.dD) { 
-        const o = state.dD[id]; 
-        if (!o) continue; // هنا الـ continue صحيحة لأنها داخل حلقة for
-        
-        // تم استبدال الـ continue الخاطئة بجملة شرطية if
-        if ((!user || o.settled_by === user) && inRange(o.settled_at, from, to)) {
-            const price = parseFloat(o.price) || 0, qty = parseInt(o.quantity) || 1, sub = price * qty; 
-            const ik = o.table_number + '_' + o.settled_at; 
-            if (!invMap[ik]) invMap[ik] = { tableNumber: o.table_number, settledAt: o.settled_at, totalPrice: 0 }; 
-            invMap[ik].totalPrice += sub; 
-            if (!itemsSum[o.name]) itemsSum[o.name] = { quantity: 0, total: 0 }; 
-            itemsSum[o.name].quantity += qty; 
-            itemsSum[o.name].total += sub; 
-            grand += sub; 
-        }
-    } 
-    
-    const directOrders = JSON.parse(localStorage.getItem('direct_orders_archive') || '[]'); 
-    directOrders.forEach(order => { 
-        if (user && order.settled_by !== user) return; 
-        if (!inRange(order.settled_at, from, to)) return; 
-        grand += order.total || 0; 
-        const ik = 'direct_' + order.settled_at; 
-        if (!invMap[ik]) invMap[ik] = { tableNumber: 'سفري', settledAt: order.settled_at, totalPrice: 0 }; 
-        invMap[ik].totalPrice += order.total || 0; 
-        
-        if (!itemsSum['تسوق مباشر']) itemsSum['تسوق مباشر'] = { quantity: 0, total: 0 }; 
-        itemsSum['تسوق مباشر'].quantity += order.items || 1; 
-        itemsSum['تسوق مباشر'].total += order.total || 0; 
-    }); 
-    
-    const invList = Object.values(invMap).sort((a, b) => new Date(a.settledAt) - new Date(b.settledAt)); 
-    state.lastStats = { targetUser: user || 'الكل', dateFrom: from || 'البداية', dateTo: to || 'اليوم', invoices: invList, summary: itemsSum, totalSum: grand, ordersCount: invList.length }; 
-    
-    const c = document.getElementById('statsList'); 
-    if (!invList.length) { c.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:36px;">لا توجد مبيعات.</p>'; state.lastStats = null; return; } 
-    
-    let h = '<h4 style="color:var(--accent);margin-bottom:12px;font-size:13px;"><i class="fas fa-receipt"></i> الفواتير (' + invList.length + '):</h4>' + '<div style="max-height:160px;overflow-y:auto;background:var(--bg-input);border-radius:10px;padding:10px;margin-bottom:18px;border:1px solid var(--border);">'; 
-    invList.forEach(inv => { const t = new Date(inv.settledAt).toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit' }), d = new Date(inv.settledAt).toLocaleDateString('ar-IQ'); h += '<div class="s-inv-row">' + '<span><b>' + (inv.tableNumber === 'سفري' ? 'تسوق مباشر' : 'طاولة ' + inv.tableNumber) + '</b> <small style="color:var(--text-muted);margin-right:6px;">(' + d + ' ' + t + ')</small></span>' + '<span style="color:var(--green);font-weight:700;">' + fmt(inv.totalPrice) + ' د.ع</span>' + '</div>'; }); 
-    h += '</div><h4 style="color:var(--teal);margin-bottom:12px;font-size:13px;"><i class="fas fa-box-open"></i> ملخص المواد:</h4>'; 
-    Object.entries(itemsSum).forEach(([name, data]) => { h += '<div class="s-item-card">' + '<div>' + '<div class="s-item-name"><i class="fas fa-utensils" style="color:var(--teal);margin-left:5px;font-size:12px;"></i>' + name + '</div>' + '<div class="s-item-count">العدد: ' + data.quantity + '</div>' + '</div>' + '<span class="s-item-total">' + fmt(data.total) + ' د.ع</span>' + '</div>'; }); 
-    h += '<div class="s-grand">' + '<div class="s-label">المجموع النهائي</div>' + '<div class="s-value">' + fmt(grand) + ' دينار عراقي</div>' + '</div>'; 
-    c.innerHTML = h; 
-} 
-
-export async function printStatsReport() { playOnce('print'); if (!state.lastStats) { toast('ابحث أولاً', 'te'); return; } const printers = window.App.getButtonPrinters('stats'); if (printers.length === 0) { toast('الرجاء تعيين طابعات لزر الإحصائيات في الإعدادات', 'te'); return; } const cv = document.createElement('canvas'), cx = cv.getContext('2d'), w = 576; const ni = Object.keys(state.lastStats.summary).length, nv = state.lastStats.invoices.length; const ch = 280 + (nv * 28) + 50 + (ni * 32) + 160; cv.width = w; cv.height = Math.max(ch, 280); cx.fillStyle = '#fff'; cx.fillRect(0, 0, w, cv.height); cx.fillStyle = '#000'; cx.textBaseline = 'middle'; cx.font = 'bold 26px "Segoe UI",Tahoma,sans-serif'; cx.textAlign = 'center'; cx.fillText(state.settings.restaurantName || 'المطعم', w / 2, 40); cx.font = 'bold 20px "Segoe UI",Tahoma,sans-serif'; cx.fillText('تقرير المبيعات', w / 2, 76); cx.font = '14px "Segoe UI",Tahoma,sans-serif'; cx.fillStyle = '#222'; cx.fillText('المستخدم: ' + state.lastStats.targetUser + '  |  الفترة: ' + state.lastStats.dateFrom + ' - ' + state.lastStats.dateTo, w / 2, 110); drawDash(cx, 20, w - 20, 130); let y = 150; cx.font = 'bold 16px "Segoe UI",Tahoma,sans-serif'; cx.fillStyle = '#000'; cx.textAlign = 'right'; cx.fillText('الفواتير:', w - 30, y); y += 24; cx.font = '13px "Segoe UI",Tahoma,sans-serif'; state.lastStats.invoices.forEach(inv => { const t = new Date(inv.settledAt).toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit' }); cx.textAlign = 'right'; cx.fillText((inv.tableNumber === 'سفري' ? 'تسوق مباشر' : 'طاولة ' + inv.tableNumber) + ' (' + t + ')', w - 40, y); cx.textAlign = 'left'; cx.fillText(fmt(inv.totalPrice) + ' د.ع', 40, y); y += 28; }); drawDash(cx, 25, w - 25, y); y += 24; cx.font = 'bold 16px "Segoe UI",Tahoma,sans-serif'; cx.fillStyle = '#000'; cx.textAlign = 'right'; cx.fillText('ملخص المواد:', w - 30, y); y += 24; cx.font = 'bold 14px "Segoe UI",Tahoma,sans-serif'; Object.entries(state.lastStats.summary).forEach(([name, data]) => { cx.textAlign = 'right'; cx.fillText(name + ' (' + data.quantity + ')', w - 40, y); cx.textAlign = 'left'; cx.fillText(fmt(data.total) + ' د.ع', 40, y); y += 32; }); drawDash(cx, 20, w - 20, y); y += 34; cx.font = 'bold 20px "Segoe UI",Tahoma,sans-serif'; cx.textAlign = 'right'; cx.fillText('المجموع النهائي:', w - 30, y); cx.textAlign = 'left'; cx.fillText(fmt(state.lastStats.totalSum) + ' دينار', 30, y); y += 40; cx.font = 'italic 14px "Segoe UI",Tahoma,sans-serif'; cx.textAlign = 'center'; cx.fillText('نهاية التقرير', w / 2, y); const imgData = cv.toDataURL('image/jpeg', 0.85); let successCount = 0; let failCount = 0; toast(`جاري طباعة التقرير على ${printers.length} طابعة...`, 'ti'); for (const printer of printers) { try { const response = await fetch('http://localhost:5000/print-receipt', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ip: printer.ip, image: imgData }) }); const data = await response.json(); if (data.status === 'success') { successCount++; } else { failCount++; } } catch (err) { failCount++; console.error(`خطأ في الطباعة على ${printer.ip}:`, err); } } if (successCount > 0) { toast(`تمت طباعة التقرير على ${successCount} طابعة${failCount > 0 ? `، فشل ${failCount}` : ''}`, 'ts'); } else { toast('فشلت طباعة التقرير', 'te'); } } 
-
-export function clearStats() { if (document.getElementById('stUser')) document.getElementById('stUser').value = ''; if (document.getElementById('stFrom')) document.getElementById('stFrom').value = ''; if (document.getElementById('stTo')) document.getElementById('stTo').value = ''; const statsList = document.getElementById('statsList'); if (statsList) statsList.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:36px;">اختر الفترة واضغط بحث.</p>'; state.lastStats = null; } 
-
-// ===== الكابتن =====
-function updateCaptainBadge(show) {
-    const btn = document.querySelector('.h-btn[onclick*="captainModal"]');
-    if (!btn) return;
-    let badge = document.getElementById('badgeCaptain');
-    if (!badge && show) {
-        badge = document.createElement('span');
-        badge.id = 'badgeCaptain';
-        badge.className = 'tab-badge show';
-        badge.style.cssText = 'position:absolute;top:-5px;left:-5px;background:var(--red);color:#fff;font-size:10px;font-weight:800;padding:1px 7px;border-radius:10px;min-width:20px;text-align:center;';
-        badge.textContent = '!';
-        btn.style.position = 'relative';
-        btn.appendChild(badge);
-    }
-    if (badge) {
-        badge.style.display = show ? 'inline' : 'none';
-    }
-}
-
-export function initCaptainChat() {  
-    if (!state.myUser) return;  
-
-    const captainBtn = document.querySelector('.h-btn[onclick*="captainModal"]');
-    if (captainBtn) {
-        captainBtn.onclick = () => {
-            document.getElementById('captainModal').classList.add('open');
-            updateCaptainBadge(false);
-        };
-    }
-
-    DB.listenCaptainChat(state.myUser, data => {  
-        const box = document.getElementById('captainMsgs');  
-        if (!box) return; 
-        box.innerHTML = '';  
-        if (!data) {  
-            box.innerHTML = '<p style="color:var(--text-muted);font-size:12px;text-align:center;padding:24px;">لا توجد رسائل بعد.</p>';  
-            return;  
-        }  
-        let m = [];  
-        for (let id in data) m.push({ ...data[id], _id: id });  
-        m.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));  
-        if (!m.length) {  
-            box.innerHTML = '<p style="color:var(--text-muted);font-size:12px;text-align:center;padding:24px;">لا توجد رسائل بعد.</p>';  
-            return;  
-        }  
-
-        const latestMsg = m[m.length - 1];
-        if (latestMsg.sender === 'captain' && latestMsg._id !== lastCaptainMsgKey) {
-            if (lastCaptainMsgKey !== null) { 
-                playOnce('msg'); 
-                toast('رسالة جديدة من الكابتن: ' + latestMsg.text.substring(0, 30), 'ti'); 
-                updateCaptainBadge(true); 
+            const data = await response.json();
+            if (data.status === 'success') {
+                successCount++;
+            } else {
+                failCount++;
             }
-            lastCaptainMsgKey = latestMsg._id; 
+        } catch (err) {
+            failCount++;
+            console.error(`خطأ في الطباعة على ${printer.ip}:`, err);
         }
+    }
+    if (successCount > 0) {
+        toast(`تمت الطباعة على ${successCount} طابعة${failCount > 0 ? `، فشل ${failCount}` : ''}`, successCount === printers.length ? 'ts' : 'ti');
+    } else {
+        toast('فشلت الطباعة على جميع الطابعات', 'te');
+    }
+}
 
-        m.forEach(x => {  
-            const isMe = x.sender === 'cashier'; 
-            const t = new Date(x.timestamp).toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit' });  
-            box.innerHTML += '<div class="cpm ' + (isMe ? 'from-me' : 'from-captain') + '">' + 
-                '<small style="opacity:.6;">' + (isMe ? (x.sender_name || 'أنت') : 'الكابتن') + ' - ' + t + '</small><br>' + 
-                x.text +  
-            '</div>';  
-        });  
-        box.scrollTop = box.scrollHeight;  
-    });  
-} 
+export async function printToKitchen() {
+    const k = 'table_' + state.activeTable, 
+          oB = state.dB[k] && state.dB[k].sent_orders ? state.dB[k].sent_orders : null;
+    if (!oB || !Object.keys(oB).length) { toast('لا توجد طلبات واردة', 'te'); return; }
 
-export function sendCaptain() {  
-    const i = document.getElementById('captainInput'), t = i ? i.value.trim() : '';  
-    if (!t || !state.myUser) return;  
-    playClickSnd();  
-    DB.pushData('captain_chats/' + state.myUser, { text: t, sender: 'cashier', sender_name: state.myUser, timestamp: new Date().toISOString() });  
-    if (i) i.value = '';  
+    const printers = window.App.getButtonPrinters('kitchen');
+    if (printers.length === 0) { toast('الرجاء تعيين طابعات لزر المطبخ', 'te'); return; }
+
+    let items = [];
+    for (let id in oB) items.push({ name: oB[id].name, qty: oB[id].quantity, price: oB[id].price });
+
+    await printToSelectedPrinters(printers, {
+        title: 'بون التجهيز', tableNum: state.activeTable, dt: new Date().toLocaleString('ar-IQ', { hour12: true }),
+        items, final: false, cashier: state.myUser, welcome: 'برجاء تجهيز الطلبات بأسرع وقت'
+    });
+
+    for (let id in oB) DB.pushData('tablesC/' + k + '/processing_orders', { name: oB[id].name, price: oB[id].price, quantity: oB[id].quantity });
+    DB.removeData('tablesB/' + k);
+    toast('تم إرسال الطلبات للمطبخ', 'ts');
+}
+
+export async function rePrintKitchenOrder() {
+    const k = 'table_' + state.activeTable, 
+          oC = state.dC[k] && state.dC[k].processing_orders ? state.dC[k].processing_orders : null;
+    if (!oC || !Object.keys(oC).length) { toast('لا توجد طلبات في المطبخ', 'te'); return; }
+    
+    const printers = window.App.getButtonPrinters('kitchen');
+    if (printers.length === 0) { toast('الرجاء تعيين طابعات للمطبخ', 'te'); return; }
+
+    let items = [];
+    for (let id in oC) items.push({ name: oC[id].name, qty: oC[id].quantity, price: oC[id].price });
+
+    await printToSelectedPrinters(printers, {
+        title: 'بون التجهيز (نسخة)', tableNum: state.activeTable, dt: new Date().toLocaleString('ar-IQ', { hour12: true }),
+        items, final: false, cashier: state.myUser, welcome: 'برجاء تجهيز الطلبات بأسرع وقت'
+    });
+}
+
+export function changeSentOrderQty(tableKey, itemId, delta) {
+    playClickSnd();
+    const orders = state.dB[tableKey]?.sent_orders;
+    if (!orders || !orders[itemId]) return;
+    let newQty = (parseInt(orders[itemId].quantity) || 0) + delta;
+    if (newQty <= 0) { deleteSentOrder(tableKey, itemId); } 
+    else { DB.updateData(`tablesB/${tableKey}/sent_orders/${itemId}`, { quantity: newQty }); }
+}
+
+export function deleteSentOrder(tableKey, itemId) {
+    if (confirm('هل تريد حذف هذا الصنف من الطلب؟')) {
+        DB.removeData(`tablesB/${tableKey}/sent_orders/${itemId}`);
+    }
+}
+
+export async function settleInvoice() {
+    const k = 'table_' + state.activeTable, 
+          oB = state.dB[k] && state.dB[k].sent_orders ? state.dB[k].sent_orders : {},
+          oC = state.dC[k] && state.dC[k].processing_orders ? state.dC[k].processing_orders : {};
+    
+    if (!Object.keys(oB).length && !Object.keys(oC).length) { toast('لا توجد طلبات', 'te'); return; }
+
+    const printers = window.App.getButtonPrinters('cashier');
+    if (printers.length === 0) { toast('الرجاء تعيين طابعات لزر تسديد الحساب', 'te'); return; }
+
+    let items = [], total = 0;
+    const combined = { ...oB, ...oC };
+    for (let id in combined) {
+        let s = combined[id].price * combined[id].quantity; total += s;
+        items.push({ name: combined[id].name, qty: combined[id].quantity, price: combined[id].price });
+    }
+
+    await printToSelectedPrinters(printers, {
+        title: 'إيصال الدفع', tableNum: state.activeTable, dt: new Date().toLocaleString('ar-IQ', { hour12: true }),
+        items, final: true, total, cashier: state.myUser, welcome: 'نتمنى لكم تجربة مميزة، شكراً لاختياركم'
+    });
+
+    const sa = new Date().toISOString();
+    for (let id in oB) DB.pushData('tablesD/archive_orders', { table_number: state.activeTable, name: oB[id].name, price: oB[id].price, quantity: oB[id].quantity, settled_at: sa, settled_by: state.myUser });
+    for (let id in oC) DB.pushData('tablesD/archive_orders', { table_number: state.activeTable, name: oC[id].name, price: oC[id].price, quantity: oC[id].quantity, settled_at: sa, settled_by: state.myUser });
+
+    Promise.all([
+        DB.removeData('tablesB/' + k), DB.removeData('tablesC/' + k), DB.removeData('msgA/' + k), DB.removeData('msgB/' + k), DB.removeData('read_counters/' + k)
+    ]).then(() => { toast('تم تسديد فاتورة ' + state.activeTable, 'ts'); closeDetail(); });
+}
+
+export async function printDirectReceipt(items, total) {
+    const printers = window.App.getButtonPrinters('direct');
+    if (printers.length === 0) { toast('الرجاء تعيين طابعات لزر التسوق المباشر', 'te'); return; }
+
+    await printToSelectedPrinters(printers, {
+        title: 'إيصال الدفع - تسوق مباشر', tableNum: 'سفري', dt: new Date().toLocaleString('ar-IQ', { hour12: true }),
+        items, final: true, total, cashier: state.myUser, welcome: 'شكراً لزيارتكم، نتمنى لكم تجربة مميزة'
+    });
+}
+
+export function updateSales() {
+    if (!state.myUser) return;
+    let t = 0;
+    for (let id in state.dD) {
+        const o = state.dD[id];
+        if (o && o.settled_by === state.myUser && sameDay(o.settled_at)) t += (parseFloat(o.price) || 0) * (parseInt(o.quantity) || 1);
+    }
+    const directOrders = JSON.parse(localStorage.getItem('direct_orders_archive') || '[]');
+    directOrders.forEach(order => { if (order.settled_by === state.myUser && sameDay(order.settled_at)) t += order.total || 0; });
+    document.getElementById('qsSales').textContent = fmt(t);
 }

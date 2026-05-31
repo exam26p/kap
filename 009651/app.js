@@ -414,5 +414,5 @@ export const App = {
     searchStats: Others.searchStats, clearStats: Others.clearStats, printStatsReport: Others.printStatsReport,
     sendCaptain: Others.sendCaptain
 };
-
+loadWindowsPrinters: Others.loadWindowsPrinters,
 window.App = App;

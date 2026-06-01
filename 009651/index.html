@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم الشاملة - إدارة المطعم</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        @import url('styles.css');
+        @import url('panelOps.css');
+        @import url('panelQR.css');
+        @import url('panelMenu.css');
+        @import url('panelDirect.css');
+        @import url('panelSettings.css');
+        @import url('panelLinks.css');
+    </style>
+</head>
+<body>
+<div class="top-strip"></div>
+<div class="toast-box" id="toastBox"></div>
+<div class="load-bg" id="loadBg"><div class="load-box"><div class="spinner"></div><p>جاري المعالجة...</p><div class="lc" id="loadCount">0 / 0</div></div></div>
+<div class="confirm-bg" id="confirmLogout"><div class="confirm-box"><div class="confirm-ic danger"><i class="fas fa-right-from-bracket"></i></div><h3>تسجيل الخروج</h3><p>هل تريد تسجيل خروج <b id="logoutUser" style="color:var(--red);"></b>؟</p><div class="confirm-btns"><button class="cb-cancel" onclick="document.getElementById('confirmLogout').classList.remove('open')">إلغاء</button><button class="cb-action" onclick="App.doLogout()">تأكيد</button></div></div></div>
+<div class="modal-bg" id="captainModal"><div class="modal-box"><div class="modal-head"><h2><i class="fas fa-headset"></i> مراسلة الكابتن</h2><button class="modal-x" onclick="document.getElementById('captainModal').classList.remove('open')">&times;</button></div><div class="captain-chat"><div class="captain-msgs" id="captainMsgs"><p style="color:var(--text-muted);font-size:12px;text-align:center;padding:24px;">لا توجد رسائل بعد.</p></div><div class="dp-chat-input"><input type="text" id="captainInput" placeholder="اكتب رسالة للكابتن..." onkeydown="if(event.key==='Enter')App.sendCaptain()"><button onclick="App.sendCaptain()">إرسال</button></div></div></div></div>
+<div id="thermalPrintFrame"></div>
+
+<div class="login-overlay" id="loginOverlay">
+    <div class="login-bg-orbs"><div class="orb"></div><div class="orb"></div><div class="orb"></div></div>
+    <div class="login-card">
+        <div class="login-icon"><i class="fas fa-shield-halved"></i></div>
+        <h1>الوصول إلى حسابك</h1>
+        <p class="login-subtitle">نظام إدارة الشبكة والطباعة المتقدم</p>
+        <div class="login-field" id="verField"><label>رقم إصدار الجهاز</label><input type="text" id="inVer" placeholder="مثال: 1.1.1" autocomplete="off"><i class="fas fa-microchip field-icon"></i><span class="check-icon" id="verCheck"></span></div>
+        <div class="login-field"><label>اسم المستخدم</label><input type="text" id="inUser" placeholder="أدخل اسم المستخدم" autocomplete="off"><i class="fas fa-user field-icon"></i><span class="check-icon" id="userCheck"></span></div>
+        <div class="login-field"><label>كلمة السر</label><input type="password" id="inPass" placeholder="أدخل كلمة السر" autocomplete="off"><i class="fas fa-lock field-icon"></i><span class="check-icon" id="passCheck"></span><button type="button" class="toggle-pass" id="togglePass" onclick="App.togglePassword()"><i class="fas fa-eye"></i></button></div>
+        <button class="btn-login" id="btnLogin" onclick="App.doLogin()"><span>تأكيد الدخول</span><i class="fas fa-arrow-left"></i></button>
+        <div class="login-err" id="loginErr"></div>
+    </div>
+</div>
+
+<div id="appRoot" style="display:none;">
+    <header class="app-header">
+        <div class="header-right">
+            <div class="brand-area">
+                <img id="headerLogo" class="brand-logo" src="" alt="" style="display:none;">
+                <div id="headerLogoPlaceholder" class="brand-logo-placeholder"><i class="fas fa-utensils"></i></div>
+                <span class="brand-name" id="brandName">المطعم</span>
+            </div>
+            <div class="user-chips" id="userChips"></div>
+        </div>
+        <div class="header-left">
+            <button class="h-btn" onclick="document.getElementById('captainModal').classList.add('open')"><i class="fas fa-headset"></i> الكابتن</button>
+            <button class="h-btn danger" onclick="document.getElementById('confirmLogout').classList.add('open')"><i class="fas fa-right-from-bracket"></i> خروج</button>
+        </div>
+    </header>
+    <nav class="tab-bar">
+        <button class="tab-btn active" data-tab="panelOps"><i class="fas fa-table-cells-large"></i> العمليات <span class="tab-badge" id="badgeOps">0</span></button>
+        <button class="tab-btn" data-tab="panelQR"><i class="fas fa-qrcode"></i> الباركودات</button>
+        <button class="tab-btn" data-tab="panelMenu"><i class="fas fa-utensils"></i> المنيو</button>
+        <button class="tab-btn" data-tab="panelDirect"><i class="fas fa-bolt"></i> التسوق المباشر</button>
+        <button class="tab-btn" data-tab="panelSettings"><i class="fas fa-gear"></i> الإعدادات</button>
+        <button class="tab-btn" data-tab="panelStats"><i class="fas fa-chart-bar"></i> الإحصائيات</button>
+    </nav>
+    <div class="tab-content-area">
+        <!-- تبويب العمليات -->
+        <div class="tab-panel active" id="panelOps">
+            <div class="quick-stats">
+                <div class="qs-card c-occ"><div class="qs-icon"><i class="fas fa-chair"></i></div><span class="qs-label">الطاولات النشطة</span><span class="qs-value" id="qsOcc">0</span></div>
+                <div class="qs-card c-cook"><div class="qs-icon"><i class="fas fa-fire-burner"></i></div><span class="qs-label">طلبات المطبخ</span><span class="qs-value" id="qsCook">0</span></div>
+                <div class="qs-card c-msg"><div class="qs-icon"><i class="fas fa-comments"></i></div><span class="qs-label">رسائل غير مقروءة</span><span class="qs-value" id="qsMsg">0</span></div>
+                <div class="qs-card c-sales"><div class="qs-icon"><i class="fas fa-coins"></i></div><span class="qs-label">مبيعاتي </span><span class="qs-value" id="qsSales">0</span></div>
+            </div>
+            <div class="main-flex">
+                <div class="tables-area"><div class="sc-title"><i class="fas fa-table-cells-large"></i> خارطة الطاولات</div><div class="tables-grid" id="tablesGrid">جاري التحميل...</div></div>
+                <div class="detail-panel" id="detailPanel">
+                    <button class="dp-close" onclick="App.closeDetail()">&times;</button>
+                    <div class="dp-title" id="dpTitle"><i class="fas fa-file-invoice"></i> تفاصيل الطاولة</div>
+                    <div class="dp-section-label" style="color:var(--red);"><i class="fas fa-download"></i> طلبات واردة:</div>
+                    <div class="dp-box" id="dpBoxB"><p>لا توجد طلبات جديدة.</p></div>
+                    <div class="dp-section-label" style="color:var(--blue);"><i class="fas fa-fire-burner"></i> قيد المعالجة:</div>
+                    <div class="dp-box" id="dpBoxC"><p>لا توجد وجبات في المطبخ.</p></div>
+                    <div class="dp-total" id="dpTotal">الإجمالي: 0 دينار</div>
+                    <div class="dp-section-label" style="color:var(--green);"><i class="fas fa-comments"></i> محادثة:</div>
+                    <div class="dp-chat"><div class="dp-chat-msgs" id="dpChatMsgs"><p style="color:var(--text-muted);font-size:11px;text-align:center;padding:8px;">انقر على طاولة.</p></div><div class="dp-chat-input"><input type="text" id="dpChatIn" placeholder="اكتب الرد..." onkeydown="if(event.key==='Enter')App.sendAdminReply()"><button onclick="App.sendAdminReply()">رد</button></div></div>
+                    <div class="dp-actions">
+                        <button class="dp-btn bp" onclick="App.printToKitchen()"><i class="fas fa-print"></i> طباعة للمطبخ</button>
+                        <button class="dp-btn bs" onclick="App.settleInvoice()"><i class="fas fa-cash-register"></i> تسديد الحساب</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- تبويب الباركود -->
+        <div class="tab-panel" id="panelQR">
+            <div class="section-card"><div class="sc-title"><i class="fas fa-sliders"></i> إعدادات التوليد</div><div class="form-row"><div class="fg" style="flex:2;"><label><i class="fas fa-link" style="color:var(--blue);"></i> رابط المنيو</label><input type="url" class="fi ltr" id="qrUrl" value="https://exam26p.github.io/kap/index2.html" oninput="App.updateQRPreview()"></div><div class="fg"><label><i class="fas fa-hashtag" style="color:var(--accent);"></i> الإصدار</label><select class="fi" id="qrVer"><option value="">-- اختر --</option></select></div></div><div class="qr-preview-box"><span class="qp-label"><i class="fas fa-eye"></i> معاينة:</span><span class="qp-url" id="qrPreviewUrl">-</span></div><div class="form-row"><div class="fg"><label><i class="fas fa-arrow-right-to-bracket" style="color:var(--purple);"></i> من طاولة</label><input type="number" class="fi" id="qrFrom" value="1" min="1" oninput="App.updateQRPreview()"></div><div class="fg"><label><i class="fas fa-arrow-right-from-bracket" style="color:var(--purple);"></i> إلى طاولة</label><input type="number" class="fi" id="qrTo" value="200" min="1" oninput="App.updateQRPreview()"></div><div class="fg" style="flex:0 0 auto;"><label>&nbsp;</label><div style="display:flex;gap:6px;align-items:center;"><input type="checkbox" id="qrShowVer" checked style="accent-color:var(--accent);width:16px;height:16px;cursor:pointer;" onchange="App.updateQRPreview()"><label for="qrShowVer" style="margin:0;font-size:12px;white-space:nowrap;">الإصدار</label></div></div><div class="fg" style="flex:0 0 auto;"><label>&nbsp;</label><div style="display:flex;gap:6px;align-items:center;"><input type="checkbox" id="qrShowHint" checked style="accent-color:var(--accent);width:16px;height:16px;cursor:pointer;"><label for="qrShowHint" style="margin:0;font-size:12px;white-space:nowrap;">نص المسح</label></div></div><div class="fg" style="flex:0 0 auto;min-width:70px;"><label>الأعمدة</label><input type="number" class="fi" id="qrCols" value="4" min="2" max="6"></div></div><div class="progress-wrap" id="qrProgress"><div class="progress-info"><span id="qrProgText">جاري المعالجة...</span><span id="qrProgPct">0%</span></div><div class="progress-track"><div class="progress-fill" id="qrProgFill"></div></div></div><button class="btn-primary" id="qrGenBtn" onclick="App.generateQRCodes()" style="margin-top:12px;width:100%;justify-content:center;"><i class="fas fa-bolt"></i> إنشاء الباركودات</button></div>
+            
+            <!-- === الإضافة الجديدة: حقل باركود الكابتن === -->
+            <div class="section-card" style="margin-top:18px;">
+                <div class="sc-title"><i class="fas fa-headset" style="color:var(--purple);"></i> باركود الكابتن</div>
+                <div class="form-row" style="align-items:flex-end;">
+                    <div class="fg" style="flex:2;">
+                        <label><i class="fas fa-user-tie" style="color:var(--purple);"></i> رابط صفحة الكابتن</label>
+                        <input type="url" class="fi ltr" id="qrCaptainUrl" placeholder="https://example.com/captain" oninput="App.updateCaptainQR()">
+                    </div>
+                    <div style="padding-bottom:2px;">
+                        <button class="btn-primary" style="background:var(--purple);justify-content:center;white-space:nowrap;" onclick="App.generateCaptainQR()"><i class="fas fa-qrcode"></i> توليد باركود الكابتن</button>
+                    </div>
+                </div>
+                <div class="qr-preview-box">
+                    <span class="qp-label"><i class="fas fa-eye"></i> معاينة:</span>
+                    <span class="qp-url" id="qrCaptainPreviewUrl">-</span>
+                </div>
+            </div>
+            <div id="captainQrContainer" class="qrs-grid c1" style="margin-top:20px; justify-content:center;"></div>
+            <!-- ========================================= -->
+
+            <div class="qr-tools" id="qrTools" style="display:none;margin-bottom:18px;gap:10px;justify-content:center;flex-wrap:wrap;"><button class="btn-primary btn-green" onclick="App.printQR()"><i class="fas fa-print"></i> طباعة</button><button class="btn-secondary" onclick="App.refreshQRCards()"><i class="fas fa-arrows-rotate"></i> تحديث</button></div>
+            <div class="qrs-grid c4" id="qrsGrid"></div>
+        </div>
+
+        <!-- تبويب المنيو -->
+        <div class="tab-panel" id="panelMenu">
+            <div class="section-card"><div class="sc-title"><i class="fas fa-folder-plus"></i> إنشاء قسم جديد</div><form id="catForm" onsubmit="App.saveCat(event)"><input type="hidden" id="editCatId"><div class="form-row"><div class="fg"><label>اسم القسم</label><input type="text" class="fi" id="catName" required placeholder="مثال: المشويات"></div><div class="fg"><label>صورة القسم (أفقية)</label><input type="file" class="fi" id="catImg" accept="image/*" style="padding:9px;"></div></div><button type="submit" class="btn-primary" id="catBtn"><i class="fas fa-plus"></i> حفظ القسم</button></form></div>
+            <div class="sc-title" style="padding:0 4px;"><i class="fas fa-layer-group"></i> هيكلية المنيو</div>
+            <div id="menuStructure" style="margin-top:14px;">جاري التحميل...</div>
+        </div>
+
+        <!-- تبويب التسوق المباشر -->
+        <div class="tab-panel" id="panelDirect">
+            <div class="section-card"><div class="sc-title"><i class="fas fa-bolt"></i> التسوق المباشر</div><p style="color:var(--text-secondary);font-size:13px;margin-bottom:16px;">للطلبات السفرية — الزبون يطلب مباشرة من الكاشير.</p><div class="form-row"><div class="fg"><label>البحث عن صنف</label><input type="text" class="fi" id="directSearch" placeholder="اكتب اسم الصنف..." oninput="App.filterDirect()"></div><div class="fg"><label>فلتر حسب القسم</label><select class="fi" id="directCatFilter" onchange="App.filterDirect()"><option value="">جميع الأقسام</option></select></div></div></div>
+            <div class="direct-grid" id="directGrid">جاري تحميل المنيو...</div>
+            <div class="direct-bar" id="directBar" style="display:none;">
+                <div class="db-info"><span class="db-count" id="directCount">0 صنف</span><span class="db-total" id="directTotal">0 دينار</span></div>
+                <div class="db-actions">
+                    <button class="btn-secondary btn-sm" onclick="App.clearDirectCart()"><i class="fas fa-xmark"></i> إفراغ</button>
+                    <button class="btn-primary btn-sm" onclick="App.payDirectOrder()"><i class="fas fa-cash-register"></i> دفع وطباعة</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- تبويب الإعدادات -->
+        <div class="tab-panel" id="panelSettings">
+            <div class="section-card">
+                <div class="setting-group"><div class="sg-title"><i class="fas fa-store"></i> معلومات المطعم</div>
+                    <div class="sg-row"><label>شعار المطعم:</label><div class="logo-upload-area"><img id="logoPreview" class="logo-preview" src="" alt="" style="display:none;" onclick="document.getElementById('logoInput').click();"><div id="logoPlaceholder" class="logo-placeholder" onclick="document.getElementById('logoInput').click();"><i class="fas fa-camera"></i></div><input type="file" id="logoInput" accept="image/*" style="display:none;" onchange="App.previewLogo(this)"><button type="button" id="removeLogoBtn" class="btn-secondary btn-sm" style="display:none;font-size:10px;padding:4px 10px;" onclick="App.removeLogo()"><i class="fas fa-trash"></i> إزالة</button></div></div>
+                    <div class="sg-row"><label>اسم المطعم:</label><input type="text" class="fi" id="sName" placeholder="أدخل اسم المطعم" style="flex:1;"></div>
+                    <div class="sg-row"><label>رابط الفاتورة:</label><input type="url" class="fi ltr" id="sInvoiceUrl" placeholder="https://example.com" style="flex:1;"><span style="font-size:10px;color:var(--text-muted);padding-top:12px;">باركود أسفل الفاتورة</span></div>
+                </div>
+                
+                <!-- قسم الثيمات -->
+                <div class="setting-group">
+                    <div class="sg-title"><i class="fas fa-palette"></i> تخصيص الثيم</div>
+                    <div class="theme-row">
+                        <div class="color-preview" id="themeColorPreview" style="background:var(--accent);"></div>
+                        <div class="theme-slider">
+                            <input type="range" id="themeSlider" min="0" max="360" value="35">
+                            <div class="theme-presets" id="themePresets"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="setting-group"><div class="sg-title"><i class="fas fa-volume-high"></i> الأصوات</div>
+                    <div class="sg-row"><label>صوت النقرات:</label><select class="fi" id="sClickSnd" style="flex:1;max-width:300px;"><option value="off">بدون</option><option value="__click1">نقرة 1</option><option value="__click2">نقرة 2</option><option value="__click3">نقرة 3</option><option value="__click4">نقرة 4</option><option value="__click5">نقرة 5</option></select><button class="btn-secondary btn-sm" onclick="App.playPreview('click')"><i class="fas fa-play"></i></button></div>
+                    <div class="sg-row"><label>صوت الطلبات:</label><select class="fi" id="sOrderSnd" style="flex:1;max-width:300px;"><option value="off">بدون</option><option value="sond1.mp3">صوت 1</option><option value="sond2.mp3">صوت 2</option><option value="sond3.mp3">صوت 3</option></select><button class="btn-secondary btn-sm" onclick="App.playPreview('order')"><i class="fas fa-play"></i></button></div>
+                    <div class="sg-row"><label>صوت الرسائل:</label><select class="fi" id="sMsgSnd" style="flex:1;max-width:300px;"><option value="off">بدون</option><option value="sond1.mp3">صوت 1</option><option value="sond2.mp3">صوت 2</option></select><button class="btn-secondary btn-sm" onclick="App.playPreview('msg')"><i class="fas fa-play"></i></button></div>
+                    <div class="sg-row"><label>صوت الطباعة:</label><select class="fi" id="sPrintSnd" style="flex:1;max-width:300px;"><option value="off">بدون</option><option value="sond1.mp3">صوت 1</option><option value="sond2.mp3">صوت 2</option></select><button class="btn-secondary btn-sm" onclick="App.playPreview('print')"><i class="fas fa-play"></i></button></div>
+                </div>
+                
+                <div class="setting-group"><div class="sg-title"><i class="fas fa-print"></i> الطابعات</div>
+                    <div class="form-row" style="margin-bottom:14px;"><div class="fg"><input type="text" class="fi" id="pName" placeholder="اسم الطابعة"></div><div class="fg">
+    <label><i class="fas fa-print" style="color:var(--accent);"></i> اختر الطابعة</label>
+    <select class="fi ltr" id="pIP" style="direction:rtl; text-align:right;">
+        <option value="">جاري التحميل...</option>
+    </select>
+</div><div style="display:flex;align-items:flex-end;"><button class="btn-primary btn-sm btn-purple" onclick="App.addPrinter()"><i class="fas fa-plus"></i> إضافة</button></div></div>
+                    <div id="printersList"></div>
+                </div>
+                
+                <!-- قسم إدارة أزرار الطباعة -->
+                <div class="setting-group">
+                    <div class="sg-title"><i class="fas fa-print"></i> إدارة أزرار الطباعة</div>
+                    <div class="print-buttons-config">
+                        <div class="print-button-config" data-button="kitchen">
+                            <div class="config-header">
+                                <i class="fas fa-fire-burner"></i>
+                                <span>زر طباعة المطبخ</span>
+                                <button type="button" class="btn-secondary btn-sm" onclick="App.openPrinterSelector('kitchen')">
+                                    <i class="fas fa-plus"></i> تعيين الطابعات
+                                </button>
+                            </div>
+                            <div class="selected-printers" id="kitchenPrinters"></div>
+                        </div>
+                        
+                        <div class="print-button-config" data-button="cashier">
+                            <div class="config-header">
+                                <i class="fas fa-cash-register"></i>
+                                <span>زر تسديد الحساب</span>
+                                <button type="button" class="btn-secondary btn-sm" onclick="App.openPrinterSelector('cashier')">
+                                    <i class="fas fa-plus"></i> تعيين الطابعات
+                                </button>
+                            </div>
+                            <div class="selected-printers" id="cashierPrinters"></div>
+                        </div>
+                        
+                        <div class="print-button-config" data-button="direct">
+                            <div class="config-header">
+                                <i class="fas fa-bolt"></i>
+                                <span>زر التسوق المباشر</span>
+                                <button type="button" class="btn-secondary btn-sm" onclick="App.openPrinterSelector('direct')">
+                                    <i class="fas fa-plus"></i> تعيين الطابعات
+                                </button>
+                            </div>
+                            <div class="selected-printers" id="directPrinters"></div>
+                        </div>
+                        
+                        <div class="print-button-config" data-button="stats">
+                            <div class="config-header">
+                                <i class="fas fa-chart-bar"></i>
+                                <span>زر الإحصائيات</span>
+                                <button type="button" class="btn-secondary btn-sm" onclick="App.openPrinterSelector('stats')">
+                                    <i class="fas fa-plus"></i> تعيين الطابعات
+                                </button>
+                            </div>
+                            <div class="selected-printers" id="statsPrinters"></div>
+                        </div>
+
+                        <div class="print-button-config" data-button="qr">
+                            <div class="config-header">
+                                <i class="fas fa-qrcode"></i>
+                                <span>زر الباركودات</span>
+                                <button type="button" class="btn-secondary btn-sm" onclick="App.openPrinterSelector('qr')">
+                                    <i class="fas fa-plus"></i> تعيين الطابعات
+                                </button>
+                            </div>
+                            <div class="selected-printers" id="qrPrinters"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- قسم الروابط والوسائط -->
+                <div class="setting-group">
+                    <div class="sg-title"><i class="fas fa-link"></i> إدارة الروابط والوسائط</div>
+                    <div class="links-section">
+                        <div class="links-grid">
+                            <div class="links-card">
+                                <div class="card-header">
+                                    <div class="icon-box" style="background:var(--accent-dim);color:var(--accent);">
+                                        <i class="fas fa-link"></i>
+                                    </div>
+                                    <div>
+                                        <h3>إضافة روابط التواصل</h3>
+                                        <p>روابط فيسبوك، انستقرام، واتساب، الخريطة</p>
+                                    </div>
+                                </div>
+                                <form id="linksForm" autocomplete="off">
+                                    <div class="form-group">
+                                        <label><i class="fab fa-facebook"></i> رابط فيسبوك</label>
+                                        <input type="url" id="fbInput" class="fi ltr" placeholder="https://facebook.com/username">
+                                    </div>
+                                    <div class="form-group">
+                                        <label><i class="fab fa-instagram"></i> رابط انستقرام</label>
+                                        <input type="url" id="igInput" class="fi ltr" placeholder="https://instagram.com/username">
+                                    </div>
+                                    <div class="form-group">
+                                        <label><i class="fab fa-whatsapp"></i> رابط واتساب</label>
+                                        <input type="url" id="waInput" class="fi ltr" placeholder="https://wa.me/966500000000">
+                                    </div>
+                                    <div class="form-group">
+                                        <label><i class="fas fa-map-marker-alt"></i> رابط الخريطة</label>
+                                        <input type="url" id="mapInput" class="fi ltr" placeholder="https://maps.google.com/...">
+                                    </div>
+                                    <button type="submit" class="btn-primary" id="submitBtn" style="width:100%;">
+                                        <i class="fas fa-save"></i> حفظ الروابط
+                                    </button>
+                                </form>
+                            </div>
+                            
+                            <div class="links-card">
+                                <div class="card-header">
+                                    <div class="icon-box" style="background:rgba(56,189,248,0.1);color:#38bdf8;">
+                                        <i class="fas fa-video"></i>
+                                    </div>
+                                    <div>
+                                        <h3>فيديو الخلفية</h3>
+                                        <p>رفع فيديو MP4 (حد أقصى 25MB)</p>
+                                    </div>
+                                </div>
+                                <label for="videoInput" class="file-drop-zone" id="dropZone">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p>اسحب ملف الفيديو هنا أو اضغط للاختيار</p>
+                                    <p class="sub">صيغة MP4 فقط</p>
+                                </label>
+                                <input type="file" id="videoInput" accept="video/mp4" style="display:none;">
+                                <div class="progress-bar-container" id="videoProgressContainer" style="display:none;margin-top:12px;">
+                                    <div class="progress-track"><div class="progress-fill" id="videoProgressBar"></div></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="section-title" style="margin-top:20px;">
+                            <i class="fas fa-database"></i> الروابط المحفوظة
+                            <span class="count-badge" id="linksCountBadge">0 سجل</span>
+                        </div>
+                        <div class="data-table-wrapper">
+                            <div id="linksEmptyState" style="text-align:center;padding:40px;color:var(--text-muted);">
+                                <i class="fas fa-inbox" style="font-size:48px;margin-bottom:12px;display:block;"></i>
+                                <p>لا توجد بيانات محفوظة</p>
+                            </div>
+                            <table class="data-table" id="linksDataTable" style="display:none;">
+                                <thead>
+                                    <tr><th>#</th><th>فيسبوك</th><th>انستقرام</th><th>واتساب</th><th>الخريطة</th><th>الإجراءات</th></tr>
+                                </thead>
+                                <tbody id="linksTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="btn-primary" onclick="App.saveSettings()" style="width:100%;justify-content:center;margin-top:10px;padding:15px;"><i class="fas fa-floppy-disk"></i> حفظ جميع الإعدادات</button>
+            </div>
+        </div>
+
+        <!-- تبويب الإحصائيات -->
+        <div class="tab-panel" id="panelStats">
+            <div class="section-card"><div class="stats-filter-bar"><div class="fg"><label>المستخدم:</label><select class="fi" id="stUser"><option value="">الكل</option></select></div><div class="fg"><label>من تاريخ:</label><input type="date" class="fi" id="stFrom"></div><div class="fg"><label>إلى تاريخ:</label><input type="date" class="fi" id="stTo"></div><button class="btn-primary btn-blue btn-sm" onclick="App.searchStats()"><i class="fas fa-magnifying-glass"></i> بحث</button><button class="btn-secondary btn-sm" onclick="App.clearStats()"><i class="fas fa-xmark"></i> مسح</button></div><div class="stats-print-bar"><div style="display:flex;align-items:center;gap:10px;"><label style="font-size:12px;color:var(--text-muted);font-weight:700;"><i class="fas fa-print" style="color:var(--accent);"></i> طباعة التقرير:</label><button class="btn-primary btn-sm" onclick="App.printStatsReport()"><i class="fas fa-receipt"></i> طباعة التقرير</button></div></div><div class="stats-list" id="statsList"><p style="color:var(--text-muted);text-align:center;padding:36px;">اختر الفترة واضغط بحث.</p></div></div>
+        </div>
+    </div>
+</div>
+
+<!-- مودال اختيار الطابعات -->
+<div class="modal-overlay" id="printerSelectorModal">
+    <div class="modal-box" style="max-width: 500px;">
+        <i class="fas fa-print modal-icon" style="color:var(--accent);"></i>
+        <h3>اختيار الطابعات</h3>
+        <p id="printerSelectorTitle">اختر الطابعات لهذا الزر</p>
+        <div id="printerSelectorList" class="printer-selector-list"></div>
+        <div class="modal-actions" style="margin-top: 20px;">
+            <button class="btn-secondary" onclick="App.closePrinterSelector()">إلغاء</button>
+            <button class="btn-primary" onclick="App.savePrinterSelection()">حفظ</button>
+        </div>
+    </div>
+</div>
+
+<!-- مودال تأكيد الحذف للروابط -->
+<div class="modal-overlay" id="linkDeleteModal">
+    <div class="modal-box">
+        <i class="fas fa-exclamation-triangle modal-icon"></i>
+        <h3>تأكيد الحذف</h3>
+        <p>هل أنت متأكد من حذف هذا السجل؟</p>
+        <div class="modal-actions">
+            <button class="btn-secondary" onclick="window.closeLinkDeleteModal()">إلغاء</button>
+            <button class="btn-primary" style="background:var(--red);" onclick="window.confirmLinkDelete()">حذف</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script type="module">
+    // إضافة ?v=2 لإجبار المتصفح على تحميل أحدث نسخة وتجاهل الكاش
+    import { App } from './app.js?v=2';
+    import './panelOps.js?v=2'; 
+    import './panelOthers.js?v=2';
+    App.init();
+    window.App = App;
+</script>
+</body>
+</html>

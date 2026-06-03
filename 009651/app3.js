@@ -1,7 +1,8 @@
 import { state } from './state.js';
 import * as DB from './db.js';
-import * as Ops from './panelOps.js';
+import * as Ops from './panelOps3.js';
 import * as Menu from './panelMenu.js';
+import * as Captain from './panelCaptain.js';
 import * as Others from './panelOthers.js';
 import * as Links from './panelLinks.js';
 import * as Theme from './panelTheme.js';
@@ -12,6 +13,7 @@ export const App = {
         this.bindEvents();
         this.initLogin();
     },
+    
     bindEvents() {
         const self = this;
         document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -33,10 +35,20 @@ export const App = {
         document.getElementById('inPass').addEventListener('keydown', e => { if (e.key === 'Enter') self.doLogin(); });
         
         document.getElementById('captainModal').addEventListener('click', e => { if (e.target.id === 'captainModal') e.target.classList.remove('open'); });
+        document.getElementById('captainInvoiceModal').addEventListener('click', e => { if (e.target.id === 'captainInvoiceModal') e.target.classList.remove('open'); });
+        document.getElementById('captainChatModal').addEventListener('click', e => { if (e.target.id === 'captainChatModal') e.target.classList.remove('open'); });
+        document.getElementById('imgModal').addEventListener('click', e => { if (e.target.id === 'imgModal') e.target.classList.remove('open'); });
         
         document.addEventListener('click', () => unlockAudio(), { once: true });
         
-        setInterval(() => { const n = new Date(); if (n.getHours() === 0 && n.getMinutes() === 0) { localStorage.removeItem('ops_session'); toast('تم تسجيل الخروج تلقائياً', 'ti'); setTimeout(() => location.reload(), 2000); } }, 30000);
+        setInterval(() => { 
+            const n = new Date(); 
+            if (n.getHours() === 0 && n.getMinutes() === 0) { 
+                localStorage.removeItem('ops_session'); 
+                toast('تم تسجيل الخروج تلقائياً', 'ti'); 
+                setTimeout(() => location.reload(), 2000); 
+            } 
+        }, 30000);
     },
     
     validateVersion() { 
@@ -46,6 +58,7 @@ export const App = {
         el.className = 'check-icon ' + (ok ? 'valid' : 'invalid'); 
         el.innerHTML = ok ? '<i class="fas fa-circle-check"></i>' : '<i class="fas fa-circle-xmark"></i>'; 
     },
+    
     validateUser() { 
         const v = document.getElementById('inUser').value.trim(), el = document.getElementById('userCheck'); 
         if (!v) { el.className = 'check-icon'; el.innerHTML = ''; return; } 
@@ -53,6 +66,7 @@ export const App = {
         el.className = 'check-icon ' + (ok ? 'valid' : 'invalid'); 
         el.innerHTML = ok ? '<i class="fas fa-circle-check"></i>' : '<i class="fas fa-circle-xmark"></i>'; 
     },
+    
     validatePass() { 
         const u = document.getElementById('inUser').value.trim(), p = document.getElementById('inPass').value.trim(), el = document.getElementById('passCheck'); 
         if (!u || !p) { el.className = 'check-icon'; el.innerHTML = ''; return; } 
@@ -62,10 +76,17 @@ export const App = {
     },
     
     async initLogin() {
-        await Promise.all([DB.getVersions().then(s => { state.dVersions = s.val() || {}; }), DB.getUsers().then(s => { state.dUsers = s.val() || {}; }), DB.getSettings().then(s => { if (s.exists()) state.settings = { ...state.settings, ...s.val() }; }), DB.getRouting().then(s => { if (s.exists()) state.routing = s.val(); })]);
+        await Promise.all([
+            DB.getVersions().then(s => { state.dVersions = s.val() || {}; }), 
+            DB.getUsers().then(s => { state.dUsers = s.val() || {}; }), 
+            DB.getSettings().then(s => { if (s.exists()) state.settings = { ...state.settings, ...s.val() }; }), 
+            DB.getRouting().then(s => { if (s.exists()) state.routing = s.val(); })
+        ]);
+        
         document.getElementById('brandName').textContent = state.settings.restaurantName || 'المطعم';
         const sv = localStorage.getItem('ops_device_version'); 
         if (sv) document.getElementById('verField').style.display = 'none';
+        
         const ss = localStorage.getItem('ops_session');
         if (ss) { 
             try { 
@@ -148,7 +169,7 @@ export const App = {
     },
     
     startListeners() {
-        DB.listenTablesA(data => { state.dA = data; this.render(); });
+        DB.listenTablesA(data => { state.dA = data; this.render(); Captain.loadTablesDropdown(); });
         DB.listenTablesB(data => { state.dB = data; this.render(); });
         DB.listenTablesC(data => { state.dC = data; this.render(); });
         DB.listenMsgA(data => { state.dMsgA = data; this.render(); });
@@ -181,8 +202,15 @@ export const App = {
                 Others.syncLogoDisplay(state.settings.restaurantLogo || ''); 
             } 
         });
+        
         DB.listenVersions(data => { state.dVersions = data; });
-        DB.listenOrders(data => { state.directMenuData = data || {}; Menu.renderMenuStructure(); });
+        
+        DB.listenOrders(data => { 
+            state.directMenuData = data || {}; 
+            Menu.renderMenuStructure(); 
+            Captain.initCaptainPanel(); 
+        });
+        
         Others.initCaptainChat();
     },
     
@@ -223,16 +251,34 @@ export const App = {
     closeDetail: Ops.closeDetail,
     sendAdminReply: Ops.sendAdminReply,
     
-    // تحويل أزرار الطباعة والتسديد إلى رسائل تنبيه (لأنها محذوفة من الواجهة)
+    // تحويل أزرار الطباعة والتسديد إلى رسائل تنبيه (لأنها محذوفة من واجهة التاب)
     printToKitchen: () => toast('لطباعة الطلبات، يرجى استخدام شاشة الكمبيوتر الرئيسية', 'ti'),
     settleInvoice: () => toast('لتسديد الحسابات، يرجى استخدام شاشة الكمبيوتر الرئيسية', 'ti'),
+    rePrintKitchenOrder: () => toast('لإعادة الطباعة، يرجى استخدام شاشة الكمبيوتر الرئيسية', 'ti'),
     
-    saveCat: Menu.saveCat, editCat: Menu.editCat, delCat: Menu.delCat,
-    saveItem: Menu.saveItem, editItem: Menu.editItem, delItem: Menu.delItem,
+    // دوال المنيو
+    saveCat: Menu.saveCat, 
+    editCat: Menu.editCat, 
+    delCat: Menu.delCat,
+    saveItem: Menu.saveItem, 
+    editItem: Menu.editItem, 
+    delItem: Menu.delItem,
     
+    // دوال الكابتن الجديدة (لأخذ طلبات الزبون)
+    captainChangeTable: Captain.captainChangeTable,
+    captainToggleItem: Captain.captainToggleItem,
+    captainQtyChange: Captain.captainQtyChange,
+    captainOpenInvoice: Captain.captainOpenInvoice,
+    captainSendOrder: Captain.captainSendOrder,
+    dismissCashierAlert: Captain.dismissCashierAlert,
+    closeCaptainChat: Captain.closeCaptainChat,
+    sendCaptainChat: Captain.sendCaptainChat,
+    
+    // الإعدادات
     addPrinter: () => toast('إدارة الطابعات متاحة فقط على شاشة الكمبيوتر الرئيسية', 'ti'),
     saveSettings: Others.saveSettings,
     
+    // محادثة الكابتن مع الكاشير (التبويب القديم)
     sendCaptain: Others.sendCaptain
 };
 

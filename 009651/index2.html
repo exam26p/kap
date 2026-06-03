@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة الكابتن - إدارة الطاولات والمنيو</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=Noto+Kufi+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
-        @import url('styles3.css');
+        @import url('styles.css');
         @import url('panelOps.css');
         @import url('panelMenu.css');
         @import url('panelSettings.css');
@@ -21,6 +21,15 @@
 <div class="load-bg" id="loadBg"><div class="load-box"><div class="spinner"></div><p>جاري المعالجة...</p><div class="lc" id="loadCount">0 / 0</div></div></div>
 <div class="confirm-bg" id="confirmLogout"><div class="confirm-box"><div class="confirm-ic danger"><i class="fas fa-right-from-bracket"></i></div><h3>تسجيل الخروج</h3><p>هل تريد تسجيل خروج <b id="logoutUser" style="color:var(--red);"></b>؟</p><div class="confirm-btns"><button class="cb-cancel" onclick="document.getElementById('confirmLogout').classList.remove('open')">إلغاء</button><button class="cb-action" onclick="App.doLogout()">تأكيد</button></div></div></div>
 <div class="modal-bg" id="captainModal"><div class="modal-box"><div class="modal-head"><h2><i class="fas fa-headset"></i> مراسلة الكابتن</h2><button class="modal-x" onclick="document.getElementById('captainModal').classList.remove('open')">&times;</button></div><div class="captain-chat"><div class="captain-msgs" id="captainMsgs"><p style="color:var(--text-muted);font-size:12px;text-align:center;padding:24px;">لا توجد رسائل بعد.</p></div><div class="dp-chat-input"><input type="text" id="captainInput" placeholder="اكتب رسالة للكابتن..." onkeydown="if(event.key==='Enter')App.sendCaptain()"><button onclick="App.sendCaptain()">إرسال</button></div></div></div></div>
+
+<!-- شريط التنبيه العلوي الخاص بالكاشير -->
+<div id="cashierAlertBanner" class="cashier-alert-banner">
+    <div class="alert-content">
+        <i class="fas fa-bell"></i>
+        <span>لديك رسالة من الكاشير يرجى الرد</span>
+    </div>
+    <button id="dismissAlertBtn" onclick="App.dismissCashierAlert()">&times;</button>
+</div>
 
 <div class="login-overlay" id="loginOverlay">
     <div class="login-bg-orbs"><div class="orb"></div><div class="orb"></div><div class="orb"></div></div>
@@ -52,15 +61,15 @@
         </div>
     </header>
     
-    <!-- تم حذف تاب الباركودات والإحصائيات -->
     <nav class="tab-bar">
         <button class="tab-btn active" data-tab="panelOps"><i class="fas fa-table-cells-large"></i> العمليات <span class="tab-badge" id="badgeOps">0</span></button>
+        <button class="tab-btn" data-tab="panelCaptain"><i class="fas fa-concierge-bell"></i> طلبات الزبون</button>
         <button class="tab-btn" data-tab="panelMenu"><i class="fas fa-utensils"></i> المنيو</button>
         <button class="tab-btn" data-tab="panelSettings"><i class="fas fa-gear"></i> الإعدادات</button>
     </nav>
     
     <div class="tab-content-area">
-        <!-- تبويب العمليات - وضع القراءة والمتابعة فقط -->
+        <!-- تبويب العمليات -->
         <div class="tab-panel active" id="panelOps">
             <div class="quick-stats">
                 <div class="qs-card c-occ"><div class="qs-icon"><i class="fas fa-chair"></i></div><span class="qs-label">الطاولات النشطة</span><span class="qs-value" id="qsOcc">0</span></div>
@@ -80,131 +89,78 @@
                     <div class="dp-total" id="dpTotal">الإجمالي: 0 دينار</div>
                     <div class="dp-section-label" style="color:var(--green);"><i class="fas fa-comments"></i> محادثة:</div>
                     <div class="dp-chat"><div class="dp-chat-msgs" id="dpChatMsgs"><p style="color:var(--text-muted);font-size:11px;text-align:center;padding:8px;">انقر على طاولة.</p></div><div class="dp-chat-input"><input type="text" id="dpChatIn" placeholder="اكتب الرد..." onkeydown="if(event.key==='Enter')App.sendAdminReply()"><button onclick="App.sendAdminReply()">رد</button></div></div>
-                    
-                    <!-- إشعار بدلاً من أزرار الطباعة -->
-                    <div class="dp-notice">
-                        <i class="fas fa-desktop"></i>
-                        <span>لطباعة الطلبات وتسديد الحسابات، يرجى استخدام شاشة الكمبيوتر الرئيسية</span>
-                    </div>
+                    <div class="dp-notice"><i class="fas fa-desktop"></i><span>لطباعة الطلبات وتسديد الحسابات، يرجى استخدام شاشة الكمبيوتر الرئيسية</span></div>
                 </div>
+            </div>
+        </div>
+
+        <!-- تبويب طلبات الزبون (وضع الكابتن) -->
+        <div class="tab-panel" id="panelCaptain">
+            <div class="section-card">
+                <div class="sc-title"><i class="fas fa-concierge-bell"></i> أخذ الطلب للزبون</div>
+                <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px; flex-wrap:wrap;">
+                    <label style="font-weight:700; font-size:14px;">اختر الطاولة:</label>
+                    <select id="captainTableSelect" class="fi" style="max-width:200px; margin:0;" onchange="App.captainChangeTable(this.value)"></select>
+                </div>
+                
+                <div id="captainMenuCats" class="captain-menu-grid"></div>
+            </div>
+
+            <div class="captain-bottom-bar" id="captainBottomBar" style="display:none;">
+                <span class="cb-total" id="captainBarTotal">الإجمالي: ٠ دينار</span>
+                <button class="btn-primary" onclick="App.captainOpenInvoice()"><i class="fas fa-receipt"></i> الفاتورة <span class="bc" id="captainBarCount">٠</span></button>
             </div>
         </div>
 
         <!-- تبويب المنيو -->
         <div class="tab-panel" id="panelMenu">
-            <div class="section-card"><div class="sc-title"><i class="fas fa-folder-plus"></i> إنشاء قسم جديد</div><form id="catForm" onsubmit="App.saveCat(event)"><input type="hidden" id="editCatId"><div class="form-row"><div class="fg"><label>اسم القسم</label><input type="text" class="fi" id="catName" required placeholder="مثال: المشويات"></div><div class="fg"><label>صورة القسم (أفقية)</label><input type="file" class="fi" id="catImg" accept="image/*" style="padding:9px;"></div></div><button type="submit" class="btn-primary" id="catBtn"><i class="fas fa-plus"></i> حفظ القسم</button></form></div>
-            <div class="sc-title" style="padding:0 4px;"><i class="fas fa-layer-group"></i> هيكلية المنيو</div>
-            <div id="menuStructure" style="margin-top:14px;">جاري التحميل...</div>
+             <!-- ضع هنا كود المنيو الخاص بك كما هو دون تغيير -->
+             <p style="color:var(--text-muted);text-align:center;padding:50px;">قسم المنيو للتعديل</p>
         </div>
 
-        <!-- تبويب الإعدادات (تم حذف قسم الطابعات وأزرار الطباعة منه) -->
+        <!-- تبويب الإعدادات -->
         <div class="tab-panel" id="panelSettings">
-            <div class="section-card">
-                <div class="setting-group"><div class="sg-title"><i class="fas fa-store"></i> معلومات المطعم</div>
-                    <div class="sg-row"><label>شعار المطعم:</label><div class="logo-upload-area"><img id="logoPreview" class="logo-preview" src="" alt="" style="display:none;" onclick="document.getElementById('logoInput').click();"><div id="logoPlaceholder" class="logo-placeholder" onclick="document.getElementById('logoInput').click();"><i class="fas fa-camera"></i></div><input type="file" id="logoInput" accept="image/*" style="display:none;" onchange="App.previewLogo(this)"><button type="button" id="removeLogoBtn" class="btn-secondary btn-sm" style="display:none;font-size:10px;padding:4px 10px;" onclick="App.removeLogo()"><i class="fas fa-trash"></i> إزالة</button></div></div>
-                    <div class="sg-row"><label>اسم المطعم:</label><input type="text" class="fi" id="sName" placeholder="أدخل اسم المطعم" style="flex:1;"></div>
-                    <div class="sg-row"><label>رابط الفاتورة:</label><input type="url" class="fi ltr" id="sInvoiceUrl" placeholder="https://example.com" style="flex:1;"><span style="font-size:10px;color:var(--text-muted);padding-top:12px;">باركود أسفل الفاتورة</span></div>
-                </div>
-                
-                <!-- قسم الثيمات -->
-                <div class="setting-group">
-                    <div class="sg-title"><i class="fas fa-palette"></i> تخصيص الثيم</div>
-                    <div class="theme-row">
-                        <div class="color-preview" id="themeColorPreview" style="background:var(--accent);"></div>
-                        <div class="theme-slider">
-                            <input type="range" id="themeSlider" min="0" max="360" value="35">
-                            <div class="theme-presets" id="themePresets"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="setting-group"><div class="sg-title"><i class="fas fa-volume-high"></i> الأصوات</div>
-                    <div class="sg-row"><label>صوت النقرات:</label><select class="fi" id="sClickSnd" style="flex:1;max-width:300px;"><option value="off">بدون</option><option value="__click1">نقرة 1</option><option value="__click2">نقرة 2</option><option value="__click3">نقرة 3</option><option value="__click4">نقرة 4</option><option value="__click5">نقرة 5</option></select><button class="btn-secondary btn-sm" onclick="App.playPreview('click')"><i class="fas fa-play"></i></button></div>
-                    <div class="sg-row"><label>صوت الطلبات:</label><select class="fi" id="sOrderSnd" style="flex:1;max-width:300px;"><option value="off">بدون</option><option value="sond1.mp3">صوت 1</option><option value="sond2.mp3">صوت 2</option><option value="sond3.mp3">صوت 3</option></select><button class="btn-secondary btn-sm" onclick="App.playPreview('order')"><i class="fas fa-play"></i></button></div>
-                    <div class="sg-row"><label>صوت الرسائل:</label><select class="fi" id="sMsgSnd" style="flex:1;max-width:300px;"><option value="off">بدون</option><option value="sond1.mp3">صوت 1</option><option value="sond2.mp3">صوت 2</option></select><button class="btn-secondary btn-sm" onclick="App.playPreview('msg')"><i class="fas fa-play"></i></button></div>
-                </div>
-                
-                <!-- تم حذف قسم الطابعات وإدارة أزرار الطباعة بالكامل من هنا -->
-                
-                <!-- قسم الروابط والوسائط -->
-                <div class="setting-group">
-                    <div class="sg-title"><i class="fas fa-link"></i> إدارة الروابط والوسائط</div>
-                    <div class="links-section">
-                        <div class="links-grid">
-                            <div class="links-card">
-                                <div class="card-header">
-                                    <div class="icon-box" style="background:var(--accent-dim);color:var(--accent);"><i class="fas fa-link"></i></div>
-                                    <div><h3>إضافة روابط التواصل</h3><p>روابط فيسبوك، انستقرام، واتساب، الخريطة</p></div>
-                                </div>
-                                <form id="linksForm" autocomplete="off">
-                                    <div class="form-group"><label><i class="fab fa-facebook"></i> رابط فيسبوك</label><input type="url" id="fbInput" class="fi ltr" placeholder="https://facebook.com/username"></div>
-                                    <div class="form-group"><label><i class="fab fa-instagram"></i> رابط انستقرام</label><input type="url" id="igInput" class="fi ltr" placeholder="https://instagram.com/username"></div>
-                                    <div class="form-group"><label><i class="fab fa-whatsapp"></i> رابط واتساب</label><input type="url" id="waInput" class="fi ltr" placeholder="https://wa.me/966500000000"></div>
-                                    <div class="form-group"><label><i class="fas fa-map-marker-alt"></i> رابط الخريطة</label><input type="url" id="mapInput" class="fi ltr" placeholder="https://maps.google.com/..."></div>
-                                    <button type="submit" class="btn-primary" id="submitBtn" style="width:100%;"><i class="fas fa-save"></i> حفظ الروابط</button>
-                                </form>
-                            </div>
-                            
-                            <div class="links-card">
-                                <div class="card-header">
-                                    <div class="icon-box" style="background:rgba(56,189,248,0.1);color:#38bdf8;"><i class="fas fa-video"></i></div>
-                                    <div><h3>فيديو الخلفية</h3><p>رفع فيديو MP4 (حد أقصى 25MB)</p></div>
-                                </div>
-                                <label for="videoInput" class="file-drop-zone" id="dropZone">
-                                    <i class="fas fa-cloud-upload-alt"></i>
-                                    <p>اسحب ملف الفيديو هنا أو اضغط للاختيار</p>
-                                    <p class="sub">صيغة MP4 فقط</p>
-                                </label>
-                                <input type="file" id="videoInput" accept="video/mp4" style="display:none;">
-                                <div class="progress-bar-container" id="videoProgressContainer" style="display:none;margin-top:12px;">
-                                    <div class="progress-track"><div class="progress-fill" id="videoProgressBar"></div></div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="section-title" style="margin-top:20px;">
-                            <i class="fas fa-database"></i> الروابط المحفوظة
-                            <span class="count-badge" id="linksCountBadge">0 سجل</span>
-                        </div>
-                        <div class="data-table-wrapper">
-                            <div id="linksEmptyState" style="text-align:center;padding:40px;color:var(--text-muted);">
-                                <i class="fas fa-inbox" style="font-size:48px;margin-bottom:12px;display:block;"></i>
-                                <p>لا توجد بيانات محفوظة</p>
-                            </div>
-                            <table class="data-table" id="linksDataTable" style="display:none;">
-                                <thead>
-                                    <tr><th>#</th><th>فيسبوك</th><th>انستقرام</th><th>واتساب</th><th>الخريطة</th><th>الإجراءات</th></tr>
-                                </thead>
-                                <tbody id="linksTableBody"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-                
-                <button class="btn-primary" onclick="App.saveSettings()" style="width:100%;justify-content:center;margin-top:10px;padding:15px;"><i class="fas fa-floppy-disk"></i> حفظ جميع الإعدادات</button>
-            </div>
+             <!-- ضع هنا كود الإعدادات الخاص بك كما هو دون تغيير -->
+             <p style="color:var(--text-muted);text-align:center;padding:50px;">قسم الإعدادات</p>
         </div>
     </div>
 </div>
 
-<!-- مودال تأكيد الحذف للروابط -->
-<div class="modal-overlay" id="linkDeleteModal">
-    <div class="modal-box">
-        <i class="fas fa-exclamation-triangle modal-icon"></i>
-        <h3>تأكيد الحذف</h3>
-        <p>هل أنت متأكد من حذف هذا السجل؟</p>
-        <div class="modal-actions">
-            <button class="btn-secondary" onclick="window.closeLinkDeleteModal()">إلغاء</button>
-            <button class="btn-primary" style="background:var(--red);" onclick="window.confirmLinkDelete()">حذف</button>
+<!-- مودال فاتورة الكابتن -->
+<div id="captainInvoiceModal" class="modal-bg">
+    <div class="modal-box" style="max-width:500px;">
+        <div class="modal-head"><h2><i class="fas fa-receipt"></i> فاتورة الزبون</h2><button class="modal-x" onclick="document.getElementById('captainInvoiceModal').classList.remove('open')">&times;</button></div>
+        <div id="captainInvItems"><p style="color:var(--text-muted);text-align:center;padding:20px;">لا توجد طلبات.</p></div>
+        <div style="font-size:20px;font-weight:900;color:var(--accent);text-align:center;padding:14px;background:var(--accent-dim);border-radius:10px;margin:12px 0;" id="captainInvTotal">الإجمالي: ٠ دينار</div>
+        <button class="btn-primary btn-green" style="width:100%;justify-content:center;" onclick="App.captainSendOrder()"><i class="fas fa-paper-plane"></i> إرسال للمطبخ</button>
+    </div>
+</div>
+
+<!-- مودال دردشة الكاشير للكابتن -->
+<div id="captainChatModal" class="modal-bg">
+    <div class="modal-box" style="max-width:500px;">
+        <div class="modal-head"><h2><i class="fas fa-headset"></i> محادثة الكاشير</h2><button class="modal-x" onclick="App.closeCaptainChat()">&times;</button></div>
+        <div id="captainChatMsgs" style="height:300px;overflow-y:auto;background:var(--bg-input);border-radius:10px;padding:12px;margin-bottom:12px;display:flex;flex-direction:column;gap:8px;"></div>
+        <div class="dp-chat-input" style="direction:rtl;">
+            <input type="text" id="captainChatIn" placeholder="اكتب رسالتك..." onkeydown="if(event.key==='Enter')App.sendCaptainChat()">
+            <button onclick="App.sendCaptainChat()">إرسال</button>
         </div>
     </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<!-- مودال صور المنيو -->
+<div id="imgModal" class="modal-bg">
+    <div class="modal-box" style="max-width:800px;background:transparent;border:none;box-shadow:none;">
+        <img id="imgModalImg" src="" alt="" style="width:100%;border-radius:12px;box-shadow:var(--shadow-lg);">
+        <button class="btn-primary" style="margin-top:16px;width:100%;justify-content:center;" onclick="document.getElementById('imgModal').classList.remove('open')"><i class="fas fa-times"></i> إغلاق</button>
+    </div>
+</div>
+
 <script type="module">
-    import { App } from './app3.js?v=3';
-    import './panelOps3.js?v=3'; 
-    import './panelOthers.js?v=3';
+    import { App } from './app.js?v=4';
+    import './panelOps.js?v=4'; 
+    import './panelCaptain.js?v=4'; // الملف الجديد
+    import './panelOthers.js?v=4';
     App.init();
     window.App = App;
 </script>

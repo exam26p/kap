@@ -2,11 +2,14 @@ import { state } from './state.js';
 import * as DB from './db.js';
 import * as Ops from './panelOps3.js';
 import * as Menu from './panelMenu.js';
-import * as Captain from './panelCaptain.js';
 import * as Others from './panelOthers.js';
 import * as Links from './panelLinks.js';
 import * as Theme from './panelTheme.js';
 import { fmt, genSid, playClickSnd, toast, unlockAudio } from './utils.js';
+
+// ===== متغيرات وضع الكابتن (أخذ الطلبات) =====
+let captainOrders = {};
+let captainTable = null;
 
 export const App = {
     init() {
@@ -40,15 +43,6 @@ export const App = {
         document.getElementById('imgModal').addEventListener('click', e => { if (e.target.id === 'imgModal') e.target.classList.remove('open'); });
         
         document.addEventListener('click', () => unlockAudio(), { once: true });
-        
-        setInterval(() => { 
-            const n = new Date(); 
-            if (n.getHours() === 0 && n.getMinutes() === 0) { 
-                localStorage.removeItem('ops_session'); 
-                toast('تم تسجيل الخروج تلقائياً', 'ti'); 
-                setTimeout(() => location.reload(), 2000); 
-            } 
-        }, 30000);
     },
     
     validateVersion() { 
@@ -107,8 +101,7 @@ export const App = {
     async doLogin() {
         unlockAudio();
         const err = document.getElementById('loginErr'), btn = document.getElementById('btnLogin'); 
-        err.textContent = ''; 
-        btn.disabled = true;
+        err.textContent = ''; btn.disabled = true;
         let ver = localStorage.getItem('ops_device_version') || document.getElementById('inVer').value.trim();
         const user = document.getElementById('inUser').value.trim(), pass = document.getElementById('inPass').value.trim();
         
@@ -121,21 +114,7 @@ export const App = {
         if (!pass) { err.textContent = 'أدخل كلمة السر'; btn.disabled = false; return; }
         if (!Object.values(state.dUsers).some(u => u.username === user && u.password === pass)) { err.textContent = 'بيانات الدخول غير صحيحة'; btn.disabled = false; return; }
         
-        try { 
-            const allSnap = await DB.getSessions(); 
-            if (allSnap.exists()) { 
-                const all = allSnap.val(); 
-                const ops = []; 
-                for (let sid in all) { 
-                    if (all[sid].username === user) ops.push(DB.removeData('active_sessions/' + sid)); 
-                } 
-                if (ops.length > 0) await Promise.all(ops); 
-            } 
-        } catch (e) { }
-        
-        state.mySid = genSid(); 
-        state.myUser = user; 
-        state.myVersion = ver;
+        state.mySid = genSid(); state.myUser = user; state.myVersion = ver;
         try { 
             await DB.setData('active_sessions/' + state.mySid, { username: user, logged_in_at: new Date().toISOString(), device_version: ver }); 
             localStorage.setItem('ops_session', JSON.stringify({ sessionId: state.mySid, username: user, version: ver })); 
@@ -148,28 +127,23 @@ export const App = {
         document.getElementById('appRoot').style.display = 'block'; 
         toast('مرحباً ' + state.myUser, 'ts'); 
         this.startListeners(); 
-        Others.loadSettingsUI(); 
-        Links.initLinksModule();
-        Theme.initThemeModule();
+        if(Others.loadSettingsUI) Others.loadSettingsUI();
+        if(Links.initLinksModule) Links.initLinksModule();
+        if(Theme.initThemeModule) Theme.initThemeModule();
     },
     
     async doLogout() { 
         document.getElementById('confirmLogout').classList.remove('open'); 
-        try { 
-            await DB.removeData('active_sessions/' + state.mySid); 
-            localStorage.removeItem('ops_session'); 
-            location.reload(); 
-        } catch (e) { toast('خطأ', 'te'); } 
+        try { await DB.removeData('active_sessions/' + state.mySid); localStorage.removeItem('ops_session'); location.reload(); } catch (e) { toast('خطأ', 'te'); } 
     },
     
     togglePassword() { 
         const inp = document.getElementById('inPass'), ico = document.getElementById('togglePass').querySelector('i'); 
-        if (inp.type === 'password') { inp.type = 'text'; ico.className = 'fas fa-eye-slash'; } 
-        else { inp.type = 'password'; ico.className = 'fas fa-eye'; } 
+        if (inp.type === 'password') { inp.type = 'text'; ico.className = 'fas fa-eye-slash'; } else { inp.type = 'password'; ico.className = 'fas fa-eye'; } 
     },
     
     startListeners() {
-        DB.listenTablesA(data => { state.dA = data; this.render(); Captain.loadTablesDropdown(); });
+        DB.listenTablesA(data => { state.dA = data; this.render(); this.loadTablesDropdown(); });
         DB.listenTablesB(data => { state.dB = data; this.render(); });
         DB.listenTablesC(data => { state.dC = data; this.render(); });
         DB.listenMsgA(data => { state.dMsgA = data; this.render(); });
@@ -177,29 +151,19 @@ export const App = {
         DB.listenArchiveOrders(data => { state.dD = data; Ops.updateSales(); });
         
         DB.listenSessions(data => { 
-            state.dSessions = data || {}; 
-            this.renderChips(); 
-            if (state.mySid && !state.dSessions[state.mySid]) { 
-                localStorage.removeItem('ops_session'); 
-                toast('تم تسجيل خروجك من جهاز آخر', 'te'); 
-                setTimeout(() => location.reload(), 2000); 
-            } 
+            state.dSessions = data || {}; this.renderChips(); 
+            if (state.mySid && !state.dSessions[state.mySid]) { localStorage.removeItem('ops_session'); toast('تم تسجيل خروجك من جهاز آخر', 'te'); setTimeout(() => location.reload(), 2000); } 
         });
 
         DB.listenUsers(data => { 
             state.dUsers = data || {}; 
-            for (let sid in state.dSessions) {
-                const sessionUser = state.dSessions[sid].username;
-                const userExists = Object.values(state.dUsers).some(u => u.username === sessionUser);
-                if (!userExists) DB.removeData('active_sessions/' + sid);
-            }
         });
 
         DB.listenSettings(data => { 
             if (data) { 
                 state.settings = { ...state.settings, ...data }; 
                 document.getElementById('brandName').textContent = state.settings.restaurantName || 'المطعم'; 
-                Others.syncLogoDisplay(state.settings.restaurantLogo || ''); 
+                if(Others.syncLogoDisplay) Others.syncLogoDisplay(state.settings.restaurantLogo || ''); 
             } 
         });
         
@@ -207,78 +171,98 @@ export const App = {
         
         DB.listenOrders(data => { 
             state.directMenuData = data || {}; 
-            Menu.renderMenuStructure(); 
-            Captain.initCaptainPanel(); 
+            if(document.getElementById('menuStructure')) Menu.renderMenuStructure(); // يمنع خطأ المنيو
+            this.renderCaptainMenu(data); 
         });
         
-        Others.initCaptainChat();
+        if(Others.initCaptainChat) Others.initCaptainChat();
     },
     
     render() { 
         Ops.renderGrid(); 
-        if (state.activeTable) { 
-            Ops.renderDetail(); 
-            Ops.markRead(state.activeTable); 
-        } 
+        if (state.activeTable) { Ops.renderDetail(); Ops.markRead(state.activeTable); } 
     },
     
     renderChips() { 
-        const c = document.getElementById('userChips'); 
-        c.innerHTML = ''; 
-        if (!state.dSessions) return;
-        for (let id in state.dSessions) { 
-            const d = document.createElement('div'); 
-            d.className = 'u-chip'; 
-            d.innerHTML = '<span class="dot"></span>' + state.dSessions[id].username; 
-            if (id === state.mySid) d.style.borderColor = 'var(--accent)'; 
-            c.appendChild(d); 
-        } 
+        const c = document.getElementById('userChips'); c.innerHTML = ''; if (!state.dSessions) return;
+        for (let id in state.dSessions) { const d = document.createElement('div'); d.className = 'u-chip'; d.innerHTML = '<span class="dot"></span>' + state.dSessions[id].username; if (id === state.mySid) d.style.borderColor = 'var(--accent)'; c.appendChild(d); } 
         document.getElementById('logoutUser').textContent = state.myUser || ''; 
     },
     
     playPreview(type) {
-        if (type === 'click') { playClickSnd(); } 
-        else {
-            let sound = null;
-            if (type === 'order') sound = state.settings.orderSound;
-            else if (type === 'msg') sound = state.settings.msgSound;
-            if (sound && sound !== 'off') { const audio = new Audio(sound); audio.play().catch(() => {}); }
+        if (type === 'click') { playClickSnd(); } else { let sound = type === 'order' ? state.settings.orderSound : state.settings.msgSound; if (sound && sound !== 'off') { const audio = new Audio(sound); audio.play().catch(() => {}); } }
+    },
+
+    // ===== دوال الكابتن لأخذ الطلبات (ملائمة للتاب) =====
+    loadTablesDropdown() {
+        const sel = document.getElementById('captainTableSelect');
+        if(!sel) return;
+        const cv = sel.value;
+        sel.innerHTML = '<option value="">-- اختر طاولة --</option>';
+        for (let id in state.dA) {
+            const t = state.dA[id]; if (t && t.table_number) {
+                const opt = document.createElement('option'); opt.value = t.table_number; opt.textContent = 'طاولة ' + t.table_number; sel.appendChild(opt);
+            }
+        }
+        sel.value = cv;
+    },
+
+    captainChangeTable(tableNum) { captainTable = tableNum; captainOrders = {}; this.renderCaptainMenu(state.directMenuData); this.updateCaptainBar(); },
+
+    renderCaptainMenu(data) {
+        const c = document.getElementById('captainMenuCats'); if(!c) return; c.innerHTML = '';
+        if (!data) { c.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:30px;">المنيو فارغ حالياً.</p>'; return; }
+        for (var catId in data) {
+            var cat = data[catId]; var items = cat.items || {}; var itemHTML = "";
+            for (var itemId in items) {
+                var it = items[itemId]; var key = catId + "_" + itemId; var qty = captainOrders[key] ? captainOrders[key].quantity : 0; var imgSrc = it.image || "";
+                itemHTML += `<div class="direct-item ${qty > 0 ? 'selected' : ''}" onclick="App.captainToggleItem('${key}')">
+                    ${imgSrc ? `<img src="${imgSrc}" alt="" style="width:100%;height:90px;object-fit:cover;border-radius:8px;margin-bottom:8px;">` : '<div style="width:100%;height:90px;background:var(--bg-input);border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:8px;"><i class="fas fa-image" style="color:var(--text-muted);font-size:24px;"></i></div>'}
+                    <h4 style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${it.name}</h4>
+                    <div style="font-size:15px;font-weight:900;color:var(--red);margin-top:4px;">${fmt(it.price)} د.ع</div>
+                    <div class="direct-qty" style="opacity:${qty > 0 ? '1' : '0'}; pointer-events:${qty > 0 ? 'all' : 'none'};">
+                        <button class="dq-minus" onclick="event.stopPropagation(); App.captainQtyChange('${key}', -1)">−</button><span>${qty}</span><button class="dq-plus" onclick="event.stopPropagation(); App.captainQtyChange('${key}', 1)">+</button>
+                    </div></div>`;
+            }
+            c.innerHTML += `<div style="margin-bottom:24px;"><h3 style="font-size:18px;font-weight:800;color:var(--accent);margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:8px;">${cat.name}</h3><div class="direct-grid">${itemHTML}</div></div>`;
         }
     },
+
+    captainToggleItem(key) { if (!captainTable) { toast('اختر طاولة أولاً', 'te'); return; } if (captainOrders[key]) { delete captainOrders[key]; } else { captainOrders[key] = { quantity: 1 }; } this.updateCaptainBar(); this.renderCaptainMenu(state.directMenuData); },
+    captainQtyChange(key, delta) { if (!captainOrders[key]) captainOrders[key] = { quantity: 0 }; captainOrders[key].quantity = Math.max(0, captainOrders[key].quantity + delta); if (captainOrders[key].quantity === 0) delete captainOrders[key]; this.updateCaptainBar(); this.renderCaptainMenu(state.directMenuData); },
     
+    updateCaptainBar() {
+        const bar = document.getElementById('captainBottomBar'); if(!bar) return; let count = 0, total = 0;
+        for (let k in captainOrders) { const parts = k.split('_'); const catId = parts[0]; const itemId = parts.slice(1).join('_'); const item = state.directMenuData[catId]?.items?.[itemId]; if (item) { count += captainOrders[k].quantity; total += item.price * captainOrders[k].quantity; } }
+        bar.style.display = count > 0 ? 'flex' : 'none'; document.getElementById('captainBarCount').textContent = count; document.getElementById('captainBarTotal').textContent = 'الإجمالي: ' + fmt(total) + ' دينار';
+    },
+
+    captainOpenInvoice() {
+        const ic = document.getElementById('captainInvItems'); let total = 0; let html = '';
+        for (let k in captainOrders) { const parts = k.split('_'); const catId = parts[0]; const itemId = parts.slice(1).join('_'); const item = state.directMenuData[catId]?.items?.[itemId]; if (item) { const qty = captainOrders[k].quantity; const sub = item.price * qty; total += sub; html += `<div class="inv-row" style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed var(--border);"><span>${item.name} (${qty})</span><span>${fmt(sub)} د.ع</span></div>`; } }
+        ic.innerHTML = html || '<p style="color:var(--text-muted);text-align:center;padding:20px;">لا توجد طلبات.</p>';
+        document.getElementById('captainInvTotal').textContent = 'الإجمالي: ' + fmt(total) + ' دينار';
+        document.getElementById('captainInvoiceModal').classList.add('open');
+    },
+
+    captainSendOrder() {
+        if (!captainTable) { toast('اختر طاولة أولاً', 'te'); return; } if (!Object.keys(captainOrders).length) { toast('السلة فارغة', 'te'); return; }
+        for (let k in captainOrders) { const parts = k.split('_'); const catId = parts[0]; const itemId = parts.slice(1).join('_'); const item = state.directMenuData[catId]?.items?.[itemId]; if (item) { DB.pushData('tablesB/table_' + captainTable + '/sent_orders', { name: item.name, price: item.price, quantity: captainOrders[k].quantity, settled_by: "captain", settled_at: new Date().toISOString() }); } }
+        captainOrders = {}; this.updateCaptainBar(); this.renderCaptainMenu(state.directMenuData); document.getElementById('captainInvoiceModal').classList.remove('open'); toast('تم إرسال الطلب للمطبخ بنجاح', 'ts');
+    },
+
+    dismissCashierAlert() { document.getElementById('cashierAlertBanner').style.display = 'none'; },
+    closeCaptainChat() { document.getElementById('captainChatModal').classList.remove('open'); },
+    sendCaptainChat() { var inp = document.getElementById('captainChatIn'); var txt = inp.value.trim(); if (!txt || !state.myUser) return; DB.pushData('captain_chats/' + state.myUser, { text: txt, timestamp: new Date().toISOString(), sender: "captain", sender_name: "كابتن" }); inp.value = ""; },
+
     // ===== ربط الدوال =====
-    openDetail: Ops.openDetail,
-    closeDetail: Ops.closeDetail,
-    sendAdminReply: Ops.sendAdminReply,
-    
-    // تحويل أزرار الطباعة والتسديد إلى رسائل تنبيه (لأنها محذوفة من واجهة التاب)
+    openDetail: Ops.openDetail, closeDetail: Ops.closeDetail, sendAdminReply: Ops.sendAdminReply,
     printToKitchen: () => toast('لطباعة الطلبات، يرجى استخدام شاشة الكمبيوتر الرئيسية', 'ti'),
     settleInvoice: () => toast('لتسديد الحسابات، يرجى استخدام شاشة الكمبيوتر الرئيسية', 'ti'),
     rePrintKitchenOrder: () => toast('لإعادة الطباعة، يرجى استخدام شاشة الكمبيوتر الرئيسية', 'ti'),
-    
-    // دوال المنيو
-    saveCat: Menu.saveCat, 
-    editCat: Menu.editCat, 
-    delCat: Menu.delCat,
-    saveItem: Menu.saveItem, 
-    editItem: Menu.editItem, 
-    delItem: Menu.delItem,
-    
-    // دوال الكابتن الجديدة (لأخذ طلبات الزبون)
-    captainChangeTable: Captain.captainChangeTable,
-    captainToggleItem: Captain.captainToggleItem,
-    captainQtyChange: Captain.captainQtyChange,
-    captainOpenInvoice: Captain.captainOpenInvoice,
-    captainSendOrder: Captain.captainSendOrder,
-    dismissCashierAlert: Captain.dismissCashierAlert,
-    closeCaptainChat: Captain.closeCaptainChat,
-    sendCaptainChat: Captain.sendCaptainChat,
-    
-    // الإعدادات
+    saveCat: Menu.saveCat, editCat: Menu.editCat, delCat: Menu.delCat, saveItem: Menu.saveItem, editItem: Menu.editItem, delItem: Menu.delItem,
     addPrinter: () => toast('إدارة الطابعات متاحة فقط على شاشة الكمبيوتر الرئيسية', 'ti'),
     saveSettings: Others.saveSettings,
-    
-    // محادثة الكابتن مع الكاشير (التبويب القديم)
     sendCaptain: Others.sendCaptain
 };
 

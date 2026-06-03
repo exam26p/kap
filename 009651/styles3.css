@@ -239,3 +239,86 @@ button[onclick*="printQR"] {
 .captain-qr-actions {
     display: none !important;
 }
+/* تنسيقات تبويب طلبات الزبون للكابتن */
+.captain-menu-grid {
+    padding-bottom: 80px;
+}
+
+.captain-bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--glass);
+    backdrop-filter: blur(24px);
+    border-top: 1px solid var(--border);
+    padding: 14px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 900;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+}
+
+.captain-bottom-bar .cb-total {
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--accent);
+}
+
+.captain-bottom-bar .bc {
+    background: var(--bg-deep);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-right: 8px;
+}
+
+/* شريط التنبيه العلوي للكاشير */
+.cashier-alert-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999999;
+    background: linear-gradient(135deg, #C9A96E, #A68B4B);
+    color: #2C3E2D;
+    padding: 14px 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    animation: dropDown 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+@keyframes dropDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+
+.alert-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 15px;
+    font-family: 'Noto Kufi Arabic', sans-serif;
+}
+.alert-content i { font-size: 20px; animation: bellRing 1s infinite; }
+@keyframes bellRing { 0% { transform: rotate(0); } 20% { transform: rotate(15deg); } 40% { transform: rotate(-15deg); } 60% { transform: rotate(8deg); } 80% { transform: rotate(-8deg); } 100% { transform: rotate(0); } }
+
+#dismissAlertBtn {
+    position: absolute;
+    left: 15px;
+    background: rgba(255,255,255,0.3);
+    border: none;
+    color: #2C3E2D;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+#dismissAlertBtn:active { background: rgba(255,255,255,0.5); }

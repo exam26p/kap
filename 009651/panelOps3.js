@@ -69,23 +69,29 @@ export function renderDetail() {
     
     document.getElementById('dpTitle').innerHTML = `<i class="fas fa-file-invoice"></i> طاولة ${tNum}`;
     
-    // طلبات واردة
+    // طلبات واردة (B)
     const ordersB = (state.dB[tKey] && state.dB[tKey].sent_orders) ? state.dB[tKey].sent_orders : {};
     const boxB = document.getElementById('dpBoxB');
     let bHtml = '';
     for (let k in ordersB) {
         const o = ordersB[k];
-        bHtml += `<div class="inv-row"><span>${o.name || ''} (${o.quantity || 0})</span><span>${fmt(o.price || 0)} د.ع</span></div>`;
+        bHtml += `<div class="inv-row">
+            <span>${o.name || ''} (${o.quantity || 0})</span>
+            <span>${fmt(o.price || 0)} د.ع</span>
+        </div>`;
     }
     boxB.innerHTML = bHtml || '<p>لا توجد طلبات جديدة.</p>';
     
-    // قيد المعالجة
+    // قيد المعالجة (C)
     const ordersC = (state.dC[tKey] && state.dC[tKey].cooking_orders) ? state.dC[tKey].cooking_orders : {};
     const boxC = document.getElementById('dpBoxC');
     let cHtml = '';
     for (let k in ordersC) {
         const o = ordersC[k];
-        cHtml += `<div class="inv-row"><span>${o.name || ''} (${o.quantity || 0})</span><span>${fmt(o.price || 0)} د.ع</span></div>`;
+        cHtml += `<div class="inv-row">
+            <span>${o.name || ''} (${o.quantity || 0})</span>
+            <span>${fmt(o.price || 0)} د.ع</span>
+        </div>`;
     }
     boxC.innerHTML = cHtml || '<p>لا توجد وجبات في المطبخ.</p>';
     
@@ -102,7 +108,6 @@ export function renderDetail() {
 function renderChat(tKey) {
     const box = document.getElementById('dpChatMsgs');
     const msgsA = state.dMsgA[tKey] || {};
-    const msgsB = state.dMsgB || {}; // إذا كان لديك msgB في state
     
     let allMsgs = [];
     for (let id in msgsA) allMsgs.push({ ...msgsA[id], src: 'client' });
@@ -145,3 +150,8 @@ export function markRead(tKey) {
 export function updateSales() {
     // يتم حساب المبيعات تلقائياً في renderGrid
 }
+
+// دوال الطباعة والتسديد يتم تحويلها لمجرد تنبيهات لضمان عدم حدوث أخطاء إذا تم استدعاؤها
+export function printToKitchen() { toast('لطباعة الطلبات، يرجى استخدام شاشة الكمبيوتر الرئيسية', 'ti'); return; }
+export function settleInvoice() { toast('لتسديد الحسابات، يرجى استخدام شاشة الكمبيوتر الرئيسية', 'ti'); return; }
+export function rePrintKitchenOrder() { toast('لإعادة الطباعة، يرجى استخدام شاشة الكمبيوتر الرئيسية', 'ti'); return; }

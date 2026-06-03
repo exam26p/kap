@@ -199,8 +199,16 @@
    إعدادات وضع التاب (للقراءة والمتابعة فقط - الكابتن)
    ======================================================== */
 
-/* إخفاء أزرار الطباعة والتسديد من لوحة تفاصيل الطاولة */
-.detail-panel .dp-actions {
+/* إخفاء جميع أزرار الطباعة والتسديد وإعادة الطباعة نهائياً */
+.detail-panel .dp-actions,
+.dp-btn.bp,
+.dp-btn.bs,
+button[onclick*="printToKitchen"],
+button[onclick*="settleInvoice"],
+button[onclick*="rePrintKitchenOrder"],
+button[onclick*="printDirectReceipt"],
+button[onclick*="printSingleQR"],
+button[onclick*="printQR"] {
     display: none !important;
 }
 
@@ -224,13 +232,10 @@
     font-size: 22px;
 }
 
-/* إخفاء قسم إدارة أزرار الطباعة بالكامل من صفحة الإعدادات */
-.print-buttons-config {
-    display: none !important;
-}
-
-/* إخفاء قسم إضافة الطابعات وقائمة الطابعات من صفحة الإعدادات إن وجدت */
+/* إخفاء قسم إدارة أزرار الطباعة والطابعات من صفحة الإعدادات */
+.print-buttons-config,
 .printer-settings-group,
-#printersList {
+#printersList,
+.captain-qr-actions {
     display: none !important;
 }

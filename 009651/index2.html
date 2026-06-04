@@ -4,7 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1, viewport-fit=cover">
     <title>كابتن - نظام إدارة المطعم</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧑‍✈️</text></svg>">
+    
+    <!-- أيقونة التطبيق (تم استبدالها بملفك) -->
+    <link rel="icon" href="icone.ico" type="image/x-icon">
+    
+    <!-- إعدادات تطبيق الويب التقدمي (PWA) -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0b1120">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="كابتن">
+    <link rel="apple-touch-icon" href="icone.ico">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=Noto+Kufi+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -50,6 +61,9 @@
             color: var(--text-primary);
             min-height: 100vh;
             overflow-x: hidden;
+            /* دعم الشاشة الآمنة للآيفون (النوتش) */
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
         }
 
         .top-strip {
@@ -567,45 +581,45 @@
                 </div>
 
                 <div class="setting-group">
-    <div class="sg-title"><i class="fas fa-volume-high"></i> الأصوات</div>
-    <div class="sg-row"><label>صوت النقرات:</label>
-        <select class="fi" id="sClickSnd">
-            <option value="off">بدون</option>
-            <option value="click1">نقرة 1</option>
-            <option value="click2">نقرة 2</option>
-        </select>
-    </div>
-    <div class="sg-row"><label>صوت الطلبات:</label>
-        <select class="fi" id="sOrderSnd">
-            <option value="off">بدون</option>
-            <option value="sond1.mp3">صوت 1</option>
-            <option value="sond2.mp3">صوت 2</option>
-            <option value="sond3.mp3">صوت 3</option>
-            <option value="sond4.mp3">صوت 4</option>
-            <option value="sond5.mp3">صوت 5</option>
-            <option value="sond6.mp3">صوت 6</option>
-            <option value="sond7.mp3">صوت 7</option>
-            <option value="sond8.mp3">صوت 8</option>
-            <option value="sond9.mp3">صوت 9</option>
-            <option value="sond10.mp3">صوت 10</option>
-        </select>
-    </div>
-    <div class="sg-row"><label>صوت الرسائل:</label>
-        <select class="fi" id="sMsgSnd">
-            <option value="off">بدون</option>
-            <option value="sond1.mp3">صوت 1</option>
-            <option value="sond2.mp3">صوت 2</option>
-            <option value="sond3.mp3">صوت 3</option>
-            <option value="sond4.mp3">صوت 4</option>
-            <option value="sond5.mp3">صوت 5</option>
-            <option value="sond6.mp3">صوت 6</option>
-            <option value="sond7.mp3">صوت 7</option>
-            <option value="sond8.mp3">صوت 8</option>
-            <option value="sond9.mp3">صوت 9</option>
-            <option value="sond10.mp3">صوت 10</option>
-        </select>
-    </div>
-</div>
+                    <div class="sg-title"><i class="fas fa-volume-high"></i> الأصوات</div>
+                    <div class="sg-row"><label>صوت النقرات:</label>
+                        <select class="fi" id="sClickSnd">
+                            <option value="off">بدون</option>
+                            <option value="click1">نقرة 1</option>
+                            <option value="click2">نقرة 2</option>
+                        </select>
+                    </div>
+                    <div class="sg-row"><label>صوت الطلبات:</label>
+                        <select class="fi" id="sOrderSnd">
+                            <option value="off">بدون</option>
+                            <option value="sond1.mp3">صوت 1</option>
+                            <option value="sond2.mp3">صوت 2</option>
+                            <option value="sond3.mp3">صوت 3</option>
+                            <option value="sond4.mp3">صوت 4</option>
+                            <option value="sond5.mp3">صوت 5</option>
+                            <option value="sond6.mp3">صوت 6</option>
+                            <option value="sond7.mp3">صوت 7</option>
+                            <option value="sond8.mp3">صوت 8</option>
+                            <option value="sond9.mp3">صوت 9</option>
+                            <option value="sond10.mp3">صوت 10</option>
+                        </select>
+                    </div>
+                    <div class="sg-row"><label>صوت الرسائل:</label>
+                        <select class="fi" id="sMsgSnd">
+                            <option value="off">بدون</option>
+                            <option value="sond1.mp3">صوت 1</option>
+                            <option value="sond2.mp3">صوت 2</option>
+                            <option value="sond3.mp3">صوت 3</option>
+                            <option value="sond4.mp3">صوت 4</option>
+                            <option value="sond5.mp3">صوت 5</option>
+                            <option value="sond6.mp3">صوت 6</option>
+                            <option value="sond7.mp3">صوت 7</option>
+                            <option value="sond8.mp3">صوت 8</option>
+                            <option value="sond9.mp3">صوت 9</option>
+                            <option value="sond10.mp3">صوت 10</option>
+                        </select>
+                    </div>
+                </div>
 
                 <div class="setting-group">
                     <div class="sg-title"><i class="fas fa-link"></i> إدارة الروابط والوسائط</div>
@@ -683,6 +697,17 @@
 </div>
 
 <div id="distBar"><div class="dist-bar-inner"><div class="dist-track"><div class="dist-fill" id="distFill"></div></div><span class="dist-value" id="distValue">0%</span></div></div>
+
+<!-- كود تسجيل الـ Service Worker ليعمل كتطبيق -->
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js')
+                .then(reg => console.log('Service Worker registered successfully'))
+                .catch(err => console.log('Service Worker registration failed', err));
+        });
+    }
+</script>
 
 <script type="module" src="captain.js"></script>
 </body>

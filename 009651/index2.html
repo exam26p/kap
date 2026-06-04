@@ -2,129 +2,429 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
-    <title>لوحة الكابتن - إدارة الطاولات</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1, viewport-fit=cover">
+    <title>كابتن - نظام إدارة المطعم</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧑‍✈️</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=Noto+Kufi+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
-    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
     <style>
-        :root{--bg-deep:#060a12;--bg-main:#0b1120;--bg-card:#111b2e;--bg-input:#090f1c;--border:#1a2940;--border-light:#243656;--text-primary:#f0f4f8;--text-secondary:#8899b5;--text-muted:#465a78;--accent:#f59e0b;--accent-dim:rgba(245,158,11,0.08);--green:#10b981;--green-dim:rgba(16,185,129,0.1);--blue:#3b82f6;--blue-dim:rgba(59,130,246,0.1);--red:#ef4444;--red-dim:rgba(239,68,68,0.08);--radius:14px;--radius-sm:10px;--radius-lg:18px;--shadow:0 4px 24px rgba(0,0,0,0.25);--shadow-lg:0 12px 48px rgba(0,0,0,0.35);--glass:rgba(17,27,46,0.9)}
-        *{box-sizing:border-box;margin:0;padding:0}body{font-family:'Tajawal',sans-serif;background:var(--bg-deep);color:var(--text-primary);min-height:100vh;overflow-x:hidden}
-        .top-strip{position:fixed;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--blue),var(--accent),var(--purple),var(--green),var(--blue));background-size:300% 100%;animation:stripFlow 6s linear infinite;z-index:10001}@keyframes stripFlow{0%{background-position:0% 50%}100%{background-position:300% 50%}}
+        :root {
+            --bg-deep: #060a12;
+            --bg-main: #0b1120;
+            --bg-card: #111b2e;
+            --bg-card2: #0e1728;
+            --bg-input: #090f1c;
+            --border: #1a2940;
+            --border-light: #243656;
+            --text-primary: #f0f4f8;
+            --text-secondary: #8899b5;
+            --text-muted: #465a78;
+            --accent: #f59e0b;
+            --accent-light: #fbbf24;
+            --accent-dim: rgba(245,158,11,0.08);
+            --green: #10b981;
+            --green-dim: rgba(16,185,129,0.1);
+            --blue: #3b82f6;
+            --blue-dim: rgba(59,130,246,0.1);
+            --red: #ef4444;
+            --red-dim: rgba(239,68,68,0.08);
+            --purple: #8b5cf6;
+            --teal: #14b8a6;
+            --radius: 14px;
+            --radius-sm: 10px;
+            --radius-lg: 18px;
+            --radius-xl: 22px;
+            --shadow: 0 4px 24px rgba(0,0,0,0.25);
+            --shadow-lg: 0 12px 48px rgba(0,0,0,0.35);
+            --glass: rgba(17,27,46,0.8);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         
-        /* Overlays */
-        .overlay{position:fixed;inset:0;z-index:9000;display:none;align-items:center;justify-content:center;backdrop-filter:blur(12px)}
-        .overlay.active{display:flex;animation:fadeIn .3s ease}
-        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .top-strip {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--blue), var(--accent), var(--purple), var(--teal), var(--blue));
+            background-size: 300% 100%;
+            animation: stripFlow 6s linear infinite;
+            z-index: 10001;
+        }
+
+        @keyframes stripFlow {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 300% 50%; }
+        }
+
+        .app-header {
+            background: var(--glass);
+            backdrop-filter: blur(24px);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            position: sticky;
+            top: 3px;
+            z-index: 1000;
+        }
+
+        .header-right { display: flex; align-items: center; gap: 18px; }
+        .brand-area { display: flex; align-items: center; gap: 14px; }
+        .brand-logo { width: 48px; height: 48px; border-radius: 12px; object-fit: cover; border: 2px solid var(--border); background: var(--bg-card); }
+        .brand-logo-placeholder { width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, var(--accent), #d97706); display: flex; align-items: center; justify-content: center; font-size: 22px; color: var(--bg-deep); font-weight: 900; }
+        .brand-name { font-size: 20px; font-weight: 900; color: var(--accent-light); }
         
-        .geo-card{text-align:center;background:var(--bg-card);padding:40px 30px;border-radius:var(--radius-lg);border:1px solid var(--border);max-width:90vw;width:400px;box-shadow:var(--shadow-lg)}
-        .geo-icon{font-size:50px;margin-bottom:16px}
-        .geo-title{font-size:20px;font-weight:800;margin-bottom:8px}
-        .geo-msg{color:var(--text-muted);font-size:14px;line-height:1.6}
-        .geo-dist{margin-top:12px;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
-        .geo-dist-fill{height:100%;width:0%;border-radius:3px;transition:width .5s, background .5s}
+        .user-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+        .u-chip { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 5px 12px; font-size: 12px; display: flex; align-items: center; gap: 6px; color: var(--text-secondary); }
+        .u-chip .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: dotPulse 2s infinite; }
+        @keyframes dotPulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
         
-        .login-card{background:linear-gradient(165deg,rgba(17,27,46,.98),rgba(11,17,32,.99));padding:40px 30px;border-radius:var(--radius-lg);border:1px solid var(--border);max-width:90vw;width:400px;box-shadow:var(--shadow-lg)}
-        .login-card h1{font-size:22px;font-weight:900;margin-bottom:6px;text-align:center}
-        .login-card .sub{color:var(--text-muted);font-size:12px;text-align:center;margin-bottom:24px}
-        .login-field{position:relative;margin-bottom:16px}
-        .login-field label{display:block;font-size:12px;color:var(--text-secondary);margin-bottom:6px;font-weight:700}
-        .login-field input{width:100%;padding:12px 14px;background:var(--bg-input);border:1.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-size:14px;font-family:inherit;outline:none}
-        .login-field input:focus{border-color:var(--accent)}
-        .login-err{color:var(--red);font-size:12px;margin-top:8px;min-height:16px;text-align:center}
-        .btn-login{width:100%;padding:13px;background:linear-gradient(135deg,var(--accent),#d97706);color:var(--bg-deep);border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;margin-top:10px}
-        .btn-login:disabled{opacity:.4;cursor:not-allowed}
+        .header-left { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .h-btn { padding: 8px 18px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-secondary); cursor: pointer; font-size: 12px; font-family: inherit; font-weight: 700; transition: all .25s; display: flex; align-items: center; gap: 7px; }
+        .h-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+        .h-btn.danger { border-color: #7f1d1d; color: #fca5a5; }
+        .h-btn.danger:hover { border-color: var(--red); color: var(--red); background: var(--red-dim); }
+
+        .tab-bar {
+            display: flex;
+            gap: 4px;
+            padding: 18px 32px 0;
+            position: relative;
+            z-index: 1;
+            overflow-x: auto;
+        }
+        .tab-btn {
+            padding: 13px 22px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 13px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            border-radius: var(--radius) var(--radius) 0 0;
+            transition: all .25s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+        .tab-btn:hover { color: var(--text-secondary); background: rgba(255,255,255,.02); }
+        .tab-btn.active { color: var(--accent); background: var(--bg-card); border: 1px solid var(--border); border-bottom: 1px solid var(--bg-card); margin-bottom: -1px; }
+        .tab-btn.active::after { content: ''; position: absolute; bottom: -1px; left: 20%; right: 20%; height: 2px; background: var(--accent); border-radius: 2px; }
         
-        /* App Layout */
-        .app-header{background:var(--glass);backdrop-filter:blur(24px);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:3px;z-index:1000}
-        .brand-name{font-size:18px;font-weight:900;color:var(--accent-light)}
-        .header-left{display:flex;gap:8px}
-        .h-btn{padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);cursor:pointer;font-size:11px;font-family:inherit;font-weight:700;display:flex;align-items:center;gap:5px;transition:all .2s}
-        .h-btn.danger{border-color:#7f1d1d;color:#fca5a5}
-        .msg-dot{background:var(--red);color:#fff;font-size:9px;font-weight:800;padding:1px 6px;border-radius:10px;margin-right:4px;display:none}
+        .tab-content-area { padding: 0 32px 32px; position: relative; z-index: 1; }
+        .tab-panel { display: none; animation: panelIn .35s ease; }
+        .tab-panel.active { display: block; }
+        @keyframes panelIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .section-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 26px;
+            margin-bottom: 22px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        .sc-title {
+            font-size: 16px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        .sc-title i { color: var(--accent); font-size: 16px; }
+
+        .form-row { display: flex; gap: 14px; margin-bottom: 16px; flex-wrap: wrap; }
+        .fg { flex: 1; min-width: 180px; text-align: right; }
+        .fg label { display: block; font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-bottom: 7px; }
+        .fi {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-input);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color .3s, box-shadow .3s;
+        }
+        .fi:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+        .btn-primary {
+            padding: 13px 28px;
+            background: linear-gradient(135deg, var(--accent), #d97706);
+            color: var(--bg-deep);
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all .25s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(245,158,11,.25); }
+        .btn-secondary {
+            padding: 10px 20px;
+            background: var(--bg-input);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all .2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+        .btn-sm { padding: 8px 16px; font-size: 12px; }
+        .btn-red { background: var(--red-dim); color: #fca5a5; border: 1px solid #7f1d1d; }
+
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-bottom: 22px;
+        }
+        .qs-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px 18px;
+        }
+        .qs-card .qs-value { font-size: 24px; font-weight: 900; }
+        .qs-card.c-occ .qs-value { color: var(--accent); }
+        .qs-card.c-cook .qs-value { color: var(--blue); }
+        .qs-card.c-msg .qs-value { color: var(--green); }
+
+        .main-flex { display: flex; gap: 18px; }
+        .main-flex .tables-area { flex: 3; }
+        .main-flex .detail-panel { flex: 2; }
+
+        .tables-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 10px;
+        }
+        .t-card {
+            background: var(--bg-card);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all .25s;
+        }
+        .t-card:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 8px 30px rgba(0,0,0,.3); }
+        .t-card.occupied { border-color: rgba(245,158,11,.4); background: linear-gradient(160deg, rgba(30,24,8,.6), var(--bg-card)); }
+        .t-card h3 { font-size: 15px; font-weight: 800; margin-bottom: 8px; }
+        .t-badges { display: flex; flex-direction: column; gap: 3px; }
+        .t-badge { padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; display: flex; justify-content: space-between; color: #fff; }
+        .t-badge.b-b { background: linear-gradient(135deg, #dc2626, #991b1b); }
+        .t-badge.b-c { background: linear-gradient(135deg, #2563eb, #1e40af); }
+        .t-badge.b-m { background: linear-gradient(135deg, #059669, #047857); }
+
+        .detail-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 22px;
+            position: sticky;
+            top: 74px;
+            height: calc(100vh - 94px);
+            overflow-y: auto;
+            display: none;
+        }
+        .detail-panel.show { display: block; animation: panelIn .3s ease; }
+        .dp-close { float: left; background: none; border: none; color: var(--text-muted); font-size: 24px; cursor: pointer; }
+        .dp-close:hover { color: var(--red); }
+        .dp-title { font-size: 18px; font-weight: 800; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .dp-box { background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 8px; min-height: 40px; }
+        .dp-box p { color: var(--text-muted); font-size: 12px; text-align: center; padding: 6px; }
+        .inv-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed var(--border); font-size: 13px; color: var(--text-secondary); }
+        .dp-total { font-size: 18px; font-weight: 900; color: var(--accent); text-align: center; padding: 14px; background: var(--accent-dim); border-radius: 10px; margin: 12px 0; }
         
-        .tab-bar{display:flex;gap:4px;padding:14px 16px 0;overflow-x:auto}
-        .tab-btn{padding:11px 18px;border:none;background:transparent;color:var(--text-muted);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;border-radius:var(--radius) var(--radius) 0 0;transition:all .2s;white-space:nowrap}
-        .tab-btn.active{color:var(--accent);background:var(--bg-card);border:1px solid var(--border);border-bottom:1px solid var(--bg-card)}
-        .tab-content{padding:0 16px 16px}
-        .tab-panel{display:none;animation:panelIn .3s ease}.tab-panel.active{display:block}
-        @keyframes panelIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+        .dp-chat { background: var(--bg-input); border: 1px solid var(--border); border-radius: 10px; display: flex; flex-direction: column; height: 150px; }
+        .dp-chat-msgs { flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 5px; }
+        .cm { max-width: 85%; padding: 8px 12px; border-radius: 10px; font-size: 12px; line-height: 1.6; }
+        .cm.from-client { background: rgba(220,38,38,.1); color: #fca5a5; align-self: flex-start; border-bottom-right-radius: 3px; }
+        .cm.from-admin { background: rgba(59,130,246,.1); color: #93c5fd; align-self: flex-end; border-bottom-left-radius: 3px; }
+        .dp-chat-input { display: flex; gap: 6px; padding: 8px; border-top: 1px solid var(--border); }
+        .dp-chat-input input { flex: 1; padding: 8px 12px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 12px; font-family: inherit; outline: none; }
+        .dp-chat-input button { background: var(--blue); color: #fff; border: none; padding: 0 16px; border-radius: 8px; cursor: pointer; font-weight: 700; }
+
+        .captain-menu-grid { display: flex; flex-direction: column; gap: 24px; padding-bottom: 80px; }
+        .direct-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+        .direct-item {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 14px;
+            cursor: pointer;
+            position: relative;
+        }
+        .direct-item.selected { border-color: var(--green); background: var(--green-dim); }
+        .direct-item img { width: 100%; height: 90px; object-fit: cover; border-radius: 8px; margin-bottom: 8px; }
+        .direct-item h4 { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+        .direct-item .di-price { font-size: 15px; font-weight: 900; color: var(--red); }
+        .direct-qty {
+            position: absolute;
+            bottom: 14px;
+            left: 14px;
+            display: flex;
+            gap: 4px;
+            background: rgba(9,15,28,.9);
+            backdrop-filter: blur(8px);
+            border-radius: 8px;
+            padding: 2px;
+            border: 1px solid var(--border);
+            opacity: 0;
+            pointer-events: none;
+        }
+        .direct-item.selected .direct-qty { opacity: 1; pointer-events: all; }
+        .direct-qty button { width: 26px; height: 26px; border-radius: 6px; border: none; font-size: 14px; font-weight: 700; cursor: pointer; }
+        .direct-qty .dq-minus { background: var(--red-dim); color: var(--red); }
+        .direct-qty .dq-plus { background: var(--green-dim); color: var(--green); }
+        .direct-qty span { width: 24px; text-align: center; font-weight: 800; font-size: 14px; }
+
+        .captain-bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--glass);
+            backdrop-filter: blur(24px);
+            border-top: 1px solid var(--border);
+            padding: 14px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 900;
+        }
+        .cb-total { font-size: 18px; font-weight: 900; color: var(--accent); }
+        .bc { background: var(--bg-deep); color: #fff; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 10px; margin-right: 8px; }
+
+        .cat-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 22px;
+            margin-bottom: 18px;
+        }
+        .cat-head { display: flex; align-items: center; justify-content: space-between; padding-bottom: 14px; border-bottom: 1px solid var(--border); margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
+        .cat-info { display: flex; align-items: center; gap: 14px; }
+        .thumb-wide { width: 180px; height: 56px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); }
+        .item-row { display: flex; align-items: center; justify-content: space-between; background: var(--bg-input); padding: 12px 16px; border-radius: 10px; margin-bottom: 8px; flex-wrap: wrap; gap: 12px; }
+        .item-info { display: flex; align-items: center; gap: 16px; flex: 1; }
+        .item-img-wrap { width: 60px; height: 60px; border-radius: 8px; overflow: hidden; background: var(--bg-card); flex-shrink: 0; }
+        .item-img-wrap img { width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
+        .item-text { flex: 1; }
+        .item-name { font-weight: 700; font-size: 14px; }
+        .item-price { font-weight: 900; color: var(--red); font-size: 14px; }
+        .item-actions { display: flex; gap: 6px; }
+
+        .setting-group { margin-bottom: 24px; }
+        .sg-title { font-size: 14px; font-weight: 700; color: var(--text-secondary); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; padding-bottom: 10px; border-bottom: 1px dashed var(--border); }
+        .sg-row { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+        .sg-row label { min-width: 140px; font-size: 13px; color: var(--text-secondary); font-weight: 600; padding-top: 11px; }
+        .logo-preview { width: 56px; height: 56px; border-radius: 12px; object-fit: cover; border: 2px solid var(--border); cursor: pointer; }
+        .logo-placeholder { width: 56px; height: 56px; border-radius: 12px; border: 2px dashed var(--border); display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 20px; cursor: pointer; }
+
+        .theme-row { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+        .color-preview { width: 60px; height: 60px; border-radius: 12px; border: 2px solid var(--border); cursor: pointer; }
+        .theme-slider { flex: 1; min-width: 200px; }
+        .theme-slider input { width: 100%; height: 6px; border-radius: 3px; background: var(--border); outline: none; }
+        .theme-slider input::-webkit-slider-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--accent); cursor: pointer; }
+        .theme-presets { display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+        .theme-preset { width: 50px; height: 50px; border-radius: 10px; cursor: pointer; border: 2px solid transparent; }
+
+        .links-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 30px; }
+        @media (max-width: 900px) { .links-grid { grid-template-columns: 1fr; } }
+        .links-card { background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; }
+        .file-drop-zone { border: 2px dashed var(--border); border-radius: var(--radius-sm); padding: 30px 20px; text-align: center; cursor: pointer; transition: all 0.3s; }
+        .file-drop-zone:hover { border-color: var(--accent); background: var(--accent-dim); }
+        .data-table-wrapper { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); background: var(--bg-card); margin-top: 20px; }
+        .data-table { width: 100%; border-collapse: collapse; min-width: 700px; }
+        .data-table th, .data-table td { padding: 14px 16px; font-size: 13px; text-align: right; border-bottom: 1px solid var(--border); }
+
+        .login-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-deep);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity .6s;
+        }
+        .login-overlay.hidden { opacity: 0; pointer-events: none; }
+        .login-card {
+            background: linear-gradient(165deg, rgba(17,27,46,.95), rgba(11,17,32,.98));
+            border: 1px solid rgba(59,130,246,.12);
+            border-radius: var(--radius-xl);
+            padding: 44px 38px;
+            width: 420px;
+            max-width: 92vw;
+            text-align: center;
+        }
+        .login-icon { width: 68px; height: 68px; background: linear-gradient(135deg, var(--blue), #1d4ed8); border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #fff; margin: 0 auto 20px; }
+        .login-field { position: relative; margin-bottom: 16px; text-align: right; }
+        .login-field input { width: 100%; padding: 13px 44px 13px 14px; background: var(--bg-input); border: 1.5px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 14px; }
+        .btn-login { width: 100%; padding: 14px; background: linear-gradient(135deg, var(--accent), #d97706); color: var(--bg-deep); border: none; border-radius: var(--radius-sm); font-size: 15px; font-weight: 900; cursor: pointer; margin-top: 10px; }
+        .login-err { color: var(--red); font-size: 12px; margin-top: 12px; }
+
+        .toast-box { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 99999; display: flex; flex-direction: column; gap: 8px; }
+        .toast { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 24px; color: var(--text-primary); font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 10px; animation: tIn .35s ease, tOut .35s ease 2.6s forwards; }
+        @keyframes tIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes tOut { from { opacity: 1; } to { opacity: 0; transform: translateY(-20px); } }
         
-        /* Tables Grid */
-        .qs-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:20px}
-        .qs-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center;position:relative;overflow:hidden}
-        .qs-card .qs-label{font-size:10px;color:var(--text-muted);font-weight:600}.qs-card .qs-value{font-size:22px;font-weight:900;color:var(--accent)}
-        
-        .tables-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-bottom:20px}
-        .t-card{background:var(--bg-card);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px 8px;text-align:center;cursor:pointer;transition:all .2s}
-        .t-card:active{transform:scale(0.95)}
-        .t-card.occupied{border-color:rgba(245,158,11,.4);background:linear-gradient(160deg,rgba(30,24,8,.6),var(--bg-card))}
-        .t-card h3{font-size:14px;font-weight:800;margin-bottom:6px}
-        .t-badge{padding:3px 6px;border-radius:4px;font-size:9px;font-weight:700;display:flex;justify-content:space-between;color:#fff;margin-top:3px}
-        .t-badge.b-b{background:#991b1b}.t-badge.b-c{background:#1e40af}.t-badge.b-m{background:#047857}
-        
-        /* Detail Panel */
-        .detail-panel{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;height:calc(100vh - 250px);overflow-y:auto;display:none}
-        .detail-panel.show{display:block}
-        .dp-title{font-size:16px;font-weight:800;margin-bottom:12px;display:flex;align-items:center;gap:6px}
-        .dp-title i{color:var(--accent)}
-        .dp-section-label{font-size:12px;font-weight:700;margin:12px 0 6px;display:flex;align-items:center;gap:5px}
-        .dp-box{background:var(--bg-input);border:1px solid var(--border);border-radius:8px;padding:8px;min-height:30px;font-size:12px}
-        .dp-total{font-size:16px;font-weight:900;color:var(--accent);text-align:center;padding:10px;background:var(--accent-dim);border-radius:8px;margin:8px 0}
-        .inv-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--border);font-size:12px;color:var(--text-secondary)}
-        .dp-chat{background:var(--bg-input);border:1px solid var(--border);border-radius:8px;display:flex;flex-direction:column;height:120px}
-        .dp-chat-msgs{flex:1;overflow-y:auto;padding:6px;display:flex;flex-direction:column;gap:4px}
-        .cm{max-width:85%;padding:6px 10px;border-radius:8px;font-size:11px;line-height:1.4}
-        .cm.from-client{background:rgba(220,38,38,.1);color:#fca5a5;align-self:flex-start}
-        .cm.from-admin{background:rgba(59,130,246,.1);color:#93c5fd;align-self:flex-end}
-        .dp-chat-input{display:flex;gap:4px;padding:6px;border-top:1px solid var(--border)}
-        .dp-chat-input input{flex:1;padding:6px 10px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-size:11px;font-family:inherit;outline:none}
-        .dp-chat-input button{background:var(--blue);color:#fff;border:none;padding:0 12px;border-radius:6px;cursor:pointer;font-weight:700;font-family:inherit;font-size:11px}
-        .dp-notice{margin-top:12px;background:rgba(59,130,246,0.05);border:1px dashed rgba(59,130,246,0.3);border-radius:8px;padding:12px;text-align:center;color:var(--text-secondary);font-size:11px;display:flex;align-items:center;justify-content:center;gap:8px}
-        
-        /* Captain Menu */
-        .captain-menu-grid{padding-bottom:80px}
-        .direct-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
-        .direct-item{background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);padding:10px;transition:all .2s;cursor:pointer;position:relative;overflow:hidden;text-align:center}
-        .direct-item:active{transform:scale(0.97)}
-        .direct-item.selected{border-color:var(--green);background:var(--green-dim)}
-        .direct-item img{width:100%;height:80px;object-fit:cover;border-radius:6px;margin-bottom:6px}
-        .direct-item h4{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px}
-        .direct-item .di-price{font-size:14px;font-weight:900;color:var(--red)}
-        .direct-qty{position:absolute;bottom:10px;left:10px;display:flex;align-items:center;gap:4px;background:rgba(6,10,18,.9);border-radius:6px;padding:2px;opacity:0;pointer-events:none;transition:all .2s}
-        .direct-item.selected .direct-qty{opacity:1;pointer-events:all}
-        .direct-qty button{width:24px;height:24px;border-radius:5px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center}
-        .direct-qty .dq-minus{background:var(--red-dim);color:var(--red)}
-        .direct-qty .dq-plus{background:var(--green-dim);color:var(--green)}
-        .direct-qty span{width:20px;text-align:center;font-weight:800;font-size:12px;color:var(--text-primary)}
-        
-        .captain-bottom-bar{position:fixed;bottom:0;left:0;right:0;background:var(--glass);backdrop-filter:blur(20px);border-top:1px solid var(--border);padding:12px 20px;display:none;align-items:center;justify-content:space-between;z-index:900}
-        .cb-total{font-size:16px;font-weight:900;color:var(--accent)}
-        .bc{background:var(--bg-deep);color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:8px;margin-right:6px}
-        
-        /* Modals */
-        .modal-box{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;max-width:500px;width:90%;max-height:85vh;overflow-y:auto;animation:panelIn .3s ease}
-        .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)}
-        .modal-head h2{font-size:16px;font-weight:800;display:flex;align-items:center;gap:8px}
-        .modal-x{background:none;border:none;color:var(--text-muted);font-size:22px;cursor:pointer}
-        .btn-primary{padding:12px 24px;background:linear-gradient(135deg,var(--accent),#d97706);color:var(--bg-deep);border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;width:100%;justify-content:center}
-        .btn-green{background:linear-gradient(135deg,var(--green),#047857)}
-        .fi{width:100%;padding:10px 14px;background:var(--bg-input);border:1.5px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-size:13px;font-family:inherit;outline:none}
-        
-        /* Alert Banner */
-        .cashier-alert-banner{position:fixed;top:0;left:0;right:0;z-index:9999999;background:linear-gradient(135deg,#C9A96E,#A68B4B);color:#2C3E2D;padding:12px 16px;box-shadow:0 4px 20px rgba(0,0,0,0.4);display:none;justify-content:center;align-items:center;animation:dropDown .5s ease}
-        @keyframes dropDown{from{transform:translateY(-100%)}to{transform:translateY(0)}}
-        .alert-content{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px}
-        .alert-content i{font-size:18px;animation:bellRing 1s infinite}
-        @keyframes bellRing{0%{transform:rotate(0)}20%{transform:rotate(15deg)}40%{transform:rotate(-15deg)}60%{transform:rotate(8deg)}80%{transform:rotate(-8deg)}100%{transform:rotate(0)}}
-        #dismissAlertBtn{position:absolute;left:12px;background:rgba(255,255,255,0.3);border:none;color:#2C3E2D;width:26px;height:26px;border-radius:50%;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-        
-        /* Toast */
-        .toast-box{position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:99999;display:flex;flex-direction:column;gap:6px;pointer-events:none}
-        .toast{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:10px 18px;color:var(--text-primary);font-size:12px;font-weight:600;box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:8px;animation:tIn .3s ease,tOut .3s ease 2.5s forwards;white-space:nowrap}
-        .toast.ts{border-color:var(--green)}.toast.ts i{color:var(--green)}.toast.te{border-color:var(--red)}.toast.te i{color:var(--red)}.toast.ti{border-color:var(--blue)}.toast.ti i{color:var(--blue)}
-        @keyframes tIn{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}@keyframes tOut{from{opacity:1}to{opacity:0;transform:translateY(-20px)}}
+        .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 9000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(6px); }
+        .modal-bg.open { display: flex; }
+        .modal-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 30px; width: 520px; max-width: 95vw; max-height: 90vh; overflow-y: auto; }
+        .modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+        .modal-x { background: none; border: none; color: var(--text-muted); font-size: 24px; cursor: pointer; }
+
+        #blockScreen, #kickScreen { display: none; }
+        #distBar { display: none; position: fixed; top: 70px; left: 0; right: 0; z-index: 100; padding: 0 20px; }
+        .dist-bar-inner { background: rgba(0,0,0,0.5); border-radius: 10px; overflow: hidden; }
+        .dist-track { height: 4px; background: #333; border-radius: 2px; }
+        .dist-fill { height: 100%; width: 0%; transition: width 0.3s; }
+        .dist-value { font-size: 10px; color: var(--text-muted); display: block; text-align: center; margin-top: 4px; }
+
+        @media (max-width: 768px) {
+            .main-flex { flex-direction: column; }
+            .detail-panel { position: static; height: auto; }
+            .app-header { flex-direction: column; align-items: stretch; padding: 12px 16px; }
+            .tab-bar { padding: 12px 12px 0; }
+            .tab-content-area { padding: 0 12px 18px; }
+        }
     </style>
 </head>
 <body>
@@ -132,340 +432,258 @@
 <div class="top-strip"></div>
 <div class="toast-box" id="toastBox"></div>
 
-<!-- شريط تنبيه الكاشير -->
-<div id="cashierAlertBanner" class="cashier-alert-banner">
-    <div class="alert-content"><i class="fas fa-bell"></i><span>لديك رسالة من الكاشير يرجى الرد</span></div>
-    <button id="dismissAlertBtn" onclick="App.dismissCashierAlert()">&times;</button>
-</div>
-
-<!-- شاشة التحميل الجغرافي -->
-<div id="geoOverlay" class="overlay active">
-    <div class="geo-card">
-        <div class="geo-icon" id="geoIcon">🔄</div>
-        <div class="geo-title" id="geoTitle">جاري التحقق من الموقع</div>
-        <div class="geo-msg" id="geoMsg">يرجى السماح بالوصول إلى الموقع.</div>
-        <div class="geo-dist"><div class="geo-dist-fill" id="geoDistFill"></div></div>
-    </div>
-</div>
-
-<!-- شاشة تسجيل الدخول -->
-<div id="loginOverlay" class="overlay">
+<!-- Login -->
+<div class="login-overlay" id="loginOverlay">
     <div class="login-card">
-        <h1>🧑‍✈️ لوحة الكابتن</h1>
-        <p class="sub">لإدارة الطاولات وطلب المنيو</p>
-        <div class="login-field"><label>رقم الإصدار</label><input type="text" id="inVer" placeholder="مثال: 1.1.1"></div>
+        <div class="login-icon"><i class="fas fa-shield-halved"></i></div>
+        <h1>الوصول إلى حسابك</h1>
+        <p class="login-subtitle">نظام إدارة المطعم - الكابتن</p>
+        <div class="login-field" id="verField"><label>رقم إصدار الجهاز</label><input type="text" id="inVer" placeholder="مثال: 1.1.1"></div>
         <div class="login-field"><label>اسم المستخدم</label><input type="text" id="inUser" placeholder="أدخل اسم المستخدم"></div>
         <div class="login-field"><label>كلمة السر</label><input type="password" id="inPass" placeholder="أدخل كلمة السر"></div>
-        <button class="btn-login" id="btnLogin" onclick="App.doLogin()">تأكيد الدخول</button>
+        <button class="btn-login" id="btnLogin">تأكيد الدخول</button>
         <div class="login-err" id="loginErr"></div>
     </div>
 </div>
 
-<!-- التطبيق الرئيسي -->
+<!-- Main App -->
 <div id="appRoot" style="display:none;">
     <header class="app-header">
-        <span class="brand-name" id="brandName">المطعم</span>
+        <div class="header-right">
+            <div class="brand-area">
+                <img id="headerLogo" class="brand-logo" src="" style="display:none;">
+                <div id="headerLogoPlaceholder" class="brand-logo-placeholder"><i class="fas fa-utensils"></i></div>
+                <span class="brand-name" id="brandName">المطعم</span>
+            </div>
+            <div class="user-chips" id="userChips"></div>
+        </div>
         <div class="header-left">
-            <button class="h-btn" onclick="App.openCaptainChat()"><i class="fas fa-headset"></i> الكاشير <span class="msg-dot" id="msgDot">0</span></button>
-            <button class="h-btn danger" onclick="App.doLogout()"><i class="fas fa-right-from-bracket"></i></button>
+            <button class="h-btn" id="captainChatBtn"><i class="fas fa-headset"></i> الكابتن</button>
+            <button class="h-btn danger" id="logoutBtn"><i class="fas fa-right-from-bracket"></i> خروج</button>
         </div>
     </header>
-    
+
     <nav class="tab-bar">
-        <button class="tab-btn active" data-tab="panelOps" onclick="App.switchTab('panelOps', this)"><i class="fas fa-table-cells-large"></i> العمليات</button>
-        <button class="tab-btn" data-tab="panelCaptain" onclick="App.switchTab('panelCaptain', this)"><i class="fas fa-concierge-bell"></i> طلبات الزبون</button>
-        <button class="tab-btn" data-tab="panelMenu" onclick="App.switchTab('panelMenu', this)"><i class="fas fa-utensils"></i> المنيو</button>
+        <button class="tab-btn active" data-tab="panelCaptain"><i class="fas fa-concierge-bell"></i> طلبات الزبون</button>
+        <button class="tab-btn" data-tab="panelTables"><i class="fas fa-table-cells-large"></i> الطاولات</button>
+        <button class="tab-btn" data-tab="panelMenu"><i class="fas fa-utensils"></i> المنيو</button>
+        <button class="tab-btn" data-tab="panelSettings"><i class="fas fa-gear"></i> الإعدادات</button>
     </nav>
-    
-    <div class="tab-content">
-        <!-- تبويب العمليات -->
-        <div class="tab-panel active" id="panelOps">
-            <div class="qs-grid">
-                <div class="qs-card"><div class="qs-label">الطاولات النشطة</div><div class="qs-value" id="qsOcc">0</div></div>
-                <div class="qs-card"><div class="qs-label">طلبات المطبخ</div><div class="qs-value" id="qsCook">0</div></div>
-                <div class="qs-card"><div class="qs-label">رسائل</div><div class="qs-value" id="qsMsg">0</div></div>
+
+    <div class="tab-content-area">
+        <!-- تبويب الكابتن -->
+        <div class="tab-panel active" id="panelCaptain">
+            <div class="section-card">
+                <div class="sc-title"><i class="fas fa-concierge-bell"></i> أخذ الطلب للزبون</div>
+                <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px; flex-wrap:wrap;">
+                    <label style="font-weight:700;">اختر الطاولة:</label>
+                    <select id="captainTableSelect" class="fi" style="max-width:200px;"></select>
+                </div>
+                <div id="captainMenuCats" class="captain-menu-grid"></div>
             </div>
-            <div class="tables-grid" id="tablesGrid"></div>
-            <div class="detail-panel" id="detailPanel">
-                <button style="float:left;background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer" onclick="App.closeDetail()">&times;</button>
-                <div class="dp-title" id="dpTitle"><i class="fas fa-file-invoice"></i> تفاصيل الطاولة</div>
-                <div class="dp-section-label" style="color:var(--red)"><i class="fas fa-download"></i> طلبات واردة:</div>
-                <div class="dp-box" id="dpBoxB"><p style="color:var(--text-muted);text-align:center;font-size:11px">لا توجد.</p></div>
-                <div class="dp-section-label" style="color:var(--blue)"><i class="fas fa-fire-burner"></i> قيد المعالجة:</div>
-                <div class="dp-box" id="dpBoxC"><p style="color:var(--text-muted);text-align:center;font-size:11px">لا توجد.</p></div>
-                <div class="dp-total" id="dpTotal">الإجمالي: 0 د.ع</div>
-                <div class="dp-section-label" style="color:var(--green)"><i class="fas fa-comments"></i> محادثة:</div>
-                <div class="dp-chat"><div class="dp-chat-msgs" id="dpChatMsgs"></div><div class="dp-chat-input"><input type="text" id="dpChatIn" placeholder="اكتب الرد..." onkeydown="if(event.key==='Enter')App.sendAdminReply()"><button onclick="App.sendAdminReply()">رد</button></div></div>
-                <div class="dp-notice"><i class="fas fa-desktop"></i><span>لطباعة الطلبات وتسديد الحسابات، يرجى استخدام شاشة الكمبيوتر الرئيسية</span></div>
+
+            <div class="captain-bottom-bar" id="captainBottomBar" style="display:none;">
+                <span class="cb-total" id="captainBarTotal">الإجمالي: ٠ دينار</span>
+                <button class="btn-primary" id="captainInvoiceBtn"><i class="fas fa-receipt"></i> الفاتورة <span class="bc" id="captainBarCount">٠</span></button>
             </div>
         </div>
 
-        <!-- تبويب طلبات الزبون -->
-        <div class="tab-panel" id="panelCaptain">
-            <div style="margin-bottom:16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-                <label style="font-weight:700;font-size:13px">اختر الطاولة:</label>
-                <select id="captainTableSelect" class="fi" style="max-width:180px;margin:0" onchange="App.captainChangeTable(this.value)"></select>
+        <!-- تبويب الطاولات -->
+        <div class="tab-panel" id="panelTables">
+            <div class="quick-stats">
+                <div class="qs-card c-occ"><span class="qs-label">الطاولات النشطة</span><span class="qs-value" id="qsOcc">0</span></div>
+                <div class="qs-card c-cook"><span class="qs-label">طلبات المطبخ</span><span class="qs-value" id="qsCook">0</span></div>
+                <div class="qs-card c-msg"><span class="qs-label">رسائل غير مقروءة</span><span class="qs-value" id="qsMsg">0</span></div>
             </div>
-            <div id="captainMenuCats" class="captain-menu-grid"></div>
-            <div class="captain-bottom-bar" id="captainBottomBar">
-                <span class="cb-total" id="captainBarTotal">الإجمالي: ٠ د.ع</span>
-                <button class="btn-primary" style="width:auto;padding:10px 20px;font-size:13px" onclick="App.captainOpenInvoice()"><i class="fas fa-receipt"></i> الفاتورة <span class="bc" id="captainBarCount">٠</span></button>
+            <div class="main-flex">
+                <div class="tables-area">
+                    <div class="sc-title"><i class="fas fa-table-cells-large"></i> خارطة الطاولات</div>
+                    <div class="tables-grid" id="tablesGrid">جاري التحميل...</div>
+                </div>
+                <div class="detail-panel" id="detailPanel">
+                    <button class="dp-close" id="closeDetailBtn">&times;</button>
+                    <div class="dp-title" id="dpTitle"><i class="fas fa-file-invoice"></i> تفاصيل الطاولة</div>
+                    <div class="dp-section-label" style="color:var(--red);"><i class="fas fa-download"></i> طلبات واردة:</div>
+                    <div class="dp-box" id="dpBoxB"><p>لا توجد طلبات جديدة.</p></div>
+                    <div class="dp-section-label" style="color:var(--blue);"><i class="fas fa-fire-burner"></i> قيد المعالجة:</div>
+                    <div class="dp-box" id="dpBoxC"><p>لا توجد وجبات في المطبخ.</p></div>
+                    <div class="dp-total" id="dpTotal">الإجمالي: 0 دينار</div>
+                    <div class="dp-section-label" style="color:var(--green);"><i class="fas fa-comments"></i> محادثة:</div>
+                    <div class="dp-chat">
+                        <div class="dp-chat-msgs" id="dpChatMsgs"><p style="text-align:center;padding:8px;">انقر على طاولة.</p></div>
+                        <div class="dp-chat-input">
+                            <input type="text" id="dpChatIn" placeholder="اكتب الرد...">
+                            <button id="sendReplyBtn">رد</button>
+                        </div>
+                    </div>
+                    <div class="dp-notice" style="margin-top:16px;padding:12px;background:var(--accent-dim);border-radius:10px;text-align:center;font-size:12px;color:var(--text-muted);">
+                        <i class="fas fa-desktop"></i> ملاحظة: هذا القسم للقراءة فقط. للطباعة والتسديد، استخدم شاشة الكمبيوتر الرئيسية.
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- تبويب المنيو -->
         <div class="tab-panel" id="panelMenu">
-            <div id="menuStructure"><p style="color:var(--text-muted);text-align:center;padding:40px">جاري تحميل المنيو...</p></div>
+            <div class="section-card">
+                <div class="sc-title"><i class="fas fa-folder-plus"></i> إنشاء قسم جديد</div>
+                <form id="catForm">
+                    <input type="hidden" id="editCatId">
+                    <div class="form-row">
+                        <div class="fg"><label>اسم القسم</label><input type="text" class="fi" id="catName" required placeholder="مثال: المشويات"></div>
+                        <div class="fg"><label>صورة القسم</label><input type="file" class="fi" id="catImg" accept="image/*"></div>
+                    </div>
+                    <button type="submit" class="btn-primary" id="catBtn"><i class="fas fa-plus"></i> حفظ القسم</button>
+                </form>
+            </div>
+            <div class="sc-title"><i class="fas fa-layer-group"></i> هيكلية المنيو</div>
+            <div id="menuStructure">جاري التحميل...</div>
+        </div>
+
+        <!-- تبويب الإعدادات -->
+        <div class="tab-panel" id="panelSettings">
+            <div class="section-card">
+                <div class="setting-group">
+                    <div class="sg-title"><i class="fas fa-store"></i> معلومات المطعم</div>
+                    <div class="sg-row">
+                        <label>شعار المطعم:</label>
+                        <div class="logo-upload-area">
+                            <img id="logoPreview" class="logo-preview" src="" style="display:none;">
+                            <div id="logoPlaceholder" class="logo-placeholder" onclick="document.getElementById('logoInput').click();"><i class="fas fa-camera"></i></div>
+                            <input type="file" id="logoInput" accept="image/*" style="display:none;">
+                        </div>
+                    </div>
+                    <div class="sg-row"><label>اسم المطعم:</label><input type="text" class="fi" id="sName" placeholder="أدخل اسم المطعم"></div>
+                    <div class="sg-row"><label>رابط الفاتورة:</label><input type="url" class="fi" id="sInvoiceUrl" placeholder="https://example.com"></div>
+                </div>
+
+                <div class="setting-group">
+                    <div class="sg-title"><i class="fas fa-palette"></i> تخصيص الثيم</div>
+                    <div class="theme-row">
+                        <div class="color-preview" id="themeColorPreview"></div>
+                        <div class="theme-slider"><input type="range" id="themeSlider" min="0" max="360" value="35"></div>
+                    </div>
+                    <div class="theme-presets" id="themePresets"></div>
+                </div>
+
+                <div class="setting-group">
+    <div class="sg-title"><i class="fas fa-volume-high"></i> الأصوات</div>
+    <div class="sg-row"><label>صوت النقرات:</label>
+        <select class="fi" id="sClickSnd">
+            <option value="off">بدون</option>
+            <option value="click1">نقرة 1</option>
+            <option value="click2">نقرة 2</option>
+        </select>
+    </div>
+    <div class="sg-row"><label>صوت الطلبات:</label>
+        <select class="fi" id="sOrderSnd">
+            <option value="off">بدون</option>
+            <option value="sond1.mp3">صوت 1</option>
+            <option value="sond2.mp3">صوت 2</option>
+            <option value="sond3.mp3">صوت 3</option>
+            <option value="sond4.mp3">صوت 4</option>
+            <option value="sond5.mp3">صوت 5</option>
+            <option value="sond6.mp3">صوت 6</option>
+            <option value="sond7.mp3">صوت 7</option>
+            <option value="sond8.mp3">صوت 8</option>
+            <option value="sond9.mp3">صوت 9</option>
+            <option value="sond10.mp3">صوت 10</option>
+        </select>
+    </div>
+    <div class="sg-row"><label>صوت الرسائل:</label>
+        <select class="fi" id="sMsgSnd">
+            <option value="off">بدون</option>
+            <option value="sond1.mp3">صوت 1</option>
+            <option value="sond2.mp3">صوت 2</option>
+            <option value="sond3.mp3">صوت 3</option>
+            <option value="sond4.mp3">صوت 4</option>
+            <option value="sond5.mp3">صوت 5</option>
+            <option value="sond6.mp3">صوت 6</option>
+            <option value="sond7.mp3">صوت 7</option>
+            <option value="sond8.mp3">صوت 8</option>
+            <option value="sond9.mp3">صوت 9</option>
+            <option value="sond10.mp3">صوت 10</option>
+        </select>
+    </div>
+</div>
+
+                <div class="setting-group">
+                    <div class="sg-title"><i class="fas fa-link"></i> إدارة الروابط والوسائط</div>
+                    <div class="links-grid">
+                        <div class="links-card">
+                            <h3 style="margin-bottom:16px;"><i class="fas fa-link"></i> إضافة روابط التواصل</h3>
+                            <form id="linksForm">
+                                <div style="margin-bottom:12px;"><input type="url" id="fbInput" class="fi" placeholder="رابط فيسبوك"></div>
+                                <div style="margin-bottom:12px;"><input type="url" id="igInput" class="fi" placeholder="رابط انستقرام"></div>
+                                <div style="margin-bottom:12px;"><input type="url" id="waInput" class="fi" placeholder="رابط واتساب"></div>
+                                <div style="margin-bottom:12px;"><input type="url" id="mapInput" class="fi" placeholder="رابط الخريطة"></div>
+                                <button type="submit" class="btn-primary" style="width:100%;">حفظ الروابط</button>
+                            </form>
+                        </div>
+                        <div class="links-card">
+                            <h3 style="margin-bottom:16px;"><i class="fas fa-video"></i> فيديو الخلفية</h3>
+                            <div class="file-drop-zone" id="dropZone">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>اسحب ملف الفيديو هنا أو اضغط للاختيار</p>
+                                <p class="sub">صيغة MP4 فقط</p>
+                            </div>
+                            <input type="file" id="videoInput" accept="video/mp4" style="display:none;">
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn-primary" id="saveSettingsBtn" style="width:100%;margin-top:10px;">حفظ جميع الإعدادات</button>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- مودال فاتورة الكابتن -->
-<div id="captainInvoiceModal" class="overlay">
+<!-- Modals -->
+<div class="modal-bg" id="captainChatModal">
     <div class="modal-box">
-        <div class="modal-head"><h2><i class="fas fa-receipt"></i> فاتورة الزبون</h2><button class="modal-x" onclick="App.closeModal('captainInvoiceModal')">&times;</button></div>
-        <div id="captainInvItems" style="min-height:60px;font-size:13px"></div>
-        <div style="font-size:18px;font-weight:900;color:var(--accent);text-align:center;padding:12px;background:var(--accent-dim);border-radius:8px;margin:10px 0" id="captainInvTotal">الإجمالي: ٠ د.ع</div>
-        <button class="btn-primary btn-green" onclick="App.captainSendOrder()"><i class="fas fa-paper-plane"></i> إرسال للمطبخ</button>
+        <div class="modal-head"><h2><i class="fas fa-headset"></i> محادثة الكاشير</h2><button class="modal-x" id="closeChatModal">&times;</button></div>
+        <div id="captainChatMsgs" style="height:300px;overflow-y:auto;background:var(--bg-input);border-radius:10px;padding:12px;margin-bottom:12px;"></div>
+        <div class="dp-chat-input">
+            <input type="text" id="captainChatIn" placeholder="اكتب رسالتك...">
+            <button id="sendChatBtn">إرسال</button>
+        </div>
     </div>
 </div>
 
-<!-- مودال دردشة الكاشير -->
-<div id="captainChatModal" class="overlay">
+<div class="modal-bg" id="captainInvoiceModal">
     <div class="modal-box">
-        <div class="modal-head"><h2><i class="fas fa-headset"></i> محادثة الكاشير</h2><button class="modal-x" onclick="App.closeModal('captainChatModal')">&times;</button></div>
-        <div id="captainChatMsgs" style="height:250px;overflow-y:auto;background:var(--bg-input);border-radius:8px;padding:10px;margin-bottom:10px;display:flex;flex-direction:column;gap:6px"></div>
-        <div class="dp-chat-input" style="direction:rtl"><input type="text" id="captainChatIn" placeholder="اكتب رسالتك..." onkeydown="if(event.key==='Enter')App.sendCaptainChat()"><button onclick="App.sendCaptainChat()">إرسال</button></div>
+        <div class="modal-head"><h2><i class="fas fa-receipt"></i> فاتورة الزبون</h2><button class="modal-x" id="closeInvoiceModal">&times;</button></div>
+        <div id="captainInvItems"></div>
+        <div class="dp-total" id="captainInvTotal">الإجمالي: ٠ دينار</div>
+        <button class="btn-primary" id="sendOrderBtn" style="width:100%;justify-content:center;">إرسال للمطبخ</button>
     </div>
 </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, onValue, set, remove, push, get, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+<div class="modal-bg" id="imgModal">
+    <div class="modal-box" style="max-width:800px;background:transparent;border:none;">
+        <img id="imgModalImg" src="" style="width:100%;border-radius:12px;">
+        <button class="btn-primary" style="margin-top:16px;width:100%;" onclick="document.getElementById('imgModal').classList.remove('open')">إغلاق</button>
+    </div>
+</div>
 
-const firebaseConfig = { apiKey: "AIzaSyCEEqEALOCaQo5oSoR8A_Jh9eSpHS8Sz5o", authDomain: "game1-bb93e.firebaseapp.com", databaseURL: "https://game1-bb93e-default-rtdb.firebaseio.com", projectId: "game1-bb93e" };
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+<div id="blockScreen">
+    <div class="login-card" style="margin:20px;">
+        <div class="login-icon"><i class="fas fa-location-dot"></i></div>
+        <h3>جاري التحقق من الموقع</h3>
+        <p id="geoMsg">يرجى تفعيل خدمة تحديد الموقع</p>
+    </div>
+</div>
 
-// ===== الحالة العامة =====
-const S = { myUser:null, mySid:null, myVer:null, dA:{}, dB:{}, dC:{}, dMsgA:{}, settings:{}, menuData:{} };
-let captainOrders = {}, captainTable = null, chatOn = false, unreadMsgs = 0, alertTimeout = null;
+<div id="kickScreen">
+    <div class="login-card" style="margin:20px;">
+        <div class="login-icon"><i class="fas fa-location-arrow"></i></div>
+        <h3>ابتعدت عن منطقة المطعم</h3>
+        <p>عذراً، لقد تجاوزت النطاق المسموح به. يرجى العودة إلى منطقة المطعم.</p>
+    </div>
+</div>
 
-// ===== أدوات مساعدة =====
-const fmt = n => n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-const genSid = () => 's_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
-function toast(msg, type='ti') { const ic = {ts:'fa-circle-check',te:'fa-circle-xmark',ti:'fa-circle-info'}; const t = document.createElement('div'); t.className = 'toast ' + type; t.innerHTML = '<i class="fas '+(ic[type]||ic.ti)+'"></i> ' + msg; document.getElementById('toastBox').appendChild(t); setTimeout(() => { if(t.parentNode) t.remove(); }, 3000); }
-function msgSnd() { try { var aC=new(window.AudioContext||window.webkitAudioContext)(); var now=aC.currentTime; [0,0.15,0.3].forEach(function(d,i){ var o=aC.createOscillator(),g=aC.createGain(); o.connect(g);g.connect(aC.destination);o.type="sine"; o.frequency.setValueAtTime([660,880,1100][i],now+d); g.gain.setValueAtTime(0.06,now+d);g.gain.exponentialRampToValueAtTime(0.001,now+d+0.12); o.start(now+d);o.stop(now+d+0.12); }); } catch(e){} }
-function haversine(lat1,lon1,lat2,lon2){const R=6371e3;const p=Math.PI/180;const a=0.5-Math.cos((lat2-lat1)*p)/2+Math.cos(lat1*p)*Math.cos(lat2*p)*(1-Math.cos((lon2-lon1)*p))/2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));}
+<div id="distBar"><div class="dist-bar-inner"><div class="dist-track"><div class="dist-fill" id="distFill"></div></div><span class="dist-value" id="distValue">0%</span></div></div>
 
-// ===== الكائن الرئيسي للتطبيق =====
-export const App = {
-    async doLogin() {
-        const err = document.getElementById('loginErr'), btn = document.getElementById('btnLogin');
-        err.textContent = ''; btn.disabled = true;
-        const ver = document.getElementById('inVer').value.trim(), user = document.getElementById('inUser').value.trim(), pass = document.getElementById('inPass').value.trim();
-        if(!ver||!user||!pass){err.textContent='يرجى ملء جميع الحقول';btn.disabled=false;return;}
-        
-        try {
-            const vSnap = await get(ref(db, "cobes")); const versions = vSnap.val()||{};
-            if(!Object.values(versions).some(v=>v.version_number===ver)){err.textContent='رقم الإصدار غير مسجل';btn.disabled=false;return;}
-            const uSnap = await get(ref(db, "users")); const users = uSnap.val()||{};
-            if(!Object.values(users).some(u=>u.username===user&&u.password===pass)){err.textContent='بيانات الدخول غير صحيحة';btn.disabled=false;return;}
-            
-            // منع الجلسات المزدوجة: حذف أي جلسة سابقة لنفس المستخدم
-            const sSnap = await get(ref(db, "active_sessions"));
-            if(sSnap.exists()){ const all=sSnap.val(); const ops=[]; for(let sid in all){ if(all[sid].username===user) ops.push(remove(ref(db,"active_sessions/"+sid))); } if(ops.length) await Promise.all(ops); }
-            
-            S.mySid = genSid(); S.myUser = user; S.myVer = ver;
-            await set(ref(db, "active_sessions/"+S.mySid), { username:user, logged_in_at:new Date().toISOString(), device_version:ver });
-            localStorage.setItem('ops_session', JSON.stringify({sessionId:S.mySid, username:user, version:ver}));
-            this.enterApp();
-        } catch(e) { err.textContent = 'خطأ في الاتصال'; btn.disabled = false; }
-    },
-    
-    async enterApp() {
-        document.getElementById('loginOverlay').classList.remove('active');
-        document.getElementById('appRoot').style.display = 'block';
-        toast('مرحباً ' + S.myUser, 'ts');
-        this.initGeo();
-        this.startListeners();
-    },
-    
-    async doLogout() { 
-        try { if(S.mySid) await remove(ref(db, "active_sessions/"+S.mySid)); localStorage.removeItem('ops_session'); location.reload(); } catch(e){} 
-    },
-    
-    // ===== النظام الجغرافي =====
-    async initGeo() {
-        const sSnap = await get(ref(db, "cobes")); const all = sSnap.val();
-        if(!all){this.geoErr("لا توجد نطاقات مسجلة");return;}
-        let found=null; for(let id in all){if(all[id].version_number===S.myVer){found=all[id];break;}}
-        if(!found||!found.geo_zone){this.geoErr("الإصدار بدون إحداثيات");return;}
-        const zone = found.geo_zone;
-        if(!navigator.geolocation){this.geoErr("جهازك لا يدعم تحديد الموقع");return;}
-        navigator.geolocation.watchPosition(pos=>{
-            const dist=haversine(pos.coords.latitude,pos.coords.longitude,zone.center_latitude,zone.center_longitude);
-            const rad=zone.radius_meters||100;
-            const prox=Math.max(0,Math.min(100,(1-dist/rad)*100));
-            const fill=document.getElementById('geoDistFill');fill.style.width=prox+'%';
-            fill.style.background=prox>50?'var(--green)':'var(--red)';
-            if(dist<=rad){document.getElementById('geoOverlay').classList.remove('active');}
-            else{document.getElementById('geoOverlay').classList.add('active');document.getElementById('geoTitle').textContent='خارج النطاق';document.getElementById('geoMsg').textContent='أنت على بعد '+Math.round(dist)+' متر من المطعم';}
-        }, ()=>this.geoErr("لم يتم السماح بالوصول للموقع"), {enableHighAccuracy:true});
-    },
-    geoErr(msg){document.getElementById('geoIcon').textContent='🚫';document.getElementById('geoTitle').textContent='غير متاح';document.getElementById('geoMsg').textContent=msg;},
-    
-    // ===== المستمعات =====
-    startListeners() {
-        onValue(ref(db,"tablesA"), s=>{S.dA=s.val()||{};this.renderGrid();this.loadTablesDropdown();});
-        onValue(ref(db,"tablesB"), s=>{S.dB=s.val()||{};this.renderGrid();});
-        onValue(ref(db,"tablesC"), s=>{S.dC=s.val()||{};this.renderGrid();});
-        onValue(ref(db,"msgA"), s=>{S.dMsgA=s.val()||{};this.renderGrid();});
-        onValue(ref(db,"app_settings"), s=>{if(s.exists()){S.settings=s.val();document.getElementById('brandName').textContent=S.settings.restaurantName||'المطعم';}});
-        onValue(ref(db,"orders"), s=>{S.menuData=s.val()||{};this.renderCaptainMenu();this.renderMenuStructure();});
-        onValue(ref(db,"captain_chats/"+S.myUser), s=>{
-            const data=s.val()||{}; let cCount=0;
-            for(let k in data){if(data[k].sender==='cashier')cCount++;}
-            if(cCount>unreadMsgs&&!chatOn&&unreadMsgs>=0){msgSnd();document.getElementById('cashierAlertBanner').style.display='flex';}
-            unreadMsgs=cCount; document.getElementById('msgDot').style.display=cCount>0?'inline':'none'; document.getElementById('msgDot').textContent=cCount;
-            if(chatOn)this.renderCaptainChatMessages(data);
-        });
-        // مراقبة الجلسات لمنع الدخول المزدوج
-        onValue(ref(db,"active_sessions"), s=>{
-            const data=s.val()||{};
-            if(S.mySid&&!data[S.mySid]){localStorage.removeItem('ops_session');toast('تم تسجيل خروجك من جهاز آخر','te');setTimeout(()=>location.reload(),2000);}
-        });
-    },
-    
-    // ===== العمليات والطاولات =====
-    renderGrid() {
-        let occ=0,cook=0,msg=0,html='';
-        for(let id in S.dA){
-            const t=S.dA[id]; if(!t||!t.table_number)continue;
-            const tk='table_'+t.table_number;
-            const b=S.dB[tk]?.sent_orders||{}, c=S.dC[tk]?.cooking_orders||{}, m=S.dMsgA[tk]||{};
-            const bC=Object.keys(b).length, cC=Object.keys(c).length, mC=Object.keys(m).length;
-            if(bC||cC||mC){occ++;cook+=cC;msg+=mC;}
-            html+=`<div class="t-card ${bC||cC?'occupied':''}" onclick="App.openDetail('${tk}')"><h3>طاولة ${t.table_number}</h3><div>${bC?`<div class="t-badge b-b"><span>طلبات</span><span>${bC}</span></div>`:''}${cC?`<div class="t-badge b-c"><span>مطبخ</span><span>${cC}</span></div>`:''}${mC?`<div class="t-badge b-m"><span>رسائل</span><span>${mC}</span></div>`:''}</div></div>`;
-        }
-        document.getElementById('tablesGrid').innerHTML=html||'<p style="color:var(--text-muted);text-align:center;padding:20px">لا توجد طاولات</p>';
-        if(document.getElementById('qsOcc'))document.getElementById('qsOcc').textContent=occ;
-        if(document.getElementById('qsCook'))document.getElementById('qsCook').textContent=cook;
-        if(document.getElementById('qsMsg'))document.getElementById('qsMsg').textContent=msg;
-    },
-    
-    openDetail(tKey) {
-        S.activeTable=tKey;
-        const tNum=tKey.replace('table_','');
-        document.getElementById('dpTitle').innerHTML=`<i class="fas fa-file-invoice"></i> طاولة ${tNum}`;
-        const b=S.dB[tKey]?.sent_orders||{}, c=S.dC[tKey]?.cooking_orders||{};
-        let bH='',cH='',total=0;
-        for(let k in b){const o=b[k];const sub=o.price*o.quantity;total+=sub;bH+=`<div class="inv-row"><span>${o.name||''} (${o.quantity})</span><span>${fmt(sub)} د.ع</span></div>`;}
-        for(let k in c){const o=c[k];const sub=o.price*o.quantity;total+=sub;cH+=`<div class="inv-row"><span>${o.name||''} (${o.quantity})</span><span>${fmt(sub)} د.ع</span></div>`;}
-        document.getElementById('dpBoxB').innerHTML=bH||'<p style="color:var(--text-muted);text-align:center;font-size:11px">لا توجد.</p>';
-        document.getElementById('dpBoxC').innerHTML=cH||'<p style="color:var(--text-muted);text-align:center;font-size:11px">لا توجد.</p>';
-        document.getElementById('dpTotal').textContent='الإجمالي: '+fmt(total)+' د.ع';
-        this.renderTableChat(tKey);
-        document.getElementById('detailPanel').classList.add('show');
-    },
-    closeDetail(){S.activeTable=null;document.getElementById('detailPanel').classList.remove('show');},
-    
-    renderTableChat(tKey) {
-        const box=document.getElementById('dpChatMsgs');if(!box)return;box.innerHTML='';
-        const msgs=S.dMsgA[tKey]||{};let arr=[];
-        for(let id in msgs)arr.push(msgs[id]);
-        arr.sort((a,b)=>new Date(a.timestamp)-new Date(b.timestamp));
-        arr.forEach(m=>{
-            const t=new Date(m.timestamp).toLocaleTimeString("ar-IQ",{hour:"2-digit",minute:"2-digit"});
-            box.innerHTML+=`<div class="cm from-client"><small style="opacity:.6">زبون - ${t}</small><br>${m.text}</div>`;
-        });
-        box.scrollTop=box.scrollHeight;
-    },
-    sendAdminReply(){
-        if(!S.activeTable)return;const inp=document.getElementById('dpChatIn');const txt=inp.value.trim();if(!txt)return;
-        push(ref(db,"msgB/"+S.activeTable),{text:txt,sender:"admin",timestamp:new Date().toISOString()});inp.value='';
-    },
-    
-    // ===== وضع أخذ الطلبات (الكابتن) =====
-    loadTablesDropdown(){
-        const sel=document.getElementById('captainTableSelect');if(!sel)return;
-        const cv=sel.value;sel.innerHTML='<option value="">-- اختر طاولة --</option>';
-        for(let id in S.dA){const t=S.dA[id];if(t&&t.table_number){const o=document.createElement('option');o.value=t.table_number;o.textContent='طاولة '+t.table_number;sel.appendChild(o);}}
-        sel.value=cv;
-    },
-    captainChangeTable(tNum){captainTable=tNum;captainOrders={};this.renderCaptainMenu();this.updateCaptainBar();},
-    
-    renderCaptainMenu(){
-        const c=document.getElementById('captainMenuCats');if(!c)return;c.innerHTML='';
-        const data=S.menuData;if(!data){c.innerHTML='<p style="color:var(--text-muted);text-align:center;padding:30px">المنيو فارغ</p>';return;}
-        for(var catId in data){
-            var cat=data[catId];var items=cat.items||{};var itemHTML="";
-            for(var itemId in items){
-                var it=items[itemId];var key=catId+"_"+itemId;var qty=captainOrders[key]?captainOrders[key].quantity:0;var imgSrc=it.image||"";
-                itemHTML+=`<div class="direct-item ${qty>0?'selected':''}" onclick="App.captainToggleItem('${key}')">
-                    ${imgSrc?`<img src="${imgSrc}" alt="">`:'<div style="width:100%;height:80px;background:var(--bg-card);border-radius:6px;display:flex;align-items:center;justify-content:center;margin-bottom:6px"><i class="fas fa-image" style="color:var(--text-muted);font-size:20px"></i></div>'}
-                    <h4>${it.name}</h4><div class="di-price">${fmt(it.price)} د.ع</div>
-                    <div class="direct-qty"><button class="dq-minus" onclick="event.stopPropagation();App.captainQtyChange('${key}',-1)">−</button><span>${qty}</span><button class="dq-plus" onclick="event.stopPropagation();App.captainQtyChange('${key}',1)">+</button></div></div>`;
-            }
-            c.innerHTML+=`<div style="margin-bottom:20px"><h3 style="font-size:16px;font-weight:800;color:var(--accent);margin-bottom:10px;border-bottom:1px solid var(--border);padding-bottom:6px">${cat.name}</h3><div class="direct-grid">${itemHTML}</div></div>`;
-        }
-    },
-    captainToggleItem(key){if(!captainTable){toast('اختر طاولة أولاً','te');return;}if(captainOrders[key])delete captainOrders[key];else captainOrders[key]={quantity:1};this.updateCaptainBar();this.renderCaptainMenu();},
-    captainQtyChange(key,delta){if(!captainOrders[key])captainOrders[key]={quantity:0};captainOrders[key].quantity=Math.max(0,captainOrders[key].quantity+delta);if(captainOrders[key].quantity===0)delete captainOrders[key];this.updateCaptainBar();this.renderCaptainMenu();},
-    updateCaptainBar(){const bar=document.getElementById('captainBottomBar');let count=0,total=0;for(let k in captainOrders){const parts=k.split('_');const catId=parts[0];const itemId=parts.slice(1).join('_');const item=S.menuData[catId]?.items?.[itemId];if(item){count+=captainOrders[k].quantity;total+=item.price*captainOrders[k].quantity;}}bar.style.display=count>0?'flex':'none';document.getElementById('captainBarCount').textContent=count;document.getElementById('captainBarTotal').textContent='الإجمالي: '+fmt(total)+' د.ع';},
-    
-    captainOpenInvoice(){
-        let total=0,html='';for(let k in captainOrders){const parts=k.split('_');const catId=parts[0];const itemId=parts.slice(1).join('_');const item=S.menuData[catId]?.items?.[itemId];if(item){const qty=captainOrders[k].quantity;const sub=item.price*qty;total+=sub;html+=`<div class="inv-row"><span>${item.name} (${qty})</span><span>${fmt(sub)} د.ع</span></div>`;}}
-        document.getElementById('captainInvItems').innerHTML=html||'<p style="text-align:center;padding:20px;color:var(--text-muted)">لا توجد طلبات</p>';
-        document.getElementById('captainInvTotal').textContent='الإجمالي: '+fmt(total)+' د.ع';
-        document.getElementById('captainInvoiceModal').classList.add('active');
-    },
-    captainSendOrder(){
-        if(!captainTable){toast('اختر طاولة أولاً','te');return;}if(!Object.keys(captainOrders).length){toast('السلة فارغة','te');return;}
-        for(let k in captainOrders){const parts=k.split('_');const catId=parts[0];const itemId=parts.slice(1).join('_');const item=S.menuData[catId]?.items?.[itemId];if(item){push(ref(db,"tablesB/table_"+captainTable+"/sent_orders"),{name:item.name,price:item.price,quantity:captainOrders[k].quantity,settled_by:"captain",settled_at:new Date().toISOString()});}}
-        captainOrders={};this.updateCaptainBar();this.renderCaptainMenu();this.closeModal('captainInvoiceModal');toast('تم إرسال الطلب للمطبخ','ts');
-    },
-    
-    // ===== المنيو (للتعديل) =====
-    renderMenuStructure(){
-        const c=document.getElementById('menuStructure');const data=S.menuData;if(!c)return;c.innerHTML='';
-        if(!data){c.innerHTML='<p style="color:var(--text-muted)">لا توجد أقسام.</p>';return;}
-        for(let catId in data){
-            const cat=data[catId];let itemsHtml='';
-            if(cat.items){for(let iid in cat.items){const it=cat.items[iid];
-                itemsHtml+=`<div class="inv-row" style="align-items:center;gap:8px"><div style="flex:1;min-width:0"><div style="font-weight:700;font-size:13px">${it.name}</div><div style="font-size:11px;color:var(--text-muted)">${it.price} د.ع - ${it.details||''}</div></div><div style="display:flex;gap:4px"><button class="h-btn" style="padding:4px 8px;font-size:10px" onclick="App.delItem('${catId}','${iid}')"><i class="fas fa-trash"></i></button></div></div>`;}}
-            c.innerHTML+=`<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px"><h3 style="font-size:15px;font-weight:800;margin-bottom:10px;color:var(--accent)">${cat.name}</h3><div>${itemsHtml||'<p style="color:var(--text-muted);font-size:11px">لا توجد أصناف</p>'}</div></div>`;
-        }
-    },
-    delItem(catId,itemId){if(confirm('حذف الصنف؟'))remove(ref(db,"orders/"+catId+"/items/"+itemId));},
-
-    // ===== الدردشة والإشعارات =====
-    openCaptainChat(){chatOn=true;document.getElementById('cashierAlertBanner').style.display='none';clearTimeout(alertTimeout);document.getElementById('captainChatModal').classList.add('active');this.renderCaptainChatMessages();},
-    renderCaptainChatMessages(data){
-        const box=document.getElementById('captainChatMsgs');if(!box)return;box.innerHTML='';
-        const d=data||null; // يمكن جلبها لو حاب
-        if(!d){box.innerHTML='<p style="color:var(--text-muted);text-align:center;padding:20px;font-size:12px">ابدأ المحادثة</p>';return;}
-        let m=[];for(let id in d)m.push({...d[id],_id:id});m.sort((a,b)=>new Date(a.timestamp)-new Date(b.timestamp));
-        m.forEach(x=>{const isMe=x.sender==='captain';const t=new Date(x.timestamp).toLocaleTimeString("ar-IQ",{hour:"2-digit",minute:"2-digit"});
-            box.innerHTML+=`<div class="cm ${isMe?'from-admin':'from-client'}"><small style="opacity:.6">${isMe?'أنت':'الكاشير'} - ${t}</small><br>${x.text}</div>`;
-        });box.scrollTop=box.scrollHeight;
-    },
-    sendCaptainChat(){const inp=document.getElementById('captainChatIn');const txt=inp.value.trim();if(!txt||!S.myUser)return;push(ref(db,"captain_chats/"+S.myUser),{text:txt,timestamp:new Date().toISOString(),sender:"captain",sender_name:"كابتن"});inp.value="";},
-    dismissCashierAlert(){document.getElementById('cashierAlertBanner').style.display='none';clearTimeout(alertTimeout);alertTimeout=setTimeout(()=>{if(unreadMsgs>0&&!chatOn)document.getElementById('cashierAlertBanner').style.display='flex';},60000);},
-    
-    // ===== أدوات مساعدة =====
-    switchTab(tabId, btn){document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');document.getElementById(tabId).classList.add('active');},
-    closeModal(id){document.getElementById(id).classList.remove('active');}
-};
-
-// التحقق من الجلسة المحفوظة
-(async()=>{
-    const ss=localStorage.getItem('ops_session');
-    if(ss){try{const sess=JSON.parse(ss);const snap=await get(ref(db,"active_sessions/"+sess.sessionId));if(snap.exists()){S.mySid=sess.sessionId;S.myUser=sess.username;S.myVer=sess.version;App.enterApp();return;}}catch(e){}}
-    document.getElementById('loginOverlay').classList.add('active');
-})();
-
-window.App = App;
-</script>
+<script type="module" src="captain.js"></script>
 </body>
 </html>

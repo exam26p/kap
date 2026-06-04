@@ -4,7 +4,6 @@ const urlsToCache = [
   '/captain.js',
   '/icone.ico'
 ];
-
 self.addEventListener('install', function(event) {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -14,7 +13,6 @@ self.addEventListener('install', function(event) {
       })
   );
 });
-
 self.addEventListener('fetch', function(event) {
   event.respondWith(
     caches.match(event.request)
@@ -26,7 +24,6 @@ self.addEventListener('fetch', function(event) {
       })
   );
 });
-
 self.addEventListener('activate', function(event) {
   event.waitUntil(
     caches.keys().then(function(cacheNames) {

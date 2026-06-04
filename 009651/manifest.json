@@ -1,0 +1,27 @@
+{
+  "name": "كابتن - نظام إدارة المطعم",
+  "short_name": "كابتن",
+  "description": "نظام إدارة المطعم وطلبات الزبون",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#060a12",
+  "theme_color": "#0b1120",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icone.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "icone.ico",
+      "sizes": "128x128",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "icone.ico",
+      "sizes": "256x256",
+      "type": "image/x-icon"
+    }
+  ]
+}

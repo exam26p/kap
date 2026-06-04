@@ -1,7 +1,7 @@
 const CACHE_NAME = 'captain-app-v1';
 const urlsToCache = [
   '/',
-  '/index2.html',
+  '/index.html',
   '/captain.js',
   '/icone.ico'
 ];

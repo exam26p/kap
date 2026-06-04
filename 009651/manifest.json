@@ -2,7 +2,7 @@
   "name": "كابتن - نظام إدارة المطعم",
   "short_name": "كابتن",
   "description": "نظام إدارة المطعم وطلبات الزبون",
-  "start_url": "/",
+  "start_url": "/index2.html",
   "display": "standalone",
   "background_color": "#060a12",
   "theme_color": "#0b1120",

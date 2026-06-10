@@ -211,6 +211,27 @@
                     <div class="sg-row"><label>صوت الرسائل:</label><select class="fi" id="sMsgSnd" style="flex:1;max-width:300px;"><option value="off">بدون</option><option value="sond1.mp3">صوت 1</option><option value="sond2.mp3">صوت 2</option></select><button class="btn-secondary btn-sm" onclick="App.playPreview('msg')"><i class="fas fa-play"></i></button></div>
                     <div class="sg-row"><label>صوت الطباعة:</label><select class="fi" id="sPrintSnd" style="flex:1;max-width:300px;"><option value="off">بدون</option><option value="sond1.mp3">صوت 1</option><option value="sond2.mp3">صوت 2</option></select><button class="btn-secondary btn-sm" onclick="App.playPreview('print')"><i class="fas fa-play"></i></button></div>
                 </div>
+
+                <!-- قسم إعدادات الجهاز -->
+                <div class="setting-group">
+                    <div class="sg-title"><i class="fas fa-microchip"></i> إعدادات الجهاز</div>
+                    <div class="sg-row">
+                        <label style="min-width: 120px;">دور الجهاز:</label>
+                        <select id="deviceRoleSelect" style="flex:1; max-width: 250px;">
+                            <option value="secondary">📱 جهاز ثانوي (تاب - لا يطبع)</option>
+                            <option value="main">🖥️ جهاز رئيسي (كمبيوتر - يطبع)</option>
+                        </select>
+                        <button class="btn-primary btn-sm" onclick="App.saveDeviceRole()" style="white-space: nowrap;">
+                            <i class="fas fa-save"></i> حفظ وإعادة تشغيل
+                        </button>
+                    </div>
+                    <div class="sg-row" style="margin-top: 8px;">
+                        <small style="color: var(--text-muted);">
+                            <i class="fas fa-info-circle"></i> 
+                            الأجهزة الرئيسية فقط هي التي تستطيع الطباعة عبر سيرفر بايثون. الأجهزة الثانوية ترسل أوامر طباعة فقط.
+                        </small>
+                    </div>
+                </div>
                 
                 <div class="setting-group"><div class="sg-title"><i class="fas fa-print"></i> الطابعات</div>
                     <div class="form-row" style="margin-bottom:14px;"><div class="fg"><input type="text" class="fi" id="pName" placeholder="اسم الطابعة"></div><div class="fg">

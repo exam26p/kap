@@ -695,7 +695,12 @@ export function loadSettingsUI() {
     }
     updateQRPreview();
     
-    loadWindowsPrinters(); 
+    loadWindowsPrinters();
+    
+    // تحميل إعداد دور الجهاز في واجهة الإعدادات
+    if (typeof window.App !== 'undefined' && window.App.loadDeviceRoleSetting) {
+        window.App.loadDeviceRoleSetting();
+    }
 } 
 
 function generateCaptainQRAuto(url) { 

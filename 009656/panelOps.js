@@ -299,6 +299,7 @@ export async function printToKitchen() {
     }
     
     if (isMainDevice) {
+        // ===== جهاز رئيسي: ينقل البيانات + يطبع =====
         var printers = window.App.getButtonPrinters('kitchen');
         if (printers.length === 0) { 
             toast('الرجاء تعيين طابعات لزر المطبخ', 'te'); 
@@ -310,6 +311,7 @@ export async function printToKitchen() {
             items.push({ name: oB[id].name, qty: oB[id].quantity, price: oB[id].price });
         }
         
+        // طباعة
         await printToSelectedPrinters(printers, {
             title: 'بون التجهيز', 
             tableNum: state.activeTable, 
@@ -320,6 +322,7 @@ export async function printToKitchen() {
             welcome: 'برجاء تجهيز الطلبات بأسرع وقت'
         });
         
+        // نقل البيانات من tablesB إلى tablesC
         for (var id in oB) {
             await DB.pushData('tablesC/' + k + '/processing_orders', { 
                 name: oB[id].name, 
@@ -331,12 +334,26 @@ export async function printToKitchen() {
         toast('تم إرسال الطلبات للمطبخ', 'ts');
         
     } else {
+        // ===== جهاز ثانوي (تاب): ينقل البيانات أولاً، ثم يرسل أمر طباعة =====
+        
+        // 1. نقل البيانات من tablesB إلى tablesC
+        for (var id in oB) {
+            await DB.pushData('tablesC/' + k + '/processing_orders', { 
+                name: oB[id].name, 
+                price: oB[id].price, 
+                quantity: oB[id].quantity 
+            });
+        }
+        await DB.removeData('tablesB/' + k);
+        
+        // 2. إرسال أمر طباعة فقط
         await DB.sendPrintCommand('kitchen', {
             tableId: k,
             orders: oB,
             requestedBy: state.myUser
         });
-        toast('تم إرسال طلب الطباعة إلى الخادم', 'ti');
+        
+        toast('تم إرسال الطلبات للمطبخ وطلب الطباعة', 'ts');
     }
 }
 
@@ -399,6 +416,7 @@ export async function settleInvoice() {
     var sa = new Date().toISOString();
     var promises = [];
     
+    // أرشفة الطلبات
     for (var id in oB) {
         promises.push(DB.pushData('tablesD/archive_orders', { 
             table_number: state.activeTable, 
@@ -420,6 +438,7 @@ export async function settleInvoice() {
         }));
     }
     
+    // حذف الطلبات من الجداول النشطة
     promises.push(DB.removeData('tablesB/' + k));
     promises.push(DB.removeData('tablesC/' + k));
     promises.push(DB.removeData('msgA/' + k));
@@ -428,6 +447,7 @@ export async function settleInvoice() {
     
     await Promise.all(promises);
     
+    // طباعة أو إرسال أمر طباعة
     if (isMainDevice) {
         var printers = window.App.getButtonPrinters('cashier');
         if (printers.length === 0) { 
@@ -445,15 +465,16 @@ export async function settleInvoice() {
             });
         }
     } else {
+        // جهاز ثانوي: يرسل أمر طباعة فقط (البيانات تم نقلها بالفعل)
         await DB.sendPrintCommand('cashier', {
             tableId: k,
             items: items,
             total: total,
             cashier: state.myUser
         });
+        toast('تم تسديد الفاتورة وإرسال أمر الطباعة', 'ts');
     }
     
-    toast('تم تسديد فاتورة ' + state.activeTable, 'ts'); 
     closeDetail();
 }
 

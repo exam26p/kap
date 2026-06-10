@@ -1,0 +1,574 @@
+/* panelAddOrder.css - التنسيق الكامل والنظيف لنافذة إضافة الطلبات */
+
+/* ========================================
+   قسم اختيار رقم الطاولة
+   ======================================== */
+.table-selector-area {
+    background: linear-gradient(135deg, var(--bg-card), var(--bg-input));
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow);
+}
+
+.selector-title {
+    font-size: 16px;
+    font-weight: 800;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--accent);
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--accent-dim);
+}
+
+.selector-title i {
+    font-size: 20px;
+}
+
+.table-buttons-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    max-height: 160px;
+    overflow-y: auto;
+    padding: 6px;
+}
+
+/* تخصيص شريط التمرير لقائمة الطاولات */
+.table-buttons-grid::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.table-buttons-grid::-webkit-scrollbar-track {
+    background: var(--bg-deep);
+    border-radius: 10px;
+}
+
+.table-buttons-grid::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 10px;
+}
+
+.table-selector-btn {
+    padding: 10px 18px;
+    background: var(--bg-deep);
+    border: 1.5px solid var(--border);
+    border-radius: 40px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    transition: all 0.25s ease;
+    min-width: 85px;
+    font-family: 'Tajawal', sans-serif;
+}
+
+.table-selector-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: translateY(-2px);
+    background: var(--accent-dim);
+}
+
+.table-selector-btn.selected {
+    background: linear-gradient(135deg, var(--accent), #d97706);
+    color: #fff;
+    border-color: var(--accent);
+    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+}
+
+/* ========================================
+   قسم الفلتر والبحث
+   ======================================== */
+.add-order-filters {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 20px 24px;
+    margin-bottom: 24px;
+}
+
+.filters-row {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.filters-row .filter-group {
+    flex: 1;
+    min-width: 200px;
+}
+
+.filters-row .filter-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.filters-row .filter-group label i {
+    margin-left: 8px;
+    color: var(--accent);
+}
+
+.filters-row .filter-group input,
+.filters-row .filter-group select {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--bg-input);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-primary);
+    font-size: 14px;
+    font-family: 'Tajawal', sans-serif;
+    outline: none;
+    transition: all 0.3s;
+}
+
+.filters-row .filter-group input:focus,
+.filters-row .filter-group select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+/* ========================================
+   عنوان قائمة الأصناف
+   ======================================== */
+.section-title-custom {
+    font-size: 18px;
+    font-weight: 800;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--border);
+}
+
+.section-title-custom i {
+    color: var(--accent);
+    font-size: 20px;
+}
+
+/* ========================================
+   شبكة عرض الأصناف
+   ======================================== */
+#addOrderMainGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 18px;
+    margin-bottom: 110px;
+    padding: 4px;
+    max-height: calc(100vh - 350px);
+    overflow-y: auto;
+}
+
+/* تخصيص شريط التمرير */
+#addOrderMainGrid::-webkit-scrollbar {
+    width: 8px;
+}
+
+#addOrderMainGrid::-webkit-scrollbar-track {
+    background: var(--bg-input);
+    border-radius: 10px;
+}
+
+#addOrderMainGrid::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 10px;
+}
+
+@media (max-width: 768px) {
+    #addOrderMainGrid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    #addOrderMainGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ========================================
+   بطاقة المنتج
+   ======================================== */
+.add-order-item {
+    background: var(--bg-input);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.add-order-item:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--accent);
+}
+
+.add-order-item.selected {
+    border-color: var(--green);
+    border-width: 2px;
+    background: linear-gradient(135deg, var(--bg-input), var(--green-dim));
+}
+
+/* علامة التحديد */
+.add-order-item.selected::before {
+    content: '\f00c';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--green);
+    color: #fff;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    animation: scaleIn 0.3s ease;
+}
+
+@keyframes scaleIn {
+    0% { transform: scale(0); }
+    70% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+/* صورة المنتج */
+.aoi-img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background: var(--bg-deep);
+    overflow: hidden;
+    position: relative;
+}
+
+.aoi-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+.add-order-item:hover .aoi-img img {
+    transform: scale(1.1);
+}
+
+.aoi-img.aoi-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--bg-card), var(--bg-deep));
+    color: var(--text-muted);
+    font-size: 45px;
+}
+
+/* محتوى البطاقة */
+.aoi-body {
+    padding: 14px 12px 12px;
+    display: flex;
+    flex-direction: column;
+}
+
+.aoi-name {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1.4;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.aoi-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.4;
+    margin-bottom: 12px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 32px;
+}
+
+/* أسفل البطاقة (السعر والأزرار) */
+.aoi-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+}
+
+.aoi-price {
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--red);
+    direction: ltr;
+    font-variant-numeric: tabular-nums;
+}
+
+.aoi-price small {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-right: 3px;
+}
+
+/* أزرار الكمية (تظهر عند التحديد فقط) */
+.aoi-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-deep);
+    border-radius: 40px;
+    padding: 5px 12px;
+    border: 1px solid var(--border);
+    transform: scale(0.8);
+    opacity: 0;
+    transition: all 0.25s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.add-order-item.selected .aoi-actions {
+    transform: scale(1);
+    opacity: 1;
+}
+
+.aoi-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: none;
+    font-size: 16px;
+    font-weight: 900;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    font-family: monospace;
+}
+
+.aoi-btn.aoi-minus {
+    background: var(--red-dim);
+    color: var(--red);
+}
+
+.aoi-btn.aoi-plus {
+    background: var(--green);
+    color: #fff;
+}
+
+.aoi-btn:active {
+    transform: scale(0.85);
+}
+
+.aoi-qty {
+    min-width: 24px;
+    text-align: center;
+    font-weight: 900;
+    font-size: 15px;
+    color: var(--text-primary);
+}
+
+/* ========================================
+   شريط السلة السفلي (Fixed)
+   ======================================== */
+.add-order-bar {
+    background: var(--bg-card);
+    border-top: 2px solid var(--accent);
+    padding: 16px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.4);
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+}
+
+.add-order-bar .bar-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.add-order-bar .bar-count {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.add-order-bar .bar-total {
+    font-size: 26px;
+    font-weight: 900;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 1px;
+}
+
+.add-order-bar .bar-actions {
+    display: flex;
+    gap: 15px;
+}
+
+/* ========================================
+   أزرار مخصصة
+   ======================================== */
+.btn-sm {
+    padding: 10px 20px;
+    font-size: 13px;
+    border-radius: 40px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--accent), #d97706);
+    color: #1a1a2e;
+    border: none;
+    font-weight: 800;
+}
+
+.btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-secondary {
+    background: var(--bg-input);
+    border: 1.5px solid var(--border);
+    color: var(--text-secondary);
+}
+
+.btn-secondary:hover {
+    border-color: var(--red);
+    color: var(--red);
+}
+
+/* ========================================
+   حالة عدم وجود بيانات
+   ======================================== */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+    grid-column: 1 / -1;
+    background: var(--bg-input);
+    border-radius: var(--radius-lg);
+}
+
+.empty-state i {
+    font-size: 55px;
+    margin-bottom: 16px;
+    display: block;
+    opacity: 0.5;
+}
+
+.empty-state p {
+    font-size: 15px;
+    font-weight: 500;
+}
+
+/* ========================================
+   تحسينات إضافية
+   ======================================== */
+.tab-panel#panelAddOrder {
+    padding-bottom: 90px;
+}
+
+/* تنسيق السعر بالأرقام */
+@font-face {
+    font-family: 'Tajawal';
+    src: local('Tajawal');
+}
+
+.aoi-price, .bar-total {
+    font-family: 'Tajawal', monospace;
+}
+
+/* تنسيق خاص لشاشات الحاسوب الكبيرة */
+@media (min-width: 1400px) {
+    #addOrderMainGrid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 22px;
+    }
+    
+    .aoi-name {
+        font-size: 16px;
+    }
+    
+    .aoi-price {
+        font-size: 20px;
+    }
+}
+
+/* تنسيق خاص للهواتف الصغيرة */
+@media (max-width: 480px) {
+    .table-selector-area {
+        padding: 14px 16px;
+    }
+    
+    .selector-title {
+        font-size: 14px;
+    }
+    
+    .table-selector-btn {
+        padding: 6px 12px;
+        font-size: 11px;
+        min-width: 65px;
+    }
+    
+    .add-order-filters {
+        padding: 14px 16px;
+    }
+    
+    .filters-row .filter-group input,
+    .filters-row .filter-group select {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+    
+    .section-title-custom {
+        font-size: 15px;
+    }
+    
+    .aoi-name {
+        font-size: 13px;
+    }
+    
+    .aoi-price {
+        font-size: 15px;
+    }
+    
+    .add-order-bar {
+        padding: 12px 16px;
+    }
+    
+    .add-order-bar .bar-total {
+        font-size: 20px;
+    }
+    
+    .btn-sm {
+        padding: 7px 14px;
+        font-size: 11px;
+    }
+}

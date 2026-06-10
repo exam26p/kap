@@ -200,6 +200,9 @@ export const App = {
         } else {
             this.deviceRole = 'secondary';
             console.log('📱 هذا الجهاز هو جهاز ثانوي - الطباعة عبر الأوامر فقط');
+            if (savedRole === null) {
+                localStorage.setItem('device_role', 'secondary');
+            }
         }
         
         this.startListeners(); 
@@ -248,6 +251,28 @@ export const App = {
                 console.error('❌ خطأ في تنفيذ الطباعة:', error);
             }
         });
+    },
+    
+    saveDeviceRole: function() {
+        var select = document.getElementById('deviceRoleSelect');
+        if (!select) return;
+        var role = select.value;
+        localStorage.setItem('device_role', role);
+        toast('تم حفظ الإعدادات، سيتم إعادة تشغيل التطبيق...', 'ti');
+        setTimeout(function() { 
+            location.reload(); 
+        }, 1500);
+    },
+    
+    loadDeviceRoleSetting: function() {
+        var select = document.getElementById('deviceRoleSelect');
+        if (!select) return;
+        var savedRole = localStorage.getItem('device_role');
+        if (savedRole === 'main') {
+            select.value = 'main';
+        } else {
+            select.value = 'secondary';
+        }
     },
     
     doLogout: async function() { 

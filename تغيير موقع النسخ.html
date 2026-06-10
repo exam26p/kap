@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة النسخ والنطاقات الجغرافية</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            min-height: 100vh;
+            padding: 30px 20px;
+            color: #e2e8f0;
+        }
+
+        .page-header { text-align: center; margin-bottom: 35px; }
+        .page-header h1 { font-size: 28px; font-weight: 800; color: #f8fafc; margin-bottom: 8px; }
+        .page-header h1 i { color: #f59e0b; margin-left: 10px; }
+        .page-header p { color: #64748b; font-size: 15px; }
+
+        .main-layout {
+            display: flex; gap: 25px; max-width: 1100px;
+            margin: 0 auto; align-items: flex-start;
+        }
+
+        /* ===== قسم النموذج ===== */
+        .form-panel {
+            flex: 0 0 440px; background: #1e293b; border: 1px solid #334155;
+            border-radius: 16px; padding: 28px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            position: sticky; top: 20px;
+        }
+        .form-panel h2 {
+            font-size: 19px; color: #f8fafc; margin-bottom: 22px;
+            display: flex; align-items: center; gap: 10px;
+            padding-bottom: 14px; border-bottom: 1px solid #334155;
+        }
+        .form-panel h2 i { color: #f59e0b; }
+        .form-panel h2 .edit-badge {
+            background: #7c3aed; color: white; font-size: 11px;
+            padding: 3px 10px; border-radius: 20px; font-weight: 700; display: none;
+        }
+        .form-panel h2 .edit-badge.visible { display: inline-block; }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group label {
+            display: block; margin-bottom: 8px; font-weight: 700;
+            color: #94a3b8; font-size: 14px;
+        }
+        .form-group input[type="text"] {
+            width: 100%; padding: 13px 16px; background: #0f172a;
+            border: 2px solid #334155; border-radius: 10px; color: #f1f5f9;
+            font-size: 16px; font-family: inherit; outline: none; transition: border-color 0.3s;
+        }
+        .form-group input[type="text"]:focus { border-color: #f59e0b; }
+
+        /* أزرار الموقع */
+        .location-btns { display: flex; gap: 8px; }
+        .btn-location {
+            flex: 1; padding: 14px; color: white; border: none; border-radius: 10px;
+            font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit;
+            transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-start-scan { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+        .btn-start-scan:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37,99,235,0.3); }
+        .btn-stop-scan { background: linear-gradient(135deg, #059669, #047857); flex: 0 0 auto; padding: 14px 18px; }
+        .btn-stop-scan:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(5,150,105,0.3); }
+        .btn-location:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+        .btn-location.scanning { animation: scanPulse 1.5s infinite; }
+        @keyframes scanPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+        /* لوحة الدقة الحية */
+        .accuracy-panel {
+            margin-top: 10px; background: #0f172a; border-radius: 10px;
+            border: 1px solid #1e293b; overflow: hidden; display: none;
+        }
+        .accuracy-panel.visible { display: block; }
+        .accuracy-main {
+            padding: 14px; display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid #1e293b;
+        }
+        .accuracy-big {
+            font-size: 32px; font-weight: 900; direction: ltr; line-height: 1;
+            transition: color 0.3s;
+        }
+        .accuracy-big .unit { font-size: 14px; font-weight: 600; color: #64748b; margin-right: 4px; }
+        .accuracy-quality {
+            display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+        }
+        .quality-label { font-size: 13px; font-weight: 700; transition: color 0.3s; }
+        .quality-hint { font-size: 11px; color: #64748b; }
+
+        .accuracy-bars { padding: 10px 14px; display: flex; gap: 3px; align-items: flex-end; height: 40px; }
+        .acc-bar {
+            flex: 1; border-radius: 3px 3px 0 0; transition: all 0.4s;
+            min-height: 4px; background: #1e293b;
+        }
+        .acc-bar.filled { background: #334155; }
+        .acc-bar.filled.good { background: #22c55e; }
+        .acc-bar.filled.medium { background: #f59e0b; }
+        .acc-bar.filled.poor { background: #ef4444; }
+
+        .accuracy-details {
+            padding: 10px 14px; font-size: 12px; color: #64748b;
+            border-top: 1px solid #1e293b; line-height: 1.8;
+        }
+        .accuracy-details span { direction: ltr; display: inline-block; color: #94a3b8; }
+
+        /* حالة الموقع المحفوظ */
+        .saved-location {
+            margin-top: 10px; background: rgba(5,150,105,0.06); border: 1px solid #065f46;
+            border-radius: 10px; padding: 14px; display: none;
+        }
+        .saved-location.visible { display: block; }
+        .saved-location .saved-header {
+            display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+            font-size: 14px; font-weight: 700; color: #34d399;
+        }
+        .saved-location .saved-coords {
+            font-size: 12px; color: #6ee7b7; direction: ltr; text-align: right;
+            line-height: 1.8;
+        }
+        .saved-location .saved-restart {
+            margin-top: 10px; background: transparent; border: 1px solid #065f46;
+            color: #6ee7b7; padding: 8px 14px; border-radius: 8px; font-size: 12px;
+            font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.2s;
+            width: 100%;
+        }
+        .saved-location .saved-restart:hover { background: rgba(5,150,105,0.1); }
+
+        .btn-submit {
+            width: 100%; padding: 15px; background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #0f172a; border: none; border-radius: 10px; font-size: 17px;
+            font-weight: 800; cursor: pointer; font-family: inherit; transition: all 0.3s;
+            margin-top: 6px; display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(245,158,11,0.3); }
+        .btn-submit:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        .btn-cancel-edit {
+            width: 100%; padding: 12px; background: transparent; color: #94a3b8;
+            border: 2px solid #334155; border-radius: 10px; font-size: 14px;
+            font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.3s;
+            margin-top: 8px; display: none;
+        }
+        .btn-cancel-edit.visible { display: block; }
+        .btn-cancel-edit:hover { border-color: #ef4444; color: #f87171; }
+
+        /* ===== قسم القائمة ===== */
+        .list-panel { flex: 1; min-width: 0; }
+        .list-panel h2 {
+            font-size: 19px; color: #f8fafc; margin-bottom: 18px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .list-panel h2 i { color: #22c55e; }
+        .list-count { background: #334155; color: #94a3b8; font-size: 13px; padding: 3px 12px; border-radius: 20px; font-weight: 700; }
+
+        .cobe-card {
+            background: #1e293b; border: 1px solid #334155; border-radius: 14px;
+            padding: 20px; margin-bottom: 14px; transition: all 0.3s; animation: cardIn 0.4s ease;
+        }
+        @keyframes cardIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .cobe-card:hover { border-color: #475569; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+
+        .cobe-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+        .cobe-version { font-size: 22px; font-weight: 800; color: #fbbf24; display: flex; align-items: center; gap: 10px; }
+        .cobe-version i { font-size: 18px; color: #f59e0b; }
+        .cobe-date { font-size: 12px; color: #64748b; margin-top: 4px; }
+        .cobe-card-actions { display: flex; gap: 8px; }
+        .btn-icon {
+            width: 38px; height: 38px; border-radius: 10px; border: 1px solid #334155;
+            background: #0f172a; color: #94a3b8; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; transition: all 0.2s;
+        }
+        .btn-icon:hover { transform: scale(1.08); }
+        .btn-icon.edit:hover { border-color: #f59e0b; color: #f59e0b; background: rgba(245,158,11,0.08); }
+        .btn-icon.delete:hover { border-color: #ef4444; color: #ef4444; background: rgba(239,68,68,0.08); }
+
+        .cobe-geo {
+            background: #0f172a; border: 1px solid #1e293b; border-radius: 10px;
+            padding: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+        }
+        .geo-item { display: flex; flex-direction: column; gap: 3px; }
+        .geo-label { font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .geo-value { font-size: 14px; color: #cbd5e1; font-weight: 600; direction: ltr; text-align: right; }
+        .geo-value.accent { color: #34d399; }
+        .geo-value.radius-val { color: #60a5fa; }
+
+        .empty-state { text-align: center; padding: 50px 20px; color: #475569; }
+        .empty-state i { font-size: 50px; margin-bottom: 14px; display: block; }
+        .empty-state p { font-size: 15px; }
+
+        /* ===== Toast ===== */
+        .toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 999999; display: flex; flex-direction: column; gap: 8px; }
+        .toast {
+            background: #1e293b; border: 1px solid #334155; border-radius: 12px;
+            padding: 14px 24px; color: #f1f5f9; font-size: 14px; font-weight: 600;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; align-items: center;
+            gap: 10px; animation: toastIn 0.4s ease, toastOut 0.4s ease 2.6s forwards;
+            min-width: 300px; justify-content: center;
+        }
+        .toast.success { border-color: #059669; } .toast.success i { color: #34d399; }
+        .toast.error { border-color: #dc2626; } .toast.error i { color: #f87171; }
+        .toast.info { border-color: #2563eb; } .toast.info i { color: #60a5fa; }
+        @keyframes toastIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes toastOut { from { opacity: 1; } to { opacity: 0; transform: translateY(-20px); } }
+
+        /* ===== تأكيد الحذف ===== */
+        .confirm-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 99998;
+            display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px);
+        }
+        .confirm-overlay.active { display: flex; }
+        .confirm-box {
+            background: #1e293b; border: 1px solid #334155; border-radius: 16px;
+            padding: 30px; width: 380px; max-width: 90vw; text-align: center;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.5); animation: slideUp 0.3s ease;
+        }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .confirm-box i { font-size: 40px; color: #ef4444; margin-bottom: 14px; }
+        .confirm-box h3 { color: #f8fafc; margin-bottom: 8px; font-size: 18px; }
+        .confirm-box p { color: #94a3b8; font-size: 14px; margin-bottom: 22px; line-height: 1.6; }
+        .confirm-btns { display: flex; gap: 10px; }
+        .confirm-btns button {
+            flex: 1; padding: 12px; border-radius: 10px; border: none; font-size: 15px;
+            font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.2s;
+        }
+        .btn-confirm-delete { background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; }
+        .btn-confirm-delete:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(220,38,38,0.3); }
+        .btn-confirm-cancel { background: #334155; color: #cbd5e1; }
+        .btn-confirm-cancel:hover { background: #475569; }
+
+        @media (max-width: 860px) {
+            .main-layout { flex-direction: column; }
+            .form-panel { flex: none; position: static; max-width: 500px; margin: 0 auto; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<div class="confirm-overlay" id="confirmOverlay">
+    <div class="confirm-box">
+        <i class="fas fa-triangle-exclamation"></i>
+        <h3>تأكيد الحذف</h3>
+        <p id="confirmText"></p>
+        <div class="confirm-btns">
+            <button class="btn-confirm-cancel" onclick="closeConfirm()">إلغاء</button>
+            <button class="btn-confirm-delete" id="btnConfirmDelete">حذف نهائي</button>
+        </div>
+    </div>
+</div>
+
+<div class="page-header">
+    <h1><i class="fas fa-globe"></i> إدارة النسخ والنطاقات الجغرافية</h1>
+    <p>إضافة وتعديل وحذف مواقع الأجهزة المرخصة مع تحديد النطاق الجغرافي</p>
+</div>
+
+<div class="main-layout">
+    <div class="form-panel">
+        <h2>
+            <i class="fas fa-plus-circle"></i>
+            <span id="formTitle">إضافة نسخة جديدة</span>
+            <span class="edit-badge" id="editBadge">وضع التحرير</span>
+        </h2>
+        <form id="dataForm">
+            <div class="form-group">
+                <label for="versionNumber"><i class="fas fa-hashtag" style="margin-left:5px; color:#f59e0b;"></i>رقم النسخة</label>
+                <input type="text" id="versionNumber" required placeholder="مثال: 1.0.2">
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-map-pin" style="margin-left:5px; color:#3b82f6;"></i>مركز النطاق الجغرافي</label>
+
+                <div class="location-btns">
+                    <button type="button" class="btn-location btn-start-scan" id="startScanBtn">
+                        <i class="fas fa-satellite-dish"></i>
+                        <span id="startScanText">بدء البحث عن أعلى دقة</span>
+                    </button>
+                    <button type="button" class="btn-location btn-stop-scan" id="stopScanBtn" style="display:none;">
+                        <i class="fas fa-hand"></i>
+                        إيقاف وحفظ
+                    </button>
+                </div>
+
+                <!-- لوحة الدقة الحية -->
+                <div class="accuracy-panel" id="accuracyPanel">
+                    <div class="accuracy-main">
+                        <div class="accuracy-big" id="accuracyBig">
+                            --<span class="unit">متر</span>
+                        </div>
+                        <div class="accuracy-quality">
+                            <span class="quality-label" id="qualityLabel">جاري البحث...</span>
+                            <span class="quality-hint" id="qualityHint">انتظر حتى تتحسن الدقة</span>
+                        </div>
+                    </div>
+                    <div class="accuracy-bars" id="accuracyBars">
+                        <div class="acc-bar"></div>
+                        <div class="acc-bar"></div>
+                        <div class="acc-bar"></div>
+                        <div class="acc-bar"></div>
+                        <div class="acc-bar"></div>
+                        <div class="acc-bar"></div>
+                        <div class="acc-bar"></div>
+                        <div class="acc-bar"></div>
+                        <div class="acc-bar"></div>
+                        <div class="acc-bar"></div>
+                    </div>
+                    <div class="accuracy-details" id="accuracyDetails">
+                        القراءات: <span id="readingsCount">0</span> &nbsp;|&nbsp;
+                        أفضل دقة: <span id="bestAccuracy">--</span> &nbsp;|&nbsp;
+                        خط العرض: <span id="liveLat">--</span><br>
+                        خط الطول: <span id="liveLng">--</span>
+                    </div>
+                </div>
+
+                <!-- الموقع المحفوظ النهائي -->
+                <div class="saved-location" id="savedLocation">
+                    <div class="saved-header">
+                        <i class="fas fa-circle-check"></i>
+                        تم حفظ الموقع بنجاح — الدقة المختارة
+                    </div>
+                    <div class="saved-coords" id="savedCoords"></div>
+                    <button type="button" class="saved-restart" id="restartScanBtn">
+                        <i class="fas fa-rotate"></i>&nbsp; إعادة البحث عن دقة أفضل
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit" id="submitBtn" disabled>
+                <i class="fas fa-save"></i>
+                <span id="submitBtnText">حفظ البيانات في Firebase</span>
+            </button>
+            <button type="button" class="btn-cancel-edit" id="cancelEditBtn" onclick="cancelEdit()">
+                <i class="fas fa-arrow-right-from-bracket"></i> إلغاء التحرير والعودة لإضافة جديد
+            </button>
+        </form>
+    </div>
+
+    <div class="list-panel">
+        <h2>
+            <i class="fas fa-list-check"></i>
+            النطاقات المحفوظة
+            <span class="list-count" id="listCount">0</span>
+        </h2>
+        <div id="cobeList">
+            <div class="empty-state">
+                <i class="fas fa-map-location-dot"></i>
+                <p>لا توجد نطاقات محفوظة بعد.<br>أضف نسخة جديدة من النموذج المجاور.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, push, set, remove, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+    const firebaseConfig = {
+    apiKey: "AIzaSyBxfndJN7z5JoaoG6MYyzsvbbvj5NqHEec",
+    authDomain: "spora-1db41.firebaseapp.com",
+    projectId: "spora-1db41",
+    storageBucket: "spora-1db41.firebasestorage.app",
+    messagingSenderId: "547172231566",
+    appId: "1:547172231566:web:db59acc02094bea673dcdf"
+};
+  
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+
+    /* ===== متغيرات الحالة ===== */
+    let centerLatitude = null;
+    let centerLongitude = null;
+    let locationAccuracy = null;
+    let editingId = null;
+    let allCobes = {};
+    let pendingDeleteId = null;
+
+    // متغيرات المسح المستمر
+    let watchId = null;
+    let isScanning = false;
+    let readingsCount = 0;
+    let bestAccuracy = Infinity;
+    let bestLat = null;
+    let bestLng = null;
+
+    /* ===== عناصر DOM ===== */
+    const startScanBtn = document.getElementById('startScanBtn');
+    const startScanText = document.getElementById('startScanText');
+    const stopScanBtn = document.getElementById('stopScanBtn');
+    const accuracyPanel = document.getElementById('accuracyPanel');
+    const accuracyBig = document.getElementById('accuracyBig');
+    const qualityLabel = document.getElementById('qualityLabel');
+    const qualityHint = document.getElementById('qualityHint');
+    const accuracyBars = document.getElementById('accuracyBars');
+    const accuracyDetails = document.getElementById('accuracyDetails');
+    const readingsCountEl = document.getElementById('readingsCount');
+    const bestAccuracyEl = document.getElementById('bestAccuracy');
+    const liveLat = document.getElementById('liveLat');
+    const liveLng = document.getElementById('liveLng');
+    const savedLocation = document.getElementById('savedLocation');
+    const savedCoords = document.getElementById('savedCoords');
+    const restartScanBtn = document.getElementById('restartScanBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const submitBtnText = document.getElementById('submitBtnText');
+    const dataForm = document.getElementById('dataForm');
+    const formTitle = document.getElementById('formTitle');
+    const editBadge = document.getElementById('editBadge');
+    const cancelEditBtn = document.getElementById('cancelEditBtn');
+    const cobeList = document.getElementById('cobeList');
+    const listCount = document.getElementById('listCount');
+    const versionInput = document.getElementById('versionNumber');
+    const bars = accuracyBars.querySelectorAll('.acc-bar');
+
+    /* ===== أدوات مساعدة ===== */
+    function showToast(message, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        const icons = { success: 'fa-circle-check', error: 'fa-circle-xmark', info: 'fa-circle-info' };
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i> ${message}`;
+        container.appendChild(toast);
+        setTimeout(() => { if (toast.parentNode) toast.remove(); }, 3200);
+    }
+
+    function formatDate(isoStr) {
+        if (!isoStr) return '-';
+        const d = new Date(isoStr);
+        return d.toLocaleDateString('ar-IQ', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    }
+
+    /* ===== تقييم جودة الدقة ===== */
+    function getAccuracyQuality(accuracy) {
+        if (accuracy <= 3) return { label: 'دقة ممتازة', hint: 'مثالي لتسجيل النقاط المهمة', color: '#22c55e', barClass: 'good', bars: 10 };
+        if (accuracy <= 5) return { label: 'دقة ممتازة', hint: 'مناسب جداً للتحديد الدقيق', color: '#22c55e', barClass: 'good', bars: 9 };
+        if (accuracy <= 8) return { label: 'دقة جيدة جداً', hint: 'مقبول للتحديد الدقيق', color: '#22c55e', barClass: 'good', bars: 8 };
+        if (accuracy <= 12) return { label: 'دقة جيدة', hint: 'مناسب لمعظم الاستخدامات', color: '#84cc16', barClass: 'good', bars: 7 };
+        if (accuracy <= 18) return { label: 'دقة متوسطة', hint: 'مقبول لكن يمكنه التحسن', color: '#f59e0b', barClass: 'medium', bars: 5 };
+        if (accuracy <= 30) return { label: 'دقة مقبولة', hint: 'انتظر لتحسين الدقة إن أمكن', color: '#f97316', barClass: 'medium', bars: 4 };
+        if (accuracy <= 50) return { label: 'دقة ضعيفة', hint: 'ينصح بالانتظار في مكان مكشوف', color: '#ef4444', barClass: 'poor', bars: 2 };
+        return { label: 'دقة غير كافية', hint: 'حاول الوقوف في مكان مكشوف للسماء', color: '#ef4444', barClass: 'poor', bars: 1 };
+    }
+
+    function updateAccuracyUI(accuracy, lat, lng) {
+        const q = getAccuracyQuality(accuracy);
+
+        // الرقم الكبير
+        accuracyBig.innerHTML = `${accuracy.toFixed(1)}<span class="unit">متر</span>`;
+        accuracyBig.style.color = q.color;
+
+        // التسمية والنصيحة
+        qualityLabel.textContent = q.label;
+        qualityLabel.style.color = q.color;
+        qualityHint.textContent = q.hint;
+
+        // أشرطة الدقة (10 أشرطة)
+        bars.forEach((bar, i) => {
+            bar.className = 'acc-bar';
+            if (i < q.bars) {
+                bar.classList.add('filled', q.barClass);
+                // تأخير بسيط لكل شريط
+                bar.style.transitionDelay = `${i * 0.05}s`;
+            } else {
+                bar.style.transitionDelay = '0s';
+            }
+        });
+
+        // التفاصيل
+        readingsCountEl.textContent = readingsCount;
+        bestAccuracyEl.textContent = bestAccuracy === Infinity ? '--' : `${bestAccuracy.toFixed(1)} م`;
+        liveLat.textContent = lat.toFixed(7);
+        liveLng.textContent = lng.toFixed(7);
+    }
+
+    /* ===== بدء المسح المستمر ===== */
+    startScanBtn.addEventListener('click', () => {
+        if (!navigator.geolocation) {
+            showToast('المتصفح لا يدعم تحديد المواقع', 'error');
+            return;
+        }
+
+        // إعادة تعيين عدادات المسح
+        readingsCount = 0;
+        bestAccuracy = Infinity;
+        bestLat = null;
+        bestLng = null;
+        isScanning = true;
+
+        // تحديث الواجهة
+        startScanBtn.style.display = 'none';
+        stopScanBtn.style.display = 'flex';
+        stopScanBtn.classList.add('scanning');
+        accuracyPanel.classList.add('visible');
+        savedLocation.classList.remove('visible');
+        submitBtn.disabled = true;
+
+        updateAccuracyUI(999, 0, 0);
+
+        // تتبع مستمر لأعلى دقة
+        watchId = navigator.geolocation.watchPosition(onScanUpdate, onScanError, {
+            enableHighAccuracy: true,
+            timeout: 20000,
+            maximumAge: 0
+        });
+    });
+
+    function onScanUpdate(position) {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        const acc = position.coords.accuracy;
+
+        readingsCount++;
+
+        // تحديث أفضل قراءة إذا كانت أفضل
+        if (acc < bestAccuracy) {
+            bestAccuracy = acc;
+            bestLat = lat;
+            bestLng = lng;
+        }
+
+        // تحديث الواجهة بالقراءة الحالية
+        updateAccuracyUI(acc, lat, lng);
+    }
+
+    function onScanError(error) {
+        stopScanning();
+        const msgs = {
+            [error.PERMISSION_DENIED]: 'يرجى السماح بالوصول إلى الموقع في إعدادات المتصفح.',
+            [error.POSITION_UNAVAILABLE]: 'معلومات الموقع غير متوفرة. تأكد من تفعيل الـ GPS.',
+            [error.TIMEOUT]: 'انتهت مهلة القراءة. حاول في مكان مكشوف للسماء.'
+        };
+        showToast(msgs[error.code] || 'حدث خطأ في تحديد الموقع', 'error');
+    }
+
+    /* ===== إيقاف المسح وحفظ أفضل موقع ===== */
+    stopScanBtn.addEventListener('click', () => {
+        if (readingsCount === 0) {
+            showToast('لم يتم الحصول على أي قراءة بعد', 'error');
+            return;
+        }
+
+        stopScanning();
+
+        // استخدام أفضل قراءة تم الحصول عليها
+        centerLatitude = bestLat;
+        centerLongitude = bestLng;
+        locationAccuracy = bestAccuracy;
+
+        // عرض الموقع المحفوظ
+        const q = getAccuracyQuality(bestAccuracy);
+        savedCoords.innerHTML = `
+            خط العرض: ${bestLat.toFixed(7)}<br>
+            خط الطول: ${bestLng.toFixed(7)}<br>
+            <span style="color:${q.color}; font-weight:700;">
+                الدقة المحفوظة: +/- ${bestAccuracy.toFixed(1)} متر — ${q.label}
+            </span>
+        `;
+        savedLocation.classList.add('visible');
+        submitBtn.disabled = false;
+
+        showToast(`تم حفظ الموقع بأفضل دقة: ${bestAccuracy.toFixed(1)} متر`, 'success');
+    });
+
+    function stopScanning() {
+        isScanning = false;
+        if (watchId !== null) {
+            navigator.geolocation.clearWatch(watchId);
+            watchId = null;
+        }
+        stopScanBtn.style.display = 'none';
+        stopScanBtn.classList.remove('scanning');
+        startScanBtn.style.display = 'flex';
+        startScanText.textContent = 'إعادة البحث عن دقة أفضل';
+    }
+
+    /* ===== إعادة المسح من الموقع المحفوظ ===== */
+    restartScanBtn.addEventListener('click', () => {
+        savedLocation.classList.remove('visible');
+        submitBtn.disabled = true;
+        startScanBtn.click();
+    });
+
+    /* ===== إرسال النموذج ===== */
+    dataForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const version = versionInput.value.trim();
+        if (!version) { showToast('الرجاء إدخال رقم النسخة', 'error'); return; }
+        if (centerLatitude === null) { showToast('الرجاء تحديد الموقع الجغرافي أولاً', 'error'); return; }
+
+        const data = {
+            version_number: version,
+            geo_zone: {
+                center_latitude: centerLatitude,
+                center_longitude: centerLongitude,
+                radius_meters: 100,
+                accuracy_registered: locationAccuracy
+            },
+            updated_at: new Date().toISOString()
+        };
+
+        if (editingId) {
+            update(ref(database, `cobes/${editingId}`), data)
+                .then(() => {
+                    showToast(`تم تحديث بيانات النسخة "${version}" بنجاح`, 'success');
+                    resetForm();
+                })
+                .catch(() => showToast('حدث خطأ أثناء التحديث', 'error'));
+        } else {
+            data.created_at = data.updated_at;
+            const newRef = push(ref(database, 'cobes'));
+            set(newRef, data)
+                .then(() => {
+                    showToast(`تم حفظ النسخة "${version}" والنطاق الجغرافي بنجاح`, 'success');
+                    resetForm();
+                })
+                .catch(() => showToast('حدث خطأ أثناء الحفظ', 'error'));
+        }
+    });
+
+    /* ===== عرض القائمة ===== */
+    onValue(ref(database, 'cobes'), (snap) => {
+        allCobes = snap.val() || {};
+        renderCobesList();
+    });
+
+    function renderCobesList() {
+        const keys = Object.keys(allCobes);
+        listCount.textContent = keys.length;
+
+        if (keys.length === 0) {
+            cobeList.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-map-location-dot"></i>
+                    <p>لا توجد نطاقات محفوظة بعد.<br>أضف نسخة جديدة من النموذج المجاور.</p>
+                </div>`;
+            return;
+        }
+
+        keys.sort((a, b) => {
+            const dA = allCobes[a].updated_at || allCobes[a].created_at || '';
+            const dB = allCobes[b].updated_at || allCobes[b].created_at || '';
+            return new Date(dB) - new Date(dA);
+        });
+
+        let html = '';
+        keys.forEach(id => {
+            const c = allCobes[id];
+            const geo = c.geo_zone || {};
+            const isEditing = id === editingId;
+            const acc = geo.accuracy_registered || 0;
+            const aq = getAccuracyQuality(acc);
+            const dateLabel = c.updated_at && c.updated_at !== c.created_at
+                ? `آخر تحديث: ${formatDate(c.updated_at)}`
+                : `تاريخ الإنشاء: ${formatDate(c.created_at)}`;
+
+            html += `
+                <div class="cobe-card" style="${isEditing ? 'border-color:#f59e0b; box-shadow:0 0 20px rgba(245,158,11,0.15);' : ''}">
+                    <div class="cobe-card-header">
+                        <div>
+                            <div class="cobe-version">
+                                <i class="fas fa-code-branch"></i>
+                                v${c.version_number}
+                                ${isEditing ? '<span style="font-size:11px; background:#f59e0b; color:#0f172a; padding:2px 8px; border-radius:10px;">قيد التعديل</span>' : ''}
+                            </div>
+                            <div class="cobe-date">${dateLabel}</div>
+                        </div>
+                        <div class="cobe-card-actions">
+                            <button class="btn-icon edit" title="تعديل" onclick="startEdit('${id}')">
+                                <i class="fas fa-pen-to-square"></i>
+                            </button>
+                            <button class="btn-icon delete" title="حذف" onclick="confirmDelete('${id}', '${c.version_number}')">
+                                <i class="fas fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="cobe-geo">
+                        <div class="geo-item">
+                            <span class="geo-label">خط العرض</span>
+                            <span class="geo-value">${(geo.center_latitude || 0).toFixed(7)}</span>
+                        </div>
+                        <div class="geo-item">
+                            <span class="geo-label">خط الطول</span>
+                            <span class="geo-value">${(geo.center_longitude || 0).toFixed(7)}</span>
+                        </div>
+                        <div class="geo-item">
+                            <span class="geo-label">نصف القطر</span>
+                            <span class="geo-value radius-val">${geo.radius_meters || 100} متر</span>
+                        </div>
+                        <div class="geo-item">
+                            <span class="geo-label">دقة التسجيل</span>
+                            <span class="geo-value" style="color:${aq.color};">+/- ${acc.toFixed(1)} م</span>
+                        </div>
+                    </div>
+                </div>`;
+        });
+
+        cobeList.innerHTML = html;
+    }
+
+    /* ===== تعديل ===== */
+    window.startEdit = (id) => {
+        const c = allCobes[id];
+        if (!c) return;
+
+        // إيقاف أي مسح جاري
+        if (isScanning) stopScanning();
+
+        editingId = id;
+        versionInput.value = c.version_number || '';
+        centerLatitude = c.geo_zone?.center_latitude || null;
+        centerLongitude = c.geo_zone?.center_longitude || null;
+        locationAccuracy = c.geo_zone?.accuracy_registered || null;
+
+        // عرض الموقع القديم كمحفوظ مع إمكانية إعادة المسح
+        if (centerLatitude !== null) {
+            const aq = getAccuracyQuality(locationAccuracy);
+            savedCoords.innerHTML = `
+                خط العرض: ${centerLatitude.toFixed(7)}<br>
+                خط الطول: ${centerLongitude.toFixed(7)}<br>
+                <span style="color:${aq.color}; font-weight:700;">
+                    الدقة المحفوظة: +/- ${locationAccuracy.toFixed(1)} متر — ${aq.label}
+                </span>
+            `;
+            savedLocation.classList.add('visible');
+            accuracyPanel.classList.remove('visible');
+            submitBtn.disabled = false;
+        }
+
+        formTitle.textContent = `تعديل النسخة: v${c.version_number}`;
+        editBadge.classList.add('visible');
+        submitBtnText.textContent = 'حفظ التعديلات';
+        cancelEditBtn.classList.add('visible');
+        startScanText.textContent = 'إعادة البحث عن دقة أفضل';
+
+        document.querySelector('.form-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        renderCobesList();
+        showToast('تم تحميل بيانات النسخة — يمكنك إعادة المسح أو الحفظ مباشرة', 'info');
+    };
+
+    window.cancelEdit = () => {
+        resetForm();
+        showToast('تم إلغاء وضع التحرير', 'info');
+    };
+
+    function resetForm() {
+        if (isScanning) stopScanning();
+        editingId = null;
+        versionInput.value = '';
+        centerLatitude = null;
+        centerLongitude = null;
+        locationAccuracy = null;
+        readingsCount = 0;
+        bestAccuracy = Infinity;
+        bestLat = null;
+        bestLng = null;
+
+        accuracyPanel.classList.remove('visible');
+        savedLocation.classList.remove('visible');
+        submitBtn.disabled = true;
+
+        formTitle.textContent = 'إضافة نسخة جديدة';
+        editBadge.classList.remove('visible');
+        submitBtnText.textContent = 'حفظ البيانات في Firebase';
+        cancelEditBtn.classList.remove('visible');
+        startScanText.textContent = 'بدء البحث عن أعلى دقة';
+
+        dataForm.reset();
+        renderCobesList();
+    }
+
+    /* ===== حذف ===== */
+    window.confirmDelete = (id, version) => {
+        pendingDeleteId = id;
+        document.getElementById('confirmText').textContent =
+            `هل أنت متأكد من حذف النطاق الجغرافي للنسخة "v${version}"؟ سيتم حذف جميع بيانات الموقع ولا يمكن التراجع.`;
+        document.getElementById('confirmOverlay').classList.add('active');
+    };
+
+    window.closeConfirm = () => {
+        pendingDeleteId = null;
+        document.getElementById('confirmOverlay').classList.remove('active');
+    };
+
+    document.getElementById('btnConfirmDelete').addEventListener('click', () => {
+        if (!pendingDeleteId) return;
+        const idToDelete = pendingDeleteId;
+        closeConfirm();
+        if (editingId === idToDelete) resetForm();
+        remove(ref(database, `cobes/${idToDelete}`))
+            .then(() => showToast('تم حذف النطاق الجغرافي بنجاح', 'success'))
+            .catch(() => showToast('حدث خطأ أثناء الحذف', 'error'));
+    });
+
+    document.getElementById('confirmOverlay').addEventListener('click', (e) => {
+        if (e.target === document.getElementById('confirmOverlay')) closeConfirm();
+    });
+</script>
+
+</body>
+</html>

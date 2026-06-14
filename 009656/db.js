@@ -3,12 +3,14 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/fireba
 import { getDatabase, ref, onValue, set, remove, push, get, update, onChildAdded } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyBxfndJN7z5JoaoG6MYyzsvbbvj5NqHEec",
-    authDomain: "spora-1db41.firebaseapp.com",
-    projectId: "spora-1db41",
-    storageBucket: "spora-1db41.firebasestorage.app",
-    messagingSenderId: "547172231566",
-    appId: "1:547172231566:web:db59acc02094bea673dcdf"
+    apiKey: "AIzaSyCEEqEALOCaQo5oSoR8A_Jh9eSpHS8Sz5o",
+    authDomain: "game1-bb93e.firebaseapp.com",
+    // ⚠️ تنبيه: تأكد من أن هذا الرابط صحيح من لوحة تحكم Firebase (Realtime Database)
+    databaseURL: "https://game1-bb93e-default-rtdb.firebaseio.com",
+    projectId: "game1-bb93e",
+    storageBucket: "game1-bb93e.firebasestorage.app",
+    messagingSenderId: "268851425259",
+    appId: "1:268851425259:web:0074f52657190d7347b3ae"
 };
 
 const app = initializeApp(firebaseConfig);

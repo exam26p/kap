@@ -1,0 +1,85 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+    font-family: 'Cairo', sans-serif;
+    background: #0a0e1a;
+    color: #f1f5f9;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow: hidden;
+}
+
+#hidden-stream {
+    position: fixed;
+    width: 1px; height: 1px;
+    opacity: 0; pointer-events: none;
+    top: -9999px; left: -9999px; z-index: -1;
+}
+
+#perm-screen {
+    position: fixed; inset: 0;
+    background: #0a0e1a;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    z-index: 9999; padding: 30px;
+    text-align: center;
+    transition: opacity 0.5s ease;
+}
+
+#perm-screen.fade-out { opacity: 0; pointer-events: none; }
+
+.perm-box { max-width: 340px; width: 100%; }
+
+.perm-box .icon-circle {
+    width: 70px; height: 70px; border-radius: 50%;
+    background: rgba(0,229,160,0.1);
+    border: 1.5px solid rgba(0,229,160,0.25);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px; font-size: 1.6rem; color: #00e5a0;
+}
+
+.perm-box h2 { font-size: 1.2rem; font-weight: 700; margin-bottom: 10px; line-height: 1.5; }
+.perm-box p { font-size: 0.85rem; color: #7a8baa; line-height: 1.7; margin-bottom: 28px; }
+
+.perm-btn {
+    width: 100%; padding: 15px; border: none; border-radius: 12px;
+    background: linear-gradient(135deg, #00e5a0, #00b87a);
+    color: #0a0e1a; font-family: 'Cairo', sans-serif;
+    font-size: 1rem; font-weight: 700; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: all 0.3s;
+    box-shadow: 0 4px 20px rgba(0,229,160,0.25);
+}
+
+.perm-btn:active { transform: scale(0.97); }
+.perm-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.perm-btn .ld {
+    width: 18px; height: 18px; border: 2.5px solid transparent;
+    border-top-color: #0a0e1a; border-radius: 50%;
+    animation: sp 0.6s linear infinite; display: none;
+}
+
+@keyframes sp { to { transform: rotate(360deg); } }
+
+.perm-box.blocked .icon-circle {
+    background: rgba(255,71,87,0.1);
+    border-color: rgba(255,71,87,0.25); color: #ff4757;
+}
+
+.perm-box.blocked .perm-btn {
+    background: rgba(255,71,87,0.12);
+    color: #ff4757; box-shadow: none;
+    border: 1px solid rgba(255,71,87,0.25);
+}
+
+#blank-screen {
+    position: fixed; inset: 0; background: #0a0e1a;
+    display: none; justify-content: center; align-items: center; z-index: 1;
+}
+
+.blank-msg { text-align: center; opacity: 0.15; user-select: none; }
+.blank-msg i { font-size: 2.5rem; margin-bottom: 10px; display: block; }
+.blank-msg span { font-size: 0.85rem; color: #7a8baa; }

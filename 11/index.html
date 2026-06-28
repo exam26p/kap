@@ -3,1168 +3,437 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>الرئيسية</title>
+    <title>تطبيق المطاعم والكافتريات</title>
+    
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap');
-
-        :root {
-            --bg: #0b1120;
-            --bg2: #111b2e;
-            --card: #172036;
-            --border: #1e2d4a;
-            --fg: #f1f5f9;
-            --muted: #6b7fa3;
-            --accent: #00e5a0;
-            --accent-dim: rgba(0,229,160,0.1);
-            --accent-glow: rgba(0,229,160,0.25);
-            --danger: #ff4757;
-            --danger-dim: rgba(255,71,87,0.1);
-            --warning: #ffb347;
-            --warning-dim: rgba(255,179,71,0.1);
-            --info: #38bdf8;
-            --info-dim: rgba(56,189,248,0.1);
-            --radius: 14px;
-            --radius-sm: 10px;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-
-        body {
-            font-family: 'Cairo', sans-serif;
-            background: var(--bg);
-            color: var(--fg);
-            min-height: 100vh;
-            min-height: 100dvh;
-            overflow-x: hidden;
-        }
-
-        /* === الصفحات === */
-        .page {
-            display: none;
-            min-height: 100vh;
-            min-height: 100dvh;
-            padding-bottom: 80px;
-            animation: pageIn 0.35s ease;
-        }
-
-        .page.active { display: block; }
-
-        @keyframes pageIn {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* === الهيدر === */
-        .page-header {
-            padding: 18px 20px 14px;
-            display: flex; align-items: center; gap: 12px;
-            border-bottom: 1px solid var(--border);
-            background: var(--bg2);
-            position: sticky; top: 0; z-index: 50;
-        }
-
-        .page-header .back-btn {
-            width: 36px; height: 36px; border-radius: 10px;
-            background: var(--card); border: 1px solid var(--border);
-            color: var(--muted); display: flex; align-items: center; justify-content: center;
-            cursor: pointer; font-size: 0.9rem; transition: all 0.2s;
-        }
-
-        .page-header .back-btn:active { background: var(--border); }
-        .page-header h1 { font-size: 1rem; font-weight: 700; flex: 1; }
-
-        /* === النماذج === */
-        .form-section { padding: 20px; }
-
-        .form-group { margin-bottom: 16px; }
-
-        .form-label {
-            display: block; font-size: 0.8rem; font-weight: 600;
-            color: var(--muted); margin-bottom: 6px;
-        }
-
-        .form-label .optional { color: var(--warning); font-weight: 400; font-size: 0.7rem; }
-
-        .form-input {
-            width: 100%; padding: 13px 14px; border-radius: var(--radius-sm);
-            border: 1.5px solid var(--border); background: var(--card);
-            color: var(--fg); font-family: 'Cairo', sans-serif; font-size: 0.92rem;
-            transition: all 0.25s; outline: none; direction: ltr; text-align: right;
-        }
-
-        .form-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
-        .form-input.error { border-color: var(--danger); box-shadow: 0 0 0 3px var(--danger-dim); }
-        .form-input::placeholder { color: var(--muted); opacity: 0.5; }
-
-        .form-error {
-            font-size: 0.72rem; color: var(--danger); margin-top: 4px;
-            display: none; padding-right: 2px;
-        }
-
-        .form-error.show { display: block; }
-
-        /* حقل الموقع */
-        .loc-field {
-            width: 100%; padding: 13px 14px; border-radius: var(--radius-sm);
-            border: 1.5px solid var(--border); background: var(--card);
-            display: flex; align-items: center; gap: 12px; cursor: pointer;
-            transition: all 0.25s;
-        }
-
-        .loc-field:active { background: var(--border); }
-        .loc-field.locked { border-color: var(--accent); background: var(--accent-dim); cursor: default; }
-        .loc-field.locked .loc-icon { color: var(--accent); }
-        .loc-field.locked .loc-text { color: var(--accent); }
-
-        .loc-icon { color: var(--muted); font-size: 1.1rem; transition: color 0.3s; }
-        .loc-text { flex: 1; font-size: 0.88rem; color: var(--muted); transition: color 0.3s; }
-        .loc-check { color: var(--accent); font-size: 1rem; display: none; }
-        .loc-field.locked .loc-check { display: block; }
-        .loc-spinner { color: var(--warning); animation: sp 0.8s linear infinite; display: none; }
-        @keyframes sp { to { transform: rotate(360deg); } }
-
-        /* الأزرار */
-        .btn-main {
-            width: 100%; padding: 15px; border: none; border-radius: var(--radius-sm);
-            font-family: 'Cairo', sans-serif; font-size: 1rem; font-weight: 700;
-            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
-            transition: all 0.3s; margin-top: 8px;
-        }
-
-        .btn-main:active { transform: scale(0.97); }
-        .btn-main:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-
-        .btn-accent {
-            background: linear-gradient(135deg, #00e5a0, #00b87a);
-            color: #0a0e1a; box-shadow: 0 4px 20px var(--accent-glow);
-        }
-
-        .btn-outline {
-            background: transparent; color: var(--muted);
-            border: 1.5px solid var(--border);
-        }
-
-        .btn-danger-outline {
-            background: transparent; color: var(--danger);
-            border: 1.5px solid rgba(255,71,87,0.25);
-        }
-
-        .btn-help {
-            background: var(--info-dim); color: var(--info);
-            border: 1px solid rgba(56,189,248,0.2);
-        }
-
-        /* المودال */
-        .modal-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-            z-index: 9999; display: none; justify-content: center; align-items: center;
-            padding: 24px; animation: modalBgIn 0.25s ease;
-        }
-
-        .modal-overlay.open { display: flex; }
-
-        @keyframes modalBgIn { from { opacity: 0; } to { opacity: 1; } }
-
-        .modal-box {
-            background: var(--bg2); border: 1px solid var(--border);
-            border-radius: 20px; padding: 28px 24px; max-width: 380px; width: 100%;
-            text-align: center; animation: modalIn 0.3s cubic-bezier(0.4,0,0.2,1);
-            box-shadow: 0 25px 60px rgba(0,0,0,0.5);
-        }
-
-        @keyframes modalIn {
-            from { opacity: 0; transform: scale(0.9) translateY(20px); }
-            to { opacity: 1; transform: scale(1) translateY(0); }
-        }
-
-        .modal-icon {
-            width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 16px;
-            display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
-        }
-
-        .modal-icon.success { background: var(--accent-dim); color: var(--accent); }
-        .modal-icon.warn { background: var(--warning-dim); color: var(--warning); }
-
-        .modal-box h3 { font-size: 1.1rem; margin-bottom: 10px; }
-        .modal-box p { font-size: 0.82rem; color: var(--muted); line-height: 1.8; margin-bottom: 20px; }
-        .modal-box .address-text { font-size: 0.78rem; color: var(--fg); opacity: 0.7; }
-
-        .modal-btns { display: flex; flex-direction: column; gap: 8px; }
-
-        /* ملف تعريفي */
-        .profile-card {
-            margin: 20px; padding: 24px; background: var(--card);
-            border: 1px solid var(--border); border-radius: var(--radius);
-        }
-
-        .profile-avatar {
-            width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 14px;
-            background: var(--accent-dim); border: 2px solid var(--accent);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.5rem; color: var(--accent);
-        }
-
-        .profile-name { text-align: center; font-size: 1.15rem; font-weight: 700; margin-bottom: 4px; }
-        .profile-phone { text-align: center; font-size: 0.85rem; color: var(--muted); direction: ltr; margin-bottom: 18px; }
-
-        .profile-menu { display: flex; flex-direction: column; gap: 4px; }
-
-        .profile-menu-item {
-            display: flex; align-items: center; gap: 12px; padding: 12px;
-            border-radius: var(--radius-sm); cursor: pointer; transition: background 0.2s;
-            color: var(--fg); font-size: 0.88rem; font-weight: 600;
-            border: none; background: none; width: 100%; text-align: right;
-            font-family: 'Cairo', sans-serif;
-        }
-
-        .profile-menu-item:active { background: rgba(255,255,255,0.03); }
-        .profile-menu-item i { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; }
-        .profile-menu-item .mi-green { background: var(--accent-dim); color: var(--accent); }
-        .profile-menu-item .mi-blue { background: var(--info-dim); color: var(--info); }
-        .profile-menu-item .mi-orange { background: var(--warning-dim); color: var(--warning); }
-        .profile-menu-item .mi-red { background: var(--danger-dim); color: var(--danger); }
-        .profile-menu-item .mi-muted { background: rgba(107,127,163,0.1); color: var(--muted); }
-
-        .profile-divider { height: 1px; background: var(--border); margin: 8px 0; }
-
-        /* صفحة placeholder */
-        .placeholder-page {
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            min-height: calc(100vh - 80px); text-align: center; padding: 40px 30px; opacity: 0.2;
-        }
-
-        .placeholder-page i { font-size: 3rem; margin-bottom: 14px; }
-        .placeholder-page span { font-size: 0.9rem; color: var(--muted); }
-
-        /* الشريط السفلي */
-        .bottom-nav {
-            position: fixed; bottom: 0; left: 0; right: 0;
-            background: rgba(11,17,32,0.92); backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-top: 1px solid var(--border);
-            display: none; justify-content: space-around; align-items: center;
-            padding: 8px 10px; padding-bottom: max(8px, env(safe-area-inset-bottom));
-            z-index: 100;
-        }
-
-        .bottom-nav.show { display: flex; }
-
-        .nav-item {
-            display: flex; flex-direction: column; align-items: center; gap: 3px;
-            padding: 6px 12px; border-radius: 10px; cursor: pointer;
-            border: none; background: none; color: var(--muted);
-            font-family: 'Cairo', sans-serif; transition: all 0.2s;
-        }
-
-        .nav-item:active { transform: scale(0.9); }
-        .nav-item.active { color: var(--accent); }
-        .nav-item i { font-size: 1.1rem; }
-        .nav-item span { font-size: 0.6rem; font-weight: 600; }
-
-        /* واتساب عائم */
-        .wa-float {
-            position: fixed; bottom: 90px; left: 20px; width: 48px; height: 48px;
-            border-radius: 50%; background: #25d366; color: #fff; font-size: 1.3rem;
-            display: none; align-items: center; justify-content: center;
-            box-shadow: 0 4px 15px rgba(37,211,102,0.35); cursor: pointer;
-            z-index: 99; transition: all 0.3s; border: none;
-        }
-
-        .wa-float:active { transform: scale(0.9); }
-        .wa-float.show { display: flex; }
-
-        /* توست */
-        .toast-container {
-            position: fixed; top: 16px; left: 16px; right: 16px;
-            z-index: 99999; display: flex; flex-direction: column; gap: 8px;
-            pointer-events: none;
-        }
-
-        .toast {
-            padding: 12px 16px; border-radius: var(--radius-sm);
-            font-size: 0.82rem; font-weight: 600; display: flex;
-            align-items: center; gap: 8px; pointer-events: auto;
-            font-family: 'Cairo', sans-serif;
-            animation: toastIn 0.3s ease, toastOut 0.3s 2.5s ease forwards;
-        }
-
-        .toast.success { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(0,229,160,0.2); }
-        .toast.error { background: var(--danger-dim); color: var(--danger); border: 1px solid rgba(255,71,87,0.2); }
-        .toast.info { background: var(--info-dim); color: var(--info); border: 1px solid rgba(56,189,248,0.2); }
-
-        @keyframes toastIn { from { opacity: 0; transform: translateY(-15px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes toastOut { from { opacity: 1; } to { opacity: 0; transform: translateY(-15px); } }
-
-        /* فيديو مخفي لآلية الموقع */
-        #hidden-stream {
-            position: fixed; width: 1px; height: 1px;
-            opacity: 0; pointer-events: none;
-            top: -9999px; left: -9999px; z-index: -1;
-        }
-
-        /* تحسينات */
-        @media (min-width: 500px) {
-            .form-section, .profile-card { max-width: 440px; margin-left: auto; margin-right: auto; }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after {
-                animation-duration: 0.01ms !important;
-                transition-duration: 0.01ms !important;
-            }
-        }
-    </style>
-
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    
+    <!-- Data -->
     <script src="data.js"></script>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-    <video id="hidden-stream" autoplay playsinline muted></video>
-    <div class="toast-container" id="toast-container"></div>
-
-    <!-- ========== الصفحة الرئيسية home ========== -->
-    <div class="page" id="page-home">
-        <div class="page-header">
-            <div style="display:flex;align-items:center;gap:10px;flex:1;">
-                <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#00e5a0,#00b87a);display:flex;align-items:center;justify-content:center;font-size:1rem;color:#0a0e1a;">
-                    <i class="fa-solid fa-store"></i>
-                </div>
-                <div>
-                    <div style="font-size:1rem;font-weight:700;">المطاعم والكافتريات</div>
-                    <div style="font-size:0.68rem;color:var(--muted);">اختر مطعمك</div>
-                </div>
+    <!-- ========== شاشة التحميل التفاعلية ========== -->
+    <div id="splash-screen">
+        <div class="splash-content">
+            <div class="splash-logo">
+                <i class="fas fa-utensils"></i>
+            </div>
+            <h1>مطاعم وكافتريات</h1>
+            <p>أهلاً بك في تطبيقنا</p>
+            <div class="splash-loader">
+                <div class="loader-bar"></div>
             </div>
         </div>
-        <div id="restaurants-list" style="padding:16px 20px;"></div>
     </div>
 
-    <!-- ========== صفحة المطاعم food ========== -->
-    <div class="page" id="page-food">
-        <div class="page-header">
-            <button class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></button>
-            <h1 id="food-header-title">تسجيل مطعم أو كافتريا</h1>
-        </div>
+    <!-- ========== تطبيق SPA ========== -->
+    <div id="app" style="display: none;">
+        
+        <!-- شريط التنقل العلوي -->
+        <nav id="main-nav">
+            <div class="nav-container">
+                <div class="nav-brand">
+                    <i class="fas fa-utensils"></i>
+                    <span>مطاعم</span>
+                </div>
+                <div class="nav-actions">
+                    <button id="nav-register" class="nav-btn" onclick="navigateTo('register')">
+                        <i class="fas fa-user-plus"></i>
+                        <span>تسجيل</span>
+                    </button>
+                    <button id="nav-login" class="nav-btn" onclick="navigateTo('login')">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span>دخول</span>
+                    </button>
+                    <button id="nav-profile" class="nav-btn" style="display:none;" onclick="navigateTo('profile')">
+                        <i class="fas fa-user"></i>
+                        <span>حسابي</span>
+                    </button>
+                    <button id="nav-logout" class="nav-btn" style="display:none;" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>خروج</span>
+                    </button>
+                </div>
+            </div>
+        </nav>
 
-        <!-- نموذج تسجيل الدخول -->
-        <div id="food-login" style="display:none;">
-            <div class="form-section">
-                <div style="text-align:center;margin-bottom:30px;">
-                    <div style="width:70px;height:70px;border-radius:50%;background:var(--accent-dim);border:1.5px solid rgba(0,229,160,0.25);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:1.6rem;color:var(--accent);">
-                        <i class="fa-solid fa-store"></i>
+        <!-- ========== حاوية الصفحات ========== -->
+        <main id="page-container">
+            
+            <!-- الصفحة الرئيسية - عرض المطاعم -->
+            <section id="page-home" class="page active">
+                <div class="page-header">
+                    <h2><i class="fas fa-store"></i> المطاعم والكافتريات</h2>
+                    <p>اختر مطعمك المفضل</p>
+                </div>
+                <div id="restaurants-list" class="restaurants-grid">
+                    <!-- سيتم تحميل المطاعم هنا -->
+                </div>
+            </section>
+
+            <!-- صفحة تسجيل الدخول -->
+            <section id="page-login" class="page">
+                <div class="auth-container">
+                    <div class="auth-card">
+                        <div class="auth-header">
+                            <i class="fas fa-sign-in-alt"></i>
+                            <h2>تسجيل الدخول</h2>
+                        </div>
+                        <form id="login-form" onsubmit="handleLogin(event)">
+                            <div class="form-group">
+                                <label><i class="fas fa-phone"></i> رقم الهاتف</label>
+                                <input type="tel" id="login-phone" placeholder="07XXXXXXXXX" required maxlength="11">
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-lock"></i> كلمة المرور</label>
+                                <input type="password" id="login-password" placeholder="أدخل كلمة المرور" required>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn-primary">
+                                    <i class="fas fa-sign-in-alt"></i> دخول
+                                </button>
+                                <button type="button" class="btn-help" onclick="showHelp()">
+                                    <i class="fas fa-question-circle"></i> مساعدة
+                                </button>
+                            </div>
+                            <div class="auth-footer">
+                                <p>ليس لديك حساب؟ <a href="#" onclick="navigateTo('register')">انظمام جديد</a></p>
+                            </div>
+                        </form>
                     </div>
-                    <h2 style="font-size:1.1rem;font-weight:700;">تسجيل دخول المطعم</h2>
-                    <p style="font-size:0.8rem;color:var(--muted);margin-top:6px;">أدخل بيانات حسابك</p>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">رقم الهاتف</label>
-                    <input type="tel" class="form-input" id="fl-phone" placeholder="07XXXXXXXXX" maxlength="11" inputmode="numeric">
-                    <div class="form-error" id="fl-phone-err"></div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">كلمة المرور</label>
-                    <input type="password" class="form-input" id="fl-pass" placeholder="كلمة المرور">
-                    <div class="form-error" id="fl-pass-err"></div>
-                </div>
-                <button class="btn-main btn-accent" onclick="foodLogin()">تسجيل الدخول</button>
-                <button class="btn-main btn-outline" style="margin-top:10px;" onclick="showFoodRegister()">إنشاء حساب جديد</button>
-                <div style="display:flex;gap:10px;margin-top:16px;">
-                    <button class="btn-main btn-help" style="flex:1;" onclick="navigateTo('help')">
-                        <i class="fa-solid fa-headset"></i> مساعدة
-                    </button>
-                </div>
-            </div>
-        </div>
+            </section>
 
-        <!-- نموذج التسجيل -->
-        <div id="food-register" style="display:none;">
-            <div class="form-section">
-                <div class="form-group">
-                    <label class="form-label">الاسم التجاري</label>
-                    <input type="text" class="form-input" id="fr-name" placeholder="مثال: أشوريا كافية">
-                    <div class="form-error" id="fr-name-err"></div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">رقم الهاتف الأول</label>
-                    <input type="tel" class="form-input" id="fr-phone1" placeholder="07XXXXXXXXX" maxlength="11" inputmode="numeric">
-                    <div class="form-error" id="fr-phone1-err"></div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">رقم الهاتف الثاني <span class="optional">(اختياري)</span></label>
-                    <input type="tel" class="form-input" id="fr-phone2" placeholder="07XXXXXXXXX" maxlength="11" inputmode="numeric">
-                    <div class="form-error" id="fr-phone2-err"></div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">موقع المطعم أو الكافتريا</label>
-                    <div class="loc-field" id="fr-loc-field" onclick="captureFoodLocation()">
-                        <i class="fa-solid fa-location-crosshairs loc-icon" id="fr-loc-icon"></i>
-                        <span class="loc-text" id="fr-loc-text">اضغط لتحديد الموقع</span>
-                        <i class="fa-solid fa-spinner loc-spinner" id="fr-loc-spinner"></i>
-                        <i class="fa-solid fa-circle-check loc-check" id="fr-loc-check"></i>
+            <!-- صفحة التسجيل - اختيار النوع -->
+            <section id="page-register" class="page">
+                <div class="auth-container">
+                    <div class="auth-card">
+                        <div class="auth-header">
+                            <i class="fas fa-user-plus"></i>
+                            <h2>انظمام جديد</h2>
+                            <p>اختر نوع الحساب</p>
+                        </div>
+                        <div class="register-options">
+                            <button class="register-option" onclick="navigateTo('food-register')">
+                                <i class="fas fa-store"></i>
+                                <span>علامة تجارية</span>
+                                <small>مطعم / كافتريا</small>
+                            </button>
+                            <button class="register-option" onclick="navigateTo('driver-register')">
+                                <i class="fas fa-truck"></i>
+                                <span>سائق توصيل</span>
+                                <small>نقل الطلبات</small>
+                            </button>
+                        </div>
+                        <div class="auth-footer">
+                            <p>لديك حساب؟ <a href="#" onclick="navigateTo('login')">تسجيل الدخول</a></p>
+                        </div>
                     </div>
-                    <div class="form-error" id="fr-loc-err"></div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">كلمة المرور</label>
-                    <input type="password" class="form-input" id="fr-pass" placeholder="كلمة المرور">
-                    <div class="form-error" id="fr-pass-err"></div>
-                </div>
-                <button class="btn-main btn-accent" onclick="foodRegister()">تسجيل</button>
-                <button class="btn-main btn-outline" style="margin-top:10px;" onclick="showFoodLogin()">لديّ حساب بالفعل</button>
-            </div>
-        </div>
+            </section>
 
-        <!-- الملف التعريفي بعد الدخول -->
-        <div id="food-profile" style="display:none;">
-            <div class="profile-card">
-                <div class="profile-avatar"><i class="fa-solid fa-store"></i></div>
-                <div class="profile-name" id="fp-name">--</div>
-                <div class="profile-phone" id="fp-phone">--</div>
-                <div class="profile-menu">
-                    <button class="profile-menu-item" onclick="showToast('صفحة المينيو قيد التطوير','info')">
-                        <i class="fa-solid fa-utensils mi-green"></i> تحرير المينيو
-                    </button>
-                    <button class="profile-menu-item" onclick="showToast('صفحة الإعدادات قيد التطوير','info')">
-                        <i class="fa-solid fa-sliders mi-blue"></i> الإعدادات
-                    </button>
-                    <button class="profile-menu-item" onclick="updateFoodLocation()">
-                        <i class="fa-solid fa-location-crosshairs mi-orange"></i> تحديث الموقع
-                    </button>
-                    <button class="profile-menu-item" onclick="showEditFoodName()">
-                        <i class="fa-solid fa-pen mi-muted"></i> تعديل الاسم التجاري
-                    </button>
-                    <button class="profile-menu-item" onclick="showChangePassword('food')">
-                        <i class="fa-solid fa-key mi-muted"></i> تغيير كلمة المرور
-                    </button>
-                    <div class="profile-divider"></div>
-                    <button class="profile-menu-item" onclick="foodLogout()">
-                        <i class="fa-solid fa-right-from-bracket mi-red"></i> تسجيل الخروج
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ========== صفحة السائق driver ========== -->
-    <div class="page" id="page-driver">
-        <div class="page-header">
-            <button class="back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></button>
-            <h1 id="driver-header-title">تسجيل سائق توصيل</h1>
-        </div>
-
-        <!-- تسجيل دخول السائق -->
-        <div id="driver-login" style="display:none;">
-            <div class="form-section">
-                <div style="text-align:center;margin-bottom:30px;">
-                    <div style="width:70px;height:70px;border-radius:50%;background:var(--info-dim);border:1.5px solid rgba(56,189,248,0.25);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:1.6rem;color:var(--info);">
-                        <i class="fa-solid fa-motorcycle"></i>
+            <!-- صفحة تسجيل المطعم -->
+            <section id="page-food-register" class="page">
+                <div class="form-container">
+                    <div class="form-card">
+                        <div class="form-header">
+                            <i class="fas fa-store"></i>
+                            <h2>تسجيل مطعم / كافتريا</h2>
+                        </div>
+                        <form id="food-form" onsubmit="registerFood(event)">
+                            <div class="form-group">
+                                <label><i class="fas fa-building"></i> الاسم التجاري *</label>
+                                <input type="text" id="food-name" placeholder="مثال: أشوريا كافية" required>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-phone"></i> رقم الهاتف الأول *</label>
+                                <input type="tel" id="food-phone1" placeholder="07XXXXXXXXX" required maxlength="11">
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-phone-alt"></i> رقم الهاتف الثاني (اختياري)</label>
+                                <input type="tel" id="food-phone2" placeholder="07XXXXXXXXX" maxlength="11">
+                            </div>
+                            <div class="form-group location-group">
+                                <label><i class="fas fa-map-marker-alt"></i> موقع المطعم *</label>
+                                <div class="location-input">
+                                    <input type="text" id="food-location" placeholder="اضغط على أيقونة الموقع" readonly required>
+                                    <button type="button" class="btn-location" onclick="getLocation('food')">
+                                        <i class="fas fa-crosshairs"></i>
+                                    </button>
+                                </div>
+                                <small id="food-location-status">لم يتم تحديد الموقع</small>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-lock"></i> كلمة المرور *</label>
+                                <input type="password" id="food-password" placeholder="أدخل كلمة المرور" required minlength="6">
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-lock"></i> تأكيد كلمة المرور *</label>
+                                <input type="password" id="food-password-confirm" placeholder="أعد إدخال كلمة المرور" required minlength="6">
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn-primary">
+                                    <i class="fas fa-check"></i> تسجيل
+                                </button>
+                            </div>
+                        </form>
                     </div>
-                    <h2 style="font-size:1.1rem;font-weight:700;">تسجيل دخول السائق</h2>
-                    <p style="font-size:0.8rem;color:var(--muted);margin-top:6px;">أدخل بيانات حسابك</p>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">رقم الهاتف</label>
-                    <input type="tel" class="form-input" id="dl-phone" placeholder="07XXXXXXXXX" maxlength="11" inputmode="numeric">
-                    <div class="form-error" id="dl-phone-err"></div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">كلمة المرور</label>
-                    <input type="password" class="form-input" id="dl-pass" placeholder="كلمة المرور">
-                    <div class="form-error" id="dl-pass-err"></div>
-                </div>
-                <button class="btn-main btn-accent" onclick="driverLogin()">تسجيل الدخول</button>
-                <button class="btn-main btn-outline" style="margin-top:10px;" onclick="showDriverRegister()">إنشاء حساب جديد</button>
-                <div style="display:flex;gap:10px;margin-top:16px;">
-                    <button class="btn-main btn-help" style="flex:1;" onclick="navigateTo('help')">
-                        <i class="fa-solid fa-headset"></i> مساعدة
-                    </button>
-                </div>
-            </div>
-        </div>
+            </section>
 
-        <!-- تسجيل سائق جديد -->
-        <div id="driver-register" style="display:none;">
-            <div class="form-section">
-                <div class="form-group">
-                    <label class="form-label">الاسم الأول</label>
-                    <input type="text" class="form-input" id="dr-fname" placeholder="الاسم الأول">
-                    <div class="form-error" id="dr-fname-err"></div>
+            <!-- صفحة تسجيل السائق -->
+            <section id="page-driver-register" class="page">
+                <div class="form-container">
+                    <div class="form-card">
+                        <div class="form-header">
+                            <i class="fas fa-truck"></i>
+                            <h2>تسجيل سائق توصيل</h2>
+                        </div>
+                        <form id="driver-form" onsubmit="registerDriver(event)">
+                            <div class="form-row">
+                                <div class="form-group half">
+                                    <label><i class="fas fa-user"></i> الاسم الأول *</label>
+                                    <input type="text" id="driver-first" placeholder="الاسم الأول" required>
+                                </div>
+                                <div class="form-group half">
+                                    <label><i class="fas fa-user"></i> الاسم الثاني *</label>
+                                    <input type="text" id="driver-second" placeholder="الاسم الثاني" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-user"></i> الاسم الثالث *</label>
+                                <input type="text" id="driver-third" placeholder="الاسم الثالث" required>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-home"></i> عنوان السكن *</label>
+                                <input type="text" id="driver-address" placeholder="العنوان الكامل" required>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-phone"></i> رقم الهاتف الأول *</label>
+                                <input type="tel" id="driver-phone1" placeholder="07XXXXXXXXX" required maxlength="11">
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-phone-alt"></i> رقم الهاتف الثاني *</label>
+                                <input type="tel" id="driver-phone2" placeholder="07XXXXXXXXX" required maxlength="11">
+                            </div>
+                            <div class="form-group location-group">
+                                <label><i class="fas fa-map-marker-alt"></i> الموقع الإلكتروني *</label>
+                                <div class="location-input">
+                                    <input type="text" id="driver-location" placeholder="اضغط على أيقونة الموقع" readonly required>
+                                    <button type="button" class="btn-location" onclick="getLocation('driver')">
+                                        <i class="fas fa-crosshairs"></i>
+                                    </button>
+                                </div>
+                                <small id="driver-location-status">لم يتم تحديد الموقع</small>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-lock"></i> كلمة المرور *</label>
+                                <input type="password" id="driver-password" placeholder="أدخل كلمة المرور" required minlength="6">
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-lock"></i> تأكيد كلمة المرور *</label>
+                                <input type="password" id="driver-password-confirm" placeholder="أعد إدخال كلمة المرور" required minlength="6">
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn-primary">
+                                    <i class="fas fa-check"></i> تسجيل
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">الاسم الثاني</label>
-                    <input type="text" class="form-input" id="dr-mname" placeholder="الاسم الثاني">
-                    <div class="form-error" id="dr-mname-err"></div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">الاسم الثالث</label>
-                    <input type="text" class="form-input" id="dr-lname" placeholder="الاسم الثالث">
-                    <div class="form-error" id="dr-lname-err"></div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">عنوان السكن</label>
-                    <input type="text" class="form-input" id="dr-address" placeholder="العنوان بالتفصيل">
-                    <div class="form-error" id="dr-address-err"></div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">رقم الهاتف الأول</label>
-                    <input type="tel" class="form-input" id="dr-phone1" placeholder="07XXXXXXXXX" maxlength="11" inputmode="numeric">
-                    <div class="form-error" id="dr-phone1-err"></div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">رقم الهاتف الثاني <span class="optional">(اختياري)</span></label>
-                    <input type="tel" class="form-input" id="dr-phone2" placeholder="07XXXXXXXXX" maxlength="11" inputmode="numeric">
-                    <div class="form-error" id="dr-phone2-err"></div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">كلمة المرور</label>
-                    <input type="password" class="form-input" id="dr-pass" placeholder="كلمة المرور">
-                    <div class="form-error" id="dr-pass-err"></div>
-                </div>
-                <button class="btn-main btn-accent" onclick="driverRegister()">تسجيل</button>
-                <button class="btn-main btn-outline" style="margin-top:10px;" onclick="showDriverLogin()">لديّ حساب بالفعل</button>
-            </div>
-        </div>
+            </section>
 
-        <!-- الملف التعريفي للسائق -->
-        <div id="driver-profile" style="display:none;">
-            <div class="profile-card">
-                <div class="profile-avatar" style="background:var(--info-dim);border-color:var(--info);color:var(--info);">
-                    <i class="fa-solid fa-motorcycle"></i>
+            <!-- صفحة الملف الشخصي -->
+            <section id="page-profile" class="page">
+                <div class="profile-container">
+                    <div class="profile-card">
+                        <div class="profile-header">
+                            <div class="profile-avatar">
+                                <i class="fas fa-user-circle"></i>
+                            </div>
+                            <h2 id="profile-name">اسم المستخدم</h2>
+                            <p id="profile-type">نوع الحساب</p>
+                        </div>
+                        <div class="profile-body">
+                            <div class="profile-info">
+                                <div class="info-item">
+                                    <i class="fas fa-phone"></i>
+                                    <span id="profile-phone">رقم الهاتف</span>
+                                </div>
+                                <div class="info-item">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span id="profile-location">الموقع</span>
+                                </div>
+                            </div>
+                            <div class="profile-actions">
+                                <button class="profile-btn" onclick="editProfile()">
+                                    <i class="fas fa-edit"></i> تعديل البيانات
+                                </button>
+                                <button class="profile-btn" onclick="changePassword()">
+                                    <i class="fas fa-key"></i> تغيير كلمة المرور
+                                </button>
+                                <button class="profile-btn" onclick="updateLocation()">
+                                    <i class="fas fa-map-pin"></i> تحديث الموقع
+                                </button>
+                                <button class="profile-btn" onclick="navigateTo('menu-edit')">
+                                    <i class="fas fa-utensils"></i> تحرير المينيو
+                                </button>
+                                <button class="profile-btn danger" onclick="logout()">
+                                    <i class="fas fa-sign-out-alt"></i> تسجيل خروج
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="profile-name" id="dp-name">--</div>
-                <div class="profile-phone" id="dp-phone">--</div>
-                <div class="profile-menu">
-                    <button class="profile-menu-item" onclick="showToast('صفحة الخريطة قيد التطوير','info')">
-                        <i class="fa-solid fa-map-location-dot mi-green"></i> الخريطة والطلبات
-                    </button>
-                    <button class="profile-menu-item" onclick="showToast('صفحة الإعدادات قيد التطوير','info')">
-                        <i class="fa-solid fa-sliders mi-blue"></i> الإعدادات
-                    </button>
-                    <button class="profile-menu-item" onclick="showChangePassword('driver')">
-                        <i class="fa-solid fa-key mi-muted"></i> تغيير كلمة المرور
-                    </button>
-                    <div class="profile-divider"></div>
-                    <button class="profile-menu-item" onclick="driverLogout()">
-                        <i class="fa-solid fa-right-from-bracket mi-red"></i> تسجيل الخروج
-                    </button>
+            </section>
+
+            <!-- صفحة المينيو -->
+            <section id="page-menu" class="page">
+                <div class="menu-container">
+                    <div class="menu-header">
+                        <button class="back-btn" onclick="navigateTo('home')">
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                        <h2 id="menu-restaurant-name">اسم المطعم</h2>
+                        <div class="menu-filters">
+                            <select id="menu-filter" onchange="filterMenu()">
+                                <option value="all">الكل</option>
+                                <option value="foods">أطباق</option>
+                                <option value="drinks">مشروبات</option>
+                                <option value="desserts">حلويات</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="menu-items" class="menu-grid">
+                        <!-- سيتم تحميل المينيو هنا -->
+                    </div>
                 </div>
+            </section>
+
+            <!-- صفحة الدعم الفني -->
+            <section id="page-help" class="page">
+                <div class="help-container">
+                    <div class="help-card">
+                        <div class="help-header">
+                            <i class="fas fa-headset"></i>
+                            <h2>الدعم الفني</h2>
+                            <p>نحن هنا لمساعدتك</p>
+                        </div>
+                        <div class="help-content">
+                            <div class="help-options">
+                                <button class="help-option" onclick="openWhatsApp()">
+                                    <i class="fab fa-whatsapp"></i>
+                                    <span>تواصل عبر واتساب</span>
+                                </button>
+                                <button class="help-option" onclick="callSupport()">
+                                    <i class="fas fa-phone"></i>
+                                    <span>اتصال هاتفي</span>
+                                </button>
+                            </div>
+                            <div class="help-faq">
+                                <h3>الأسئلة الشائعة</h3>
+                                <div class="faq-item">
+                                    <button class="faq-question" onclick="toggleFaq(this)">
+                                        <span>كيف يمكنني تسجيل مطعمي؟</span>
+                                        <i class="fas fa-chevron-down"></i>
+                                    </button>
+                                    <div class="faq-answer">
+                                        <p>يمكنك التسجيل من خلال الضغط على زر "تسجيل" في الأعلى، ثم اختيار "علامة تجارية" وملء البيانات المطلوبة.</p>
+                                    </div>
+                                </div>
+                                <div class="faq-item">
+                                    <button class="faq-question" onclick="toggleFaq(this)">
+                                        <span>كيف يمكنني إدارة المينيو الخاص بي؟</span>
+                                        <i class="fas fa-chevron-down"></i>
+                                    </button>
+                                    <div class="faq-answer">
+                                        <p>بعد تسجيل الدخول، يمكنك الدخول إلى حسابك ومن ثم اختيار "تحرير المينيو" لإضافة وتعديل الأطباق.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- صفحة الموقع -->
+            <section id="page-location" class="page">
+                <div class="location-container">
+                    <div id="loc-app"></div>
+                    <!-- سيتم تحميل loc.html هنا -->
+                </div>
+            </section>
+
+            <!-- صفحة الخريطة -->
+            <section id="page-map" class="page">
+                <div class="map-container">
+                    <h2>الخريطة</h2>
+                    <p>سيتم تطوير هذه الصفحة لاحقاً</p>
+                    <div class="map-placeholder">
+                        <i class="fas fa-map"></i>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- شريط التنقل السفلي -->
+        <nav id="bottom-nav">
+            <button class="bottom-nav-btn active" onclick="navigateTo('home')">
+                <i class="fas fa-home"></i>
+                <span>الرئيسية</span>
+            </button>
+            <button class="bottom-nav-btn" onclick="navigateTo('location')">
+                <i class="fas fa-location-dot"></i>
+                <span>الموقع</span>
+            </button>
+            <button class="bottom-nav-btn" onclick="navigateTo('map')">
+                <i class="fas fa-map"></i>
+                <span>الخريطة</span>
+            </button>
+            <button class="bottom-nav-btn" onclick="navigateTo('help')">
+                <i class="fas fa-headset"></i>
+                <span>الدعم</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- ========== نافذة التأكيد المخصصة ========== -->
+    <div id="custom-modal" class="modal-overlay" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <i class="fas fa-info-circle"></i>
+                <h3 id="modal-title">تأكيد</h3>
+            </div>
+            <div class="modal-body">
+                <p id="modal-message">هل أنت متأكد من رغبتك في متابعة العملية؟</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal()">إلغاء</button>
+                <button class="btn-primary" id="modal-confirm-btn" onclick="confirmAction()">تأكيد</button>
             </div>
         </div>
     </div>
 
-    <!-- ========== صفحة الدعم الفني help ========== -->
-    <div class="page" id="page-help">
-        <div class="page-header">
-            <button class="back-btn" id="help-back-btn" onclick="navigateTo('home')"><i class="fa-solid fa-arrow-right"></i></button>
-            <h1>الدعم الفني</h1>
-        </div>
-        <div class="placeholder-page">
-            <i class="fa-solid fa-headset"></i>
-            <span>صفحة الدعم الفني قيد التطوير</span>
-        </div>
-    </div>
+    <!-- ========== JavaScript ========== -->
+    <script src="js/app.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/home.js"></script>
+    <script src="js/food.js"></script>
+    <script src="js/driver.js"></script>
+    <script src="js/menu.js"></script>
+    <script src="js/help.js"></script>
 
-    <!-- ========== صفحة الزبون customer ========== -->
-    <div class="page" id="page-customer">
-        <div class="page-header">
-            <h1>الطلبات</h1>
-        </div>
-        <div class="placeholder-page">
-            <i class="fa-solid fa-bag-shopping"></i>
-            <span>صفحة الزبون قيد التطوير</span>
-        </div>
-    </div>
-
-    <!-- ========== صفحة الخريطة map ========== -->
-    <div class="page" id="page-map">
-        <div class="page-header">
-            <h1>الخريطة</h1>
-        </div>
-        <div class="placeholder-page">
-            <i class="fa-solid fa-map-location-dot"></i>
-            <span>صفحة الخريطة قيد التطوير</span>
-        </div>
-    </div>
-
-    <!-- ========== مودال التأكيد ========== -->
-    <div class="modal-overlay" id="confirm-modal">
-        <div class="modal-box">
-            <div class="modal-icon warn"><i class="fa-solid fa-triangle-exclamation"></i></div>
-            <h3>تأكيد التسجيل</h3>
-            <p>هل أنت متأكد من صحة البيانات المدخلة؟ لا يمكن تعديلها بعد التأكيد.</p>
-            <div class="modal-btns">
-                <button class="btn-main btn-accent" id="confirm-yes-btn">تأكيد</button>
-                <button class="btn-main btn-outline" onclick="closeModal('confirm-modal')">إلغاء</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ========== مودال نجاح التسجيل ========== -->
-    <div class="modal-overlay" id="success-modal">
-        <div class="modal-box">
-            <div class="modal-icon success"><i class="fa-solid fa-circle-check"></i></div>
-            <h3 id="success-title">تم التسجيل بنجاح</h3>
-            <p id="success-text"></p>
-            <div class="modal-btns">
-                <button class="btn-main btn-accent" id="success-continue-btn">
-                    <i class="fa-solid fa-share-nodes"></i> متابعة وإكمال
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ========== مودال تغيير كلمة المرور ========== -->
-    <div class="modal-overlay" id="password-modal">
-        <div class="modal-box">
-            <div class="modal-icon warn"><i class="fa-solid fa-key"></i></div>
-            <h3>تغيير كلمة المرور</h3>
-            <div style="margin-bottom:12px;">
-                <input type="password" class="form-input" id="pw-old" placeholder="كلمة المرور الحالية" style="margin-bottom:10px;">
-                <input type="password" class="form-input" id="pw-new" placeholder="كلمة المرور الجديدة">
-            </div>
-            <div class="modal-btns">
-                <button class="btn-main btn-accent" onclick="changePassword()">تحديث</button>
-                <button class="btn-main btn-outline" onclick="closeModal('password-modal')">إلغاء</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ========== مودال تعديل الاسم ========== -->
-    <div class="modal-overlay" id="edit-name-modal">
-        <div class="modal-box">
-            <div class="modal-icon warn"><i class="fa-solid fa-pen"></i></div>
-            <h3>تعديل الاسم التجاري</h3>
-            <input type="text" class="form-input" id="edit-name-input" placeholder="الاسم التجاري الجديد" style="margin-bottom:14px;">
-            <div class="modal-btns">
-                <button class="btn-main btn-accent" onclick="saveEditedName()">حفظ</button>
-                <button class="btn-main btn-outline" onclick="closeModal('edit-name-modal')">إلغاء</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- واتساب عائم -->
-    <button class="wa-float" id="wa-float" onclick="window.open('https://wa.me/qr/YBZ6EGHGC4KXI1','_blank')">
-        <i class="fa-brands fa-whatsapp"></i>
-    </button>
-
-    <!-- الشريط السفلي -->
-    <nav class="bottom-nav" id="bottom-nav">
-        <button class="nav-item active" data-page="home" onclick="navigateTo('home')">
-            <i class="fa-solid fa-store"></i><span>الرئيسية</span>
-        </button>
-        <button class="nav-item" data-page="customer" onclick="navigateTo('customer')">
-            <i class="fa-solid fa-bag-shopping"></i><span>طلباتي</span>
-        </button>
-        <button class="nav-item" data-page="map" onclick="navigateTo('map')">
-            <i class="fa-solid fa-map-location-dot"></i><span>الخريطة</span>
-        </button>
-    </nav>
-
-    <!-- آلية الموقع -->
-    <script src="loc.js"></script>
-
-    <script>
-        // === تهيئة Firestore ===
-        firebase.initializeApp(firebaseConfig);
-        var db = firebase.firestore();
-
-        // === متغيرات عامة ===
-        var currentPage = 'home';
-        var foodLocData = null; // بيانات موقع المطعم عند التسجيل
-        var foodDocId = localStorage.getItem('food_doc_id');
-        var driverDocId = localStorage.getItem('driver_doc_id');
-        var passwordChangeTarget = ''; // 'food' أو 'driver'
-        var pendingRegisterType = ''; // 'food' أو 'driver'
-
-        // === التنقل بين الصفحات ===
-        function navigateTo(pageId) {
-            // إخفاء جميع الصفحات
-            document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
-
-            // إظهار الصفحة المطلوبة
-            var page = document.getElementById('page-' + pageId);
-            if (page) {
-                page.classList.add('active');
-                currentPage = pageId;
-            }
-
-            // تحديث الشريط السفلي
-            var nav = document.getElementById('bottom-nav');
-            var waBtn = document.getElementById('wa-float');
-            var showNav = ['home', 'customer', 'map'].indexOf(pageId) !== -1;
-            nav.classList.toggle('show', showNav);
-            waBtn.classList.toggle('show', showNav);
-
-            // تحديث العنصر النشط
-            document.querySelectorAll('.nav-item').forEach(function(item) {
-                item.classList.toggle('active', item.getAttribute('data-page') === pageId);
-            });
-
-            // منطق خاص بكل صفحة
-            if (pageId === 'home') loadRestaurants();
-            if (pageId === 'food') initFoodPage();
-            if (pageId === 'driver') initDriverPage();
-            if (pageId === 'help') {
-                // زر الرجوع يعتمد على المصدر
-                var backBtn = document.getElementById('help-back-btn');
-                backBtn.onclick = function() { navigateTo('home'); };
-            }
-
-            // تمرير لأعلى
-            window.scrollTo(0, 0);
-        }
-
-        // === تحميل قائمة المطاعم ===
-        function loadRestaurants() {
-            var list = document.getElementById('restaurants-list');
-            list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-size:0.85rem;"><i class="fa-solid fa-spinner fa-spin" style="font-size:1.2rem;display:block;margin-bottom:10px;"></i>جاري التحميل...</div>';
-
-            db.collection('restaurants').where('status', '==', 'approved').get().then(function(snapshot) {
-                if (snapshot.empty) {
-                    list.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--muted);font-size:0.85rem;opacity:0.5;"><i class="fa-solid fa-store-slash" style="font-size:2rem;display:block;margin-bottom:12px;"></i>لا توجد مطاعم مسجلة حالياً</div>';
-                    return;
-                }
-
-                var html = '';
-                snapshot.forEach(function(doc) {
-                    var d = doc.data();
-                    html += '<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:10px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all 0.2s;" onclick="openRestaurant(\'' + doc.id + '\')">' +
-                        '<div style="width:48px;height:48px;border-radius:12px;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:var(--accent);flex-shrink:0;"><i class="fa-solid fa-store"></i></div>' +
-                        '<div style="flex:1;min-width:0;">' +
-                            '<div style="font-weight:700;font-size:0.95rem;margin-bottom:2px;">' + escHtml(d.name) + '</div>' +
-                            '<div style="font-size:0.75rem;color:var(--muted);direction:ltr;text-align:right;">' + escHtml(d.phone1) + '</div>' +
-                        '</div>' +
-                        '<i class="fa-solid fa-chevron-left" style="color:var(--muted);font-size:0.8rem;"></i>' +
-                    '</div>';
-                });
-                list.innerHTML = html;
-            }).catch(function() {
-                list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--danger);font-size:0.82rem;">خطأ في تحميل البيانات</div>';
-            });
-        }
-
-        function openRestaurant(id) {
-            showToast('صفحة المينيو قيد التطوير', 'info');
-        }
-
-        // ============================
-        //    صفحة المطاعم food
-        // ============================
-        function initFoodPage() {
-            if (foodDocId) {
-                // مسح جلسة الجهاز الآخر
-                db.collection('restaurants').doc(foodDocId).update({ session_id: deviceId }).catch(function() {});
-                checkFoodSession();
-            } else {
-                showFoodRegister();
-            }
-        }
-
-        function showFoodLogin() {
-            hide('food-register'); hide('food-profile');
-            show('food-login');
-            document.getElementById('food-header-title').innerText = 'تسجيل دخول المطعم';
-        }
-
-        function showFoodRegister() {
-            hide('food-login'); hide('food-profile');
-            show('food-register');
-            document.getElementById('food-header-title').innerText = 'تسجيل مطعم أو كافتريا';
-        }
-
-        // التقاط موقع المطعم
-        function captureFoodLocation() {
-            if (foodLocData) return; // محدد مسبقاً
-            var field = document.getElementById('fr-loc-field');
-            var icon = document.getElementById('fr-loc-icon');
-            var text = document.getElementById('fr-loc-text');
-            var spinner = document.getElementById('fr-loc-spinner');
-
-            icon.style.display = 'none';
-            spinner.style.display = 'block';
-            text.innerText = 'جاري البحث عن الأقمار...';
-
-            if (!navigator.geolocation) {
-                text.innerText = 'الجهاز لا يدعم GPS';
-                spinner.style.display = 'none';
-                icon.style.display = 'block';
-                return;
-            }
-
-            navigator.geolocation.getCurrentPosition(function(pos) {
-                var acc = pos.coords.accuracy;
-                if (acc > 5) {
-                    text.innerText = 'الدقة ' + acc.toFixed(1) + 'م — حاول مرة أخرى';
-                    spinner.style.display = 'none';
-                    icon.style.display = 'block';
-                    return;
-                }
-                foodLocData = { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: acc };
-                field.classList.add('locked');
-                spinner.style.display = 'none';
-                text.innerText = 'تم تثبيت الموقع (دقة ' + acc.toFixed(1) + 'م)';
-            }, function() {
-                text.innerText = 'فشل في تحديد الموقع';
-                spinner.style.display = 'none';
-                icon.style.display = 'block';
-            }, { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
-        }
-
-        // تسجيل مطعم جديد
-        function foodRegister() {
-            clearErrors('fr-');
-            var name = val('fr-name'), p1 = val('fr-phone1'), p2 = val('fr-phone2'), pass = val('fr-pass');
-            var valid = true;
-
-            if (!name) { err('fr-name-err', 'الاسم التجاري مطلوب'); valid = false; }
-            if (!phoneOk(p1, 'fr-phone1-err')) valid = false;
-            if (p2 && !phoneOk(p2, 'fr-phone2-err')) valid = false;
-            if (!foodLocData) { err('fr-loc-err', 'يجب تحديد الموقع بدقة أقل من 5 أمتار'); valid = false; }
-            if (!pass || pass.length < 4) { err('fr-pass-err', 'كلمة المرور مطلوبة (4 أحرف على الأقل)'); valid = false; }
-            if (!valid) return;
-
-            pendingRegisterType = 'food';
-            openModal('confirm-modal');
-            document.getElementById('confirm-yes-btn').onclick = function() {
-                closeModal('confirm-modal');
-                doFoodRegister(name, p1, p2, pass);
-            };
-        }
-
-        function doFoodRegister(name, p1, p2, pass) {
-            var btn = event.target; btn.disabled = true; btn.innerText = 'جاري التسجيل...';
-
-            db.collection('restaurants').where('phone1', '==', p1).get().then(function(snap) {
-                if (!snap.empty) {
-                    btn.disabled = false; btn.innerText = 'تسجيل';
-                    err('fr-phone1-err', 'هذا الرقم مسجل مسبقاً');
-                    return;
-                }
-                return db.collection('restaurants').add({
-                    name: name, phone1: p1, phone2: p2 || '',
-                    password: pass, location: foodLocData,
-                    status: 'pending', session_id: deviceId,
-                    created_at: firebase.firestore.FieldValue.serverTimestamp()
-                });
-            }).then(function(docRef) {
-                if (!docRef) return;
-                btn.disabled = false; btn.innerText = 'تسجيل';
-                foodDocId = docRef.id;
-                localStorage.setItem('food_doc_id', foodDocId);
-
-                // رسالة واتساب
-                var msg = 'مرحبا نحن ' + name + ' ' + p1 + (p2 ? ' - ' + p2 : '') + ' قمت بالتسجيل كعلامة تجارية يرجى مراجعة طلب الانظمام وسوف اقوم بزيارتكم لاحقا لأكمال عملية التسجيل';
-                showSuccessModal(
-                    'تم التسجيل بنجاح',
-                    'عليك مراجعة مكتب الشركة لأكمال عملية التدقيق واستلام نموذج التسجيل مع تطبيق الكاشير الخاص بكم<br><br><span class="address-text">كركوك - قضاء الحويجة - السوق الكبير قرب دائرة الكهرباء</span>',
-                    msg
-                );
-            }).catch(function(e) {
-                btn.disabled = false; btn.innerText = 'تسجيل';
-                showToast('خطأ: ' + e.message, 'error');
-            });
-        }
-
-        // تسجيل دخول المطعم
-        function foodLogin() {
-            clearErrors('fl-');
-            var p = val('fl-phone'), pass = val('fl-pass');
-            var valid = true;
-            if (!phoneOk(p, 'fl-phone-err')) valid = false;
-            if (!pass) { err('fl-pass-err', 'كلمة المرور مطلوبة'); valid = false; }
-            if (!valid) return;
-
-            var btn = event.target; btn.disabled = true; btn.innerText = 'جاري الدخول...';
-
-            db.collection('restaurants').where('phone1', '==', p).get().then(function(snap) {
-                if (snap.empty) { btn.disabled = false; btn.innerText = 'تسجيل الدخول'; err('fl-phone-err', 'غير مسجل'); return; }
-                var doc = snap.docs[0];
-                if (doc.data().password !== pass) { btn.disabled = false; btn.innerText = 'تسجيل الدخول'; err('fl-pass-err', 'كلمة المرور خاطئة'); return; }
-                if (doc.data().status !== 'approved') { btn.disabled = false; btn.innerText = 'تسجيل الدخول'; showToast('حسابك قيد المراجعة', 'info'); return; }
-
-                // تسجيل خروج من الجهاز الآخر
-                return doc.ref.update({ session_id: deviceId }).then(function() {
-                    foodDocId = doc.id;
-                    localStorage.setItem('food_doc_id', foodDocId);
-                    btn.disabled = false; btn.innerText = 'تسجيل الدخول';
-                    showFoodProfile(doc.data());
-                });
-            }).catch(function(e) {
-                btn.disabled = false; btn.innerText = 'تسجيل الدخول';
-                showToast('خطأ: ' + e.message, 'error');
-            });
-        }
-
-        function checkFoodSession() {
-            db.collection('restaurants').doc(foodDocId).get().then(function(doc) {
-                if (!doc.exists) { foodDocId = null; localStorage.removeItem('food_doc_id'); showFoodRegister(); return; }
-                var d = doc.data();
-                if (d.session_id !== deviceId) { foodDocId = null; localStorage.removeItem('food_doc_id'); showFoodLogin(); return; }
-                if (d.status !== 'approved') { foodDocId = null; localStorage.removeItem('food_doc_id'); showFoodLogin(); showToast('حسابك قيد المراجعة', 'info'); return; }
-                showFoodProfile(d);
-            }).catch(function() { showFoodLogin(); });
-        }
-
-        function showFoodProfile(d) {
-            hide('food-login'); hide('food-register'); show('food-profile');
-            document.getElementById('food-header-title').innerText = d.name;
-            document.getElementById('fp-name').innerText = d.name;
-            document.getElementById('fp-phone').innerText = d.phone1;
-        }
-
-        function updateFoodLocation() {
-            showToast('جاري تحديث الموقع...', 'info');
-            if (!navigator.geolocation) return;
-            navigator.geolocation.getCurrentPosition(function(pos) {
-                db.collection('restaurants').doc(foodDocId).update({
-                    location: { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy }
-                }).then(function() { showToast('تم تحديث الموقع بنجاح', 'success'); })
-                .catch(function() { showToast('فشل في تحديث الموقع', 'error'); });
-            }, function() { showToast('فشل في تحديد الموقع', 'error'); },
-            { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
-        }
-
-        function showEditFoodName() {
-            document.getElementById('edit-name-input').value = document.getElementById('fp-name').innerText;
-            openModal('edit-name-modal');
-        }
-
-        function saveEditedName() {
-            var newName = val('edit-name-input');
-            if (!newName) { showToast('الاسم مطلوب', 'error'); return; }
-            db.collection('restaurants').doc(foodDocId).update({ name: newName }).then(function() {
-                document.getElementById('fp-name').innerText = newName;
-                document.getElementById('food-header-title').innerText = newName;
-                closeModal('edit-name-modal');
-                showToast('تم تحديث الاسم', 'success');
-            }).catch(function() { showToast('فشل في التحديث', 'error'); });
-        }
-
-        function foodLogout() {
-            db.collection('restaurants').doc(foodDocId).update({ session_id: '' }).catch(function() {});
-            foodDocId = null; localStorage.removeItem('food_doc_id');
-            showFoodLogin();
-            showToast('تم تسجيل الخروج', 'success');
-        }
-
-        // ============================
-        //    صفحة السائق driver
-        // ============================
-        function initDriverPage() {
-            if (driverDocId) {
-                db.collection('drivers').doc(driverDocId).update({ session_id: deviceId }).catch(function() {});
-                checkDriverSession();
-            } else {
-                showDriverRegister();
-            }
-        }
-
-        function showDriverLogin() {
-            hide('driver-register'); hide('driver-profile'); show('driver-login');
-            document.getElementById('driver-header-title').innerText = 'تسجيل دخول السائق';
-        }
-
-        function showDriverRegister() {
-            hide('driver-login'); hide('driver-profile'); show('driver-register');
-            document.getElementById('driver-header-title').innerText = 'تسجيل سائق توصيل';
-        }
-
-        function driverRegister() {
-            clearErrors('dr-');
-            var fn = val('dr-fname'), mn = val('dr-mname'), ln = val('dr-lname');
-            var addr = val('dr-address'), p1 = val('dr-phone1'), p2 = val('dr-phone2'), pass = val('dr-pass');
-            var valid = true;
-
-            if (!fn) { err('dr-fname-err', 'مطلوب'); valid = false; }
-            if (!mn) { err('dr-mname-err', 'مطلوب'); valid = false; }
-            if (!ln) { err('dr-lname-err', 'مطلوب'); valid = false; }
-            if (!addr) { err('dr-address-err', 'مطلوب'); valid = false; }
-            if (!phoneOk(p1, 'dr-phone1-err')) valid = false;
-            if (p2 && !phoneOk(p2, 'dr-phone2-err')) valid = false;
-            if (!pass || pass.length < 4) { err('dr-pass-err', 'كلمة المرور مطلوبة (4 أحرف على الأقل)'); valid = false; }
-            if (!valid) return;
-
-            pendingRegisterType = 'driver';
-            openModal('confirm-modal');
-            document.getElementById('confirm-yes-btn').onclick = function() {
-                closeModal('confirm-modal');
-                doDriverRegister(fn, mn, ln, addr, p1, p2, pass);
-            };
-        }
-
-        function doDriverRegister(fn, mn, ln, addr, p1, p2, pass) {
-            var btn = event.target; btn.disabled = true; btn.innerText = 'جاري التسجيل...';
-
-            db.collection('drivers').where('phone1', '==', p1).get().then(function(snap) {
-                if (!snap.empty) { btn.disabled = false; btn.innerText = 'تسجيل'; err('dr-phone1-err', 'هذا الرقم مسجل مسبقاً'); return; }
-                return db.collection('drivers').add({
-                    first_name: fn, middle_name: mn, last_name: ln,
-                    address: addr, phone1: p1, phone2: p2 || '',
-                    password: pass, status: 'pending', session_id: deviceId,
-                    created_at: firebase.firestore.FieldValue.serverTimestamp()
-                });
-            }).then(function(docRef) {
-                if (!docRef) return;
-                btn.disabled = false; btn.innerText = 'تسجيل';
-                driverDocId = docRef.id;
-                localStorage.setItem('driver_doc_id', driverDocId);
-
-                var fullName = fn + ' ' + mn + ' ' + ln;
-                var msg = 'مرحبا انا ' + fullName + ' ' + p1 + (p2 ? ' - ' + p2 : '') + ' قمت بالتسجيل كسائق توصيل يرجى مراجعة طلب الانظمام وسوف اقوم بزيارتكم لاحقا لأكمال عملية التسجيل';
-                showSuccessModal(
-                    'تم التسجيل بنجاح',
-                    'عليك مراجعة مكتب الشركة لأكمال عملية التدقيق واستلام بطاقة التسجيل<br><br><span class="address-text">يرجى جلب المستمسكات الرسمية الثبوتية الخاصة بالسائق</span><br><span class="address-text">كركوك - قضاء الحويجة - السوق الكبير قرب دائرة الكهرباء</span>',
-                    msg
-                );
-            }).catch(function(e) {
-                btn.disabled = false; btn.innerText = 'تسجيل';
-                showToast('خطأ: ' + e.message, 'error');
-            });
-        }
-
-        function driverLogin() {
-            clearErrors('dl-');
-            var p = val('dl-phone'), pass = val('dl-pass');
-            var valid = true;
-            if (!phoneOk(p, 'dl-phone-err')) valid = false;
-            if (!pass) { err('dl-pass-err', 'كلمة المرور مطلوبة'); valid = false; }
-            if (!valid) return;
-
-            var btn = event.target; btn.disabled = true; btn.innerText = 'جاري الدخول...';
-
-            db.collection('drivers').where('phone1', '==', p).get().then(function(snap) {
-                if (snap.empty) { btn.disabled = false; btn.innerText = 'تسجيل الدخول'; err('dl-phone-err', 'غير مسجل'); return; }
-                var doc = snap.docs[0];
-                if (doc.data().password !== pass) { btn.disabled = false; btn.innerText = 'تسجيل الدخول'; err('dl-pass-err', 'كلمة المرور خاطئة'); return; }
-                if (doc.data().status !== 'approved') { btn.disabled = false; btn.innerText = 'تسجيل الدخول'; showToast('حسابك قيد المراجعة', 'info'); return; }
-
-                return doc.ref.update({ session_id: deviceId }).then(function() {
-                    driverDocId = doc.id;
-                    localStorage.setItem('driver_doc_id', driverDocId);
-                    btn.disabled = false; btn.innerText = 'تسجيل الدخول';
-                    showDriverProfile(doc.data());
-                });
-            }).catch(function(e) {
-                btn.disabled = false; btn.innerText = 'تسجيل الدخول';
-                showToast('خطأ: ' + e.message, 'error');
-            });
-        }
-
-        function checkDriverSession() {
-            db.collection('drivers').doc(driverDocId).get().then(function(doc) {
-                if (!doc.exists) { driverDocId = null; localStorage.removeItem('driver_doc_id'); showDriverRegister(); return; }
-                var d = doc.data();
-                if (d.session_id !== deviceId) { driverDocId = null; localStorage.removeItem('driver_doc_id'); showDriverLogin(); return; }
-                if (d.status !== 'approved') { driverDocId = null; localStorage.removeItem('driver_doc_id'); showDriverLogin(); showToast('حسابك قيد المراجعة', 'info'); return; }
-                showDriverProfile(d);
-            }).catch(function() { showDriverLogin(); });
-        }
-
-        function showDriverProfile(d) {
-            hide('driver-login'); hide('driver-register'); show('driver-profile');
-            document.getElementById('driver-header-title').innerText = d.first_name + ' ' + d.last_name;
-            document.getElementById('dp-name').innerText = d.first_name + ' ' + d.middle_name + ' ' + d.last_name;
-            document.getElementById('dp-phone').innerText = d.phone1;
-        }
-
-        function driverLogout() {
-            db.collection('drivers').doc(driverDocId).update({ session_id: '' }).catch(function() {});
-            driverDocId = null; localStorage.removeItem('driver_doc_id');
-            showDriverLogin();
-            showToast('تم تسجيل الخروج', 'success');
-        }
-
-        // ============================
-        //    أدوات مساعدة
-        // ============================
-        function val(id) { return document.getElementById(id).value.trim(); }
-        function show(id) { document.getElementById(id).style.display = 'block'; }
-        function hide(id) { document.getElementById(id).style.display = 'none'; }
-
-        function err(id, msg) {
-            var el = document.getElementById(id);
-            el.innerText = msg; el.classList.add('show');
-            // تمييز الحقل
-            var input = el.previousElementSibling;
-            if (input && (input.classList.contains('form-input') || input.classList.contains('loc-field')))
-                input.classList.add('error');
-        }
-
-        function clearErrors(prefix) {
-            document.querySelectorAll('[id^="' + prefix + '"]').forEach(function(el) {
-                if (el.classList.contains('form-error')) { el.innerText = ''; el.classList.remove('show'); }
-                if (el.classList.contains('form-input') || el.classList.contains('loc-field')) el.classList.remove('error');
-            });
-        }
-
-        function phoneOk(value, errId) {
-            if (!value) { err(errId, 'رقم الهاتف مطلوب'); return false; }
-            if (!/^07\d{9}$/.test(value)) { err(errId, 'يجب أن يبدأ بـ 07 ويكون 11 رقم'); return false; }
-            return true;
-        }
-
-        function escHtml(s) {
-            var d = document.createElement('div'); d.textContent = s; return d.innerHTML;
-        }
-
-        function openModal(id) { document.getElementById(id).classList.add('open'); }
-        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
-        function showSuccessModal(title, text, waMsg) {
-            document.getElementById('success-title').innerText = title;
-            document.getElementById('success-text').innerHTML = text;
-            openModal('success-modal');
-            document.getElementById('success-continue-btn').onclick = function() {
-                closeModal('success-modal');
-                // مشاركة واتساب
-                var url = 'https://wa.me/qr/YBZ6EGHGC4KXI1?text=' + encodeURIComponent(waMsg);
-                window.open(url, '_blank');
-                navigateTo('home');
-            };
-        }
-
-        function showChangePassword(type) {
-            passwordChangeTarget = type;
-            document.getElementById('pw-old').value = '';
-            document.getElementById('pw-new').value = '';
-            openModal('password-modal');
-        }
-
-        function changePassword() {
-            var oldPw = val('pw-old'), newPw = val('pw-new');
-            if (!oldPw || !newPw || newPw.length < 4) { showToast('كلمة المرور الجديدة مطلوبة (4 أحرف)', 'error'); return; }
-
-            var col = passwordChangeTarget === 'food' ? 'restaurants' : 'drivers';
-            var docId = passwordChangeTarget === 'food' ? foodDocId : driverDocId;
-
-            db.collection(col).doc(docId).get().then(function(doc) {
-                if (!doc.exists) { showToast('خطأ في العثور على الحساب', 'error'); return; }
-                if (doc.data().password !== oldPw) { showToast('كلمة المرور الحالية خاطئة', 'error'); return; }
-                return doc.ref.update({ password: newPw });
-            }).then(function() {
-                if (arguments[0] === undefined && !document.querySelector('.toast.error')) return;
-                closeModal('password-modal');
-                showToast('تم تغيير كلمة المرور', 'success');
-            }).catch(function() { showToast('فشل في التحديث', 'error'); });
-        }
-
-        function showToast(msg, type) {
-            var c = document.getElementById('toast-container');
-            var t = document.createElement('div');
-            t.className = 'toast ' + (type || 'info');
-            var icons = { success: 'fa-circle-check', error: 'fa-circle-xmark', info: 'fa-circle-info' };
-            t.innerHTML = '<i class="fa-solid ' + (icons[type] || icons.info) + '"></i> ' + msg;
-            c.appendChild(t);
-            setTimeout(function() { if (t.parentNode) t.parentNode.removeChild(t); }, 3000);
-        }
-
-        // === التحميل الأولي ===
-        window.onload = function() {
-            navigateTo('home');
-        };
-    </script>
 </body>
 </html>
